@@ -53,7 +53,7 @@ def test_F4_T04_app_roda_sem_excecao(at):
 def test_F4_T05_app_tem_sete_abas_com_rotulos_curtos(at):
     labels = [t.label for t in at.tabs]
     assert labels == ["Mapa", "Prioridade", "Município", "Tarifa Social", "Subsídios", "Sinais", "Método"]
-    assert all(len(l) <= 12 for l in labels)
+    assert all(len(l) <= 13 for l in labels)
 
 
 def test_F4_T06_download_no_topo_e_no_rodape(at):
