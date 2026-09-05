@@ -1,3 +1,13 @@
+"""IPEM: Índice de Pobreza Energética Municipal.
+
+Reúso de dados abertos (ANEEL, MDS, IBGE) para o 2º Concurso de Reúso de Dados Abertos da CGU.
+
+Autor: Diego H. C. de Rezende, fundador da Struktur Energia.
+Engenheiro de Computação e mestre em Engenharia de Software, com experiência em desenvolvimento de software, ciência de dados, gestão de projetos e operação de sistemas em ambientes de alta complexidade e missão crítica. Fundador da Struktur Energia, iniciativa dedicada a inteligência de mercado, eficiência energética e gestão estratégica de energia. Cursa o MBA em Gestão de Riscos na Comercialização de Energia (USP/CCEE) e o MBA em Data Science, Inteligência Artificial e Analytics (USP/ESALQ).
+
+Repositório: https://github.com/diegocornelio/ipem-pobreza-energetica-municipal
+Licença do código: MIT. Licença dos dados derivados: CC-BY 4.0.
+"""
 import geopandas as gpd
 import pandas as pd
 import pytest
@@ -33,7 +43,7 @@ def test_F2_T07_schema_tabelas_interim(nome, cols):
 def test_F2_S04_tarifa_com_tributos_em_faixa_plausivel():
     t = pd.read_parquet(_need(INTERIM / "tarifa_municipio.parquet"))
     assert t.tarifa_municipal_estimada.dropna().between(0.60, 1.20).all(), \
-        "tarifa fora de 0,60–1,20 R$/kWh: erro de unidade ou tributo duplicado"
+        "tarifa fora de 0,60 a 1,20 R$/kWh: erro de unidade ou tributo duplicado"
     assert t.tarifa_flag_estimativa.all(), "toda tarifa municipal é estimativa e deve ter flag True"
 
 
@@ -56,7 +66,7 @@ def test_F2_S07_cadunico_plausivel_e_renda_rotulada():
     c = pd.read_parquet(_need(INTERIM / "cadunico_municipio.parquet"))
     assert (c.familias_elegiveis <= c.familias_cadastradas).all()
     assert c.renda_fonte.notna().all() and c.renda_fonte.str.len().gt(0).all()
-    assert c.renda_referencia.dropna().between(100, 5000).all(), "renda mensal fora de 100–5000: unidade errada?"
+    assert c.renda_referencia.dropna().between(100, 5000).all(), "renda mensal fora de 100 a 5000: unidade errada?"
     assert 25_000_000 <= c.familias_cadastradas.sum() <= 55_000_000, "CECAD 06/2026: 42,9 mi famílias cadastradas"
 
 

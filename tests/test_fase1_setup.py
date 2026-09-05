@@ -1,3 +1,13 @@
+"""IPEM: Índice de Pobreza Energética Municipal.
+
+Reúso de dados abertos (ANEEL, MDS, IBGE) para o 2º Concurso de Reúso de Dados Abertos da CGU.
+
+Autor: Diego H. C. de Rezende, fundador da Struktur Energia.
+Engenheiro de Computação e mestre em Engenharia de Software, com experiência em desenvolvimento de software, ciência de dados, gestão de projetos e operação de sistemas em ambientes de alta complexidade e missão crítica. Fundador da Struktur Energia, iniciativa dedicada a inteligência de mercado, eficiência energética e gestão estratégica de energia. Cursa o MBA em Gestão de Riscos na Comercialização de Energia (USP/CCEE) e o MBA em Data Science, Inteligência Artificial e Analytics (USP/ESALQ).
+
+Repositório: https://github.com/diegocornelio/ipem-pobreza-energetica-municipal
+Licença do código: MIT. Licença dos dados derivados: CC-BY 4.0.
+"""
 import importlib
 import re
 import subprocess
@@ -27,6 +37,10 @@ def test_F1_T01_estrutura_de_pastas():
 def test_F1_T02_arquivos_obrigatorios():
     faltam = [a for a in ARQUIVOS if not (ROOT / a).is_file()]
     assert not faltam, f"arquivos ausentes: {faltam}"
+    for path in ROOT.rglob("*.py"):
+        if ".venv" in path.parts:
+            continue
+        assert "Autor: Diego H. C. de Rezende" in path.read_text(encoding="utf-8").split('"""', 2)[1], path
 
 
 def test_F1_T03_notebooks_existem_e_sao_json_validos():
@@ -65,6 +79,7 @@ def test_F1_T08_readme_declara_licencas_e_reproducao():
     rd = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "MIT" in rd and "CC-BY 4.0" in rd
     assert "run_all.py" in rd
+    assert "Sobre o autor" in rd and "Diego H. C. de Rezende" in rd
 
 
 def test_F1_T09_fontes_csv_tem_cabecalho_da_v7():

@@ -1,3 +1,13 @@
+"""IPEM: Índice de Pobreza Energética Municipal.
+
+Reúso de dados abertos (ANEEL, MDS, IBGE) para o 2º Concurso de Reúso de Dados Abertos da CGU.
+
+Autor: Diego H. C. de Rezende, fundador da Struktur Energia.
+Engenheiro de Computação e mestre em Engenharia de Software, com experiência em desenvolvimento de software, ciência de dados, gestão de projetos e operação de sistemas em ambientes de alta complexidade e missão crítica. Fundador da Struktur Energia, iniciativa dedicada a inteligência de mercado, eficiência energética e gestão estratégica de energia. Cursa o MBA em Gestão de Riscos na Comercialização de Energia (USP/CCEE) e o MBA em Data Science, Inteligência Artificial e Analytics (USP/ESALQ).
+
+Repositório: https://github.com/diegocornelio/ipem-pobreza-energetica-municipal
+Licença do código: MIT. Licença dos dados derivados: CC-BY 4.0.
+"""
 import json
 from pathlib import Path
 import pandas as pd
@@ -57,7 +67,7 @@ def test_F4_T07_selecao_de_municipio_atualiza_ficha(at):
     sel.set_value("Belford Roxo (RJ)").run()
     assert not at.exception
     metricas = [m.label for m in at.metric]
-    assert "IPEM (0–100)" in metricas and "Posição no ranking" in metricas
+    assert "IPEM (0 a 100)" in metricas and "Posição no ranking" in metricas
     md = " ".join(m.value for m in at.markdown)
     assert "Dois piores:" in md and "Faixa:" in md
 
