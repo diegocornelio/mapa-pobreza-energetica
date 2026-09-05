@@ -11,7 +11,7 @@ Licença do código: MIT. Licença dos dados derivados: CC-BY 4.0.
 import geopandas as gpd
 import pandas as pd
 import pytest
-from conftest import INTERIM, N_MUN, BAIXADA, _need
+from conftest import INTERIM, RAW, N_MUN, BAIXADA, _need
 
 pytestmark = pytest.mark.fase2
 
@@ -31,6 +31,20 @@ def test_F2_T06_espinha_5570_baixada_nome_uf_unico():
     assert mun.nome_uf.is_unique
     assert mun.crs is not None and mun.crs.to_epsg() == 4326
     assert mun.cod_ibge.astype(int).between(1_100_000, 5_399_999).all()
+
+
+def test_F2_T06b_parser_cecad_aceita_municipio_com_brasil_no_nome():
+    from src.collect import linha_cecad
+
+    html = """
+    <h4>Cadastro Único ASSIS BRASIL-AC</h4>
+    <div>Famílias Cadastradas</div><div class="ref_textoc">08/2026</div><div class="dado_textoc">10</div>
+    <div class="ref_textoc">em situação de Pobreza</div><div class="dado_textoc">4</div>
+    <div class="ref_textoc">em situação de Baixa Renda</div><div class="dado_textoc">3</div>
+    <div class="ref_textoc">com renda per capita mensal Acima de ½ Sal. min.</div><div class="dado_textoc">3</div>
+    """
+    linha = linha_cecad("1200054", "Assis Brasil", "AC", html)
+    assert linha["familias_elegiveis"] == 7
 
 
 @pytest.mark.parametrize("nome,cols", SCHEMAS.items())
@@ -68,6 +82,41 @@ def test_F2_S07_cadunico_plausivel_e_renda_rotulada():
     assert c.renda_fonte.notna().all() and c.renda_fonte.str.len().gt(0).all()
     assert c.renda_referencia.dropna().between(100, 5000).all(), "renda mensal fora de 100 a 5000: unidade errada?"
     assert 25_000_000 <= c.familias_cadastradas.sum() <= 55_000_000, "CECAD 06/2026: 42,9 mi famílias cadastradas"
+
+
+def test_F2_S07b_cecad_painel_municipal_total_e_amostras():
+    c = pd.read_parquet(_need(INTERIM / "cadunico_municipio.parquet"))
+    assert len(c) == N_MUN
+    assert abs(c.familias_cadastradas.sum() - 43_218_806) <= 43_218_806 * 0.01
+    assert abs(c.familias_elegiveis.sum() - 27_821_309) <= 27_821_309 * 0.01
+    soma_faixas = c.familias_pobreza + c.familias_baixa_renda + c.familias_acima_meio_sm
+    assert (soma_faixas == c.familias_cadastradas).all()
+    assert (c.familias_elegiveis <= c.familias_cadastradas).all()
+    assert c.set_index("cod_ibge").loc[3303500, [
+        "familias_cadastradas", "familias_pobreza", "familias_baixa_renda", "familias_acima_meio_sm"
+    ]].to_dict() == {
+        "familias_cadastradas": 237_731,
+        "familias_pobreza": 141_776,
+        "familias_baixa_renda": 27_692,
+        "familias_acima_meio_sm": 68_263,
+    }
+    assert c.set_index("cod_ibge").loc[2927408, [
+        "familias_cadastradas", "familias_pobreza", "familias_baixa_renda", "familias_acima_meio_sm"
+    ]].to_dict() == {
+        "familias_cadastradas": 602_736,
+        "familias_pobreza": 304_614,
+        "familias_baixa_renda": 107_144,
+        "familias_acima_meio_sm": 190_978,
+    }
+    select_dir = RAW / "mds" / "cecad-painel" / "2026-09-05"
+    codigos_select = set()
+    for path in select_dir.glob("select_*.html"):
+        html = path.read_text(encoding="utf-8")
+        codigos_select.update(int(v) for v in pd.Series(html).str.findall(r"value='([0-9]{7})'").iloc[0])
+    mun = gpd.read_parquet(_need(INTERIM / "municipios.parquet"))
+    extras = codigos_select - set(mun.cod_ibge.astype(int))
+    assert extras <= {5101837}
+    assert set(mun.cod_ibge.astype(int)) <= codigos_select
 
 
 def test_F2_S08_favela_zero_significa_ausencia_documentada():

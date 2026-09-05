@@ -1,3 +1,9 @@
 # Decisões
 
 - 2026-09-05, F2-T06: filtrar `Lagoa Mirim` (`4300001`) e `Lagoa dos Patos` (`4300002`) da malha `geobr.read_municipality(year=2022)`, porque a fonte retorna 5.572 polígonos incluindo dois registros especiais do RS; o contrato do projeto e do teste exige 5.570 municípios.
+- 2026-09-05, F2-S07b: filtrar `Boa Esperança do Norte` (`5101837`) do parquet CECAD, porque o painel CECAD 08/2026 já traz o município criado após a malha municipal 2022 usada como espinha do projeto; mantém-se a espinha de 5.570 municípios para preservar comparabilidade com IBGE 2022.
+- 2026-09-05, F2-CDE: usar `CodIbgeMunicipio` como coluna municipal real e contar linhas TSEE, porque `NumCPFCNPJCliente` vem mascarado no arquivo aberto e subconta beneficiários quando usado como chave única.
+- 2026-09-05, F2-Tarifa: usar mediana nacional B1 residencial convencional de 2024 com carga tributária estimada, porque a base tarifária é por distribuidora e a correspondência municipal direta não cobre a malha com qualidade suficiente nesta etapa; todos os valores recebem `tarifa_flag_estimativa = true`.
+- 2026-09-05, F2-INDGER: registrar `CodMunicipioIBGE` como coluna municipal real e usar `SigAgente` com `QtdUCAtiva` apenas para auditoria da distribuidora dominante, porque a estimativa tarifária final adotou mediana nacional documentada.
+- 2026-09-05, F2-DEC-FEC: agregar DEC, FEC e limites por município usando `IdeConjUnidConsumidoras` do IndQual como ponte, porque a continuidade é publicada por conjunto consumidor e não diretamente por município.
+- 2026-09-05, F2-Renda: usar SIDRA 10296 por classes de rendimento nominal mensal domiciliar per capita e calcular média aproximada por pontos médios, porque a tabela municipal diretamente média não foi localizada com estabilidade de API nesta etapa.
