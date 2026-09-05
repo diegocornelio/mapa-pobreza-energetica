@@ -7,3 +7,4 @@
 - 2026-09-05, F2-INDGER: registrar `CodMunicipioIBGE` como coluna municipal real e usar `SigAgente` com `QtdUCAtiva` apenas para auditoria da distribuidora dominante, porque a estimativa tarifária final adotou mediana nacional documentada.
 - 2026-09-05, F2-DEC-FEC: agregar DEC, FEC e limites por município usando `IdeConjUnidConsumidoras` do IndQual como ponte, porque a continuidade é publicada por conjunto consumidor e não diretamente por município.
 - 2026-09-05, F2-Renda: usar SIDRA 10296 por classes de rendimento nominal mensal domiciliar per capita e calcular média aproximada por pontos médios, porque a tabela municipal diretamente média não foi localizada com estabilidade de API nesta etapa.
+- 2026-09-05, F3-Subsídio: aplicar piso zero em `subsidio_tsee_reais` na saída processada, porque a CDE de dezembro de 2024 traz valores líquidos negativos em 32 municípios e o campo do índice representa subsídio monetário não negativo para validação agregada.
