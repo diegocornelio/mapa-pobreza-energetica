@@ -1,3 +1,13 @@
+"""IPEM: Índice de Pobreza Energética Municipal.
+
+Reúso de dados abertos (ANEEL, MDS, IBGE) para o 2º Concurso de Reúso de Dados Abertos da CGU.
+
+Autor: Diego H. C. de Rezende, fundador da Struktur Energia.
+Engenheiro de Computação e mestre em Engenharia de Software, com experiência em desenvolvimento de software, ciência de dados, gestão de projetos e operação de sistemas em ambientes de alta complexidade e missão crítica. Fundador da Struktur Energia, iniciativa dedicada a inteligência de mercado, eficiência energética e gestão estratégica de energia. Cursa o MBA em Gestão de Riscos na Comercialização de Energia (USP/CCEE) e o MBA em Data Science, Inteligência Artificial e Analytics (USP/ESALQ).
+
+Repositório: https://github.com/diegocornelio/ipem-pobreza-energetica-municipal
+Licença do código: MIT. Licença dos dados derivados: CC-BY 4.0.
+"""
 import re
 import numpy as np
 import pandas as pd
@@ -31,7 +41,7 @@ def test_F3_T03_rotulos_dois_piores(ipem):
 def test_F3_S11_ordem_de_grandeza_vs_aneel(ipem):
     soma = ipem.lacuna_bruta.sum()
     razao = soma / 7_700_000
-    assert 0.1 <= razao <= 10, f"soma da lacuna bruta = {soma:,.0f}; razão {razao:.2f} fora de 0,1–10"
+    assert 0.1 <= razao <= 10, f"soma da lacuna bruta = {soma:,.0f}; razão {razao:.2f} fora de 0,1 a 10"
 
 
 def test_F3_S12_validacao_md_tem_as_tres_ressalvas_e_topo20():
@@ -70,7 +80,9 @@ def test_F3_S16_nenhuma_frase_proibida_nos_textos():
     for p in alvos:
         if not p.exists():
             continue
-        t = p.read_text(encoding="utf-8").lower()
+        texto_original = p.read_text(encoding="utf-8")
+        assert chr(0x2014) not in texto_original, f"{p.name} contém travessão"
+        t = texto_original.lower()
         for f in FRASES_PROIBIDAS:
             assert f not in t, f"{p.name} contém frase proibida: {f!r}"
 

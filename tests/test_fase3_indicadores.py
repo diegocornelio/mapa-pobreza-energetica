@@ -1,3 +1,13 @@
+"""IPEM: Índice de Pobreza Energética Municipal.
+
+Reúso de dados abertos (ANEEL, MDS, IBGE) para o 2º Concurso de Reúso de Dados Abertos da CGU.
+
+Autor: Diego H. C. de Rezende, fundador da Struktur Energia.
+Engenheiro de Computação e mestre em Engenharia de Software, com experiência em desenvolvimento de software, ciência de dados, gestão de projetos e operação de sistemas em ambientes de alta complexidade e missão crítica. Fundador da Struktur Energia, iniciativa dedicada a inteligência de mercado, eficiência energética e gestão estratégica de energia. Cursa o MBA em Gestão de Riscos na Comercialização de Energia (USP/CCEE) e o MBA em Data Science, Inteligência Artificial e Analytics (USP/ESALQ).
+
+Repositório: https://github.com/diegocornelio/ipem-pobreza-energetica-municipal
+Licença do código: MIT. Licença dos dados derivados: CC-BY 4.0.
+"""
 import numpy as np
 import pandas as pd
 import pytest
@@ -26,12 +36,12 @@ def test_ipem_limitado_e_rotulos_curtos():
     assert out["ipem"].between(0, 100).all()
     assert out["ipem_dois_piores"].between(0, 100).all()
     assert set(out["faixa"].astype(str)) <= {"Baixa", "Média", "Alta", "Muito alta"}
-    # [v7] T1: rótulos curtos
+    # T1: rótulos curtos
     assert out["dois_piores_indicadores"].str.fullmatch(r"D[1-4], D[1-4]").all()
 
 
 def test_sem_uma_dimensao_nao_ha_ipem():
-    # [v7] T2: renda ausente -> IPEM NaN, não média de 3 dimensões
+    # T2: renda ausente -> IPEM NaN, não média de 3 dimensões
     df = _base()
     df.loc[1, "renda_referencia"] = np.nan
     out = calculate_ipem(calculate_indicators(df, consumption_kwh=100))
@@ -42,7 +52,7 @@ def test_sem_uma_dimensao_nao_ha_ipem():
 
 
 def test_faixa_nao_quebra_com_empates():
-    # [v7] T3: metade dos municípios com todos os indicadores iguais
+    # T3: metade dos municípios com todos os indicadores iguais
     rng = np.random.default_rng(0)
     n = 2000
     df = pd.DataFrame({
