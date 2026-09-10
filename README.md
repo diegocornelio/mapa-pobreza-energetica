@@ -57,7 +57,7 @@ src/, app/, tests/     código da versão anterior — ver aviso abaixo
 **Aviso sobre `src/`, `app/app.py` e `tests/`.** São a versão anterior deste trabalho,
 que continha os seis defeitos descritos em `docs/CORRECOES.md`. Estão preservados para
 que a comparação entre as duas versões seja auditável, e **não** produzem o resultado
-publicado. O porte para `src/` está planejado em `refatoracao.md`.
+publicado.
 
 ## Como reproduzir
 
@@ -79,8 +79,6 @@ estão em `data/sources/fontes.csv`.
 | `docs/REPRODUCAO.md` | como executar o pipeline |
 | `docs/VALIDACAO.md` | testes aplicados e números de referência |
 | `docs/DECISOES.md` | registro datado das decisões de leitura |
-| `HANDOFF.md` | estado do projeto |
-| `refatoracao.md` | plano de porte para `src/` |
 
 ## Licenças
 

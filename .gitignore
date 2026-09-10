@@ -12,3 +12,15 @@ data/interim/
 # Rascunho e anotacoes de trabalho na raiz ficam fora do produto.
 /*.md
 !/README.md
+
+# Em docs/ a regra e inversa: o que e publicado esta nomeado abaixo,
+# e nada entra por acidente.
+docs/*
+!docs/CORRECOES.md
+!docs/DECISOES.md
+!docs/DICIONARIO.md
+!docs/FONTES.md
+!docs/LIMITES.md
+!docs/METODO.md
+!docs/REPRODUCAO.md
+!docs/VALIDACAO.md

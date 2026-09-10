@@ -80,7 +80,7 @@ comparação auditável.
 
 Note que `run_all.py` chama `python -m src.validate` e `python -m src.export`, e nenhum
 dos dois tem bloco `__main__`: rodam como no-op, retornam zero, e o pipeline imprime "OK"
-sem ter validado nada. O conserto está previsto em `refatoracao.md`.
+sem ter validado nada.
 
 ## Fontes sujeitas a retificação
 
