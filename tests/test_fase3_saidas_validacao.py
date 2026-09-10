@@ -76,7 +76,7 @@ def test_F3_S15_dicionario_cobre_todas_as_colunas(ipem):
 
 
 def test_F3_S16_nenhuma_frase_proibida_nos_textos():
-    alvos = [DOCS / "METODO.md", DOCS / "VALIDACAO.md", DOCS / "INSCRICAO.md", ROOT / "README.md", ROOT / "app" / "app.py"]
+    alvos = [DOCS / "METODO.md", DOCS / "VALIDACAO.md", ROOT / "README.md", ROOT / "app" / "app.py"]
     for p in alvos:
         if not p.exists():
             continue

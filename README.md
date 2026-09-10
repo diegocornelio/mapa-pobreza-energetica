@@ -76,6 +76,7 @@ estão em `data/sources/fontes.csv`.
 | `docs/LIMITES.md` | o que os dados não dizem |
 | `docs/DICIONARIO.md` | as 35 colunas do dataset municipal |
 | `docs/FONTES.md` | as oito bases, com estado de leitura |
+
 | `docs/REPRODUCAO.md` | como executar o pipeline |
 | `docs/VALIDACAO.md` | testes aplicados e números de referência |
 | `docs/DECISOES.md` | registro datado das decisões de leitura |
