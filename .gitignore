@@ -9,6 +9,9 @@ data/interim/
 *.gdb
 *.gpkg-journal
 
+*.pdf
+notebooks/
+
 # Rascunho e anotacoes de trabalho na raiz ficam fora do produto.
 /*.md
 !/README.md
