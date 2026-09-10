@@ -1,0 +1,1400 @@
+<title>Mapa da Pobreza Energética</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&display=swap">
+<style>
+:root{
+  --plane:#f4f6f8; --surface:#ffffff; --surface-2:#eef2f6; --sunken:#e7edf2;
+  --ink:#0f1419; --ink-2:#48555f; --muted:#78868f; --line:#dbe3ea; --line-2:#c6d2dc;
+  --accent:#0e7c86; --accent-ink:#0a5a61; --accent-wash:#e2f1f2;
+  --s100:#cde2fb; --s150:#b7d3f6; --s200:#9ec5f4; --s250:#86b6ef; --s300:#6da7ec;
+  --s350:#5598e7; --s400:#3987e5; --s450:#2a78d6; --s500:#256abf; --s550:#1c5cab;
+  --s600:#184f95; --s650:#104281; --s700:#0d366b;
+  --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+  --div-mid:#f0efec; --r1:#f2b8b8; --r2:#e58a8a; --r3:#d03b3b; --r4:#a52626; --r5:#761a1a;
+  --ser1:#2a78d6; --ser2:#eb6834;
+  --shadow:0 1px 2px rgba(15,20,25,.05),0 8px 24px -12px rgba(15,20,25,.18);
+  --nodata:#e4e9ee;
+  --pill-crit:#8f2020; --pill-ok:#0a6b0a; --pill-warn:#8a5a00;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --plane:#0c1014; --surface:#141a20; --surface-2:#1b232b; --sunken:#10161c;
+  --ink:#eef2f6; --ink-2:#a3b0bd; --muted:#78868f; --line:#232c35; --line-2:#2e3944;
+  --accent:#3ba7b0; --accent-ink:#7fcdd3; --accent-wash:#123134;
+  --div-mid:#383835; --r1:#5c2a2a; --r2:#8a3535; --r3:#d03b3b; --r4:#e06a6a; --r5:#ef9a9a;
+  --ser1:#3987e5; --ser2:#d95926;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+  --nodata:#1e262e;
+  --pill-crit:#f0a0a0; --pill-ok:#6ee06e; --pill-warn:#f5cf7a;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --plane:#0c1014; --surface:#141a20; --surface-2:#1b232b; --sunken:#10161c;
+  --ink:#eef2f6; --ink-2:#a3b0bd; --muted:#78868f; --line:#232c35; --line-2:#2e3944;
+  --accent:#3ba7b0; --accent-ink:#7fcdd3; --accent-wash:#123134;
+  --div-mid:#383835; --r1:#5c2a2a; --r2:#8a3535; --r3:#d03b3b; --r4:#e06a6a; --r5:#ef9a9a;
+  --ser1:#3987e5; --ser2:#d95926;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+  --nodata:#1e262e;
+  --pill-crit:#f0a0a0; --pill-ok:#6ee06e; --pill-warn:#f5cf7a;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"IBM Plex Serif","Iowan Old Style",Georgia,serif;font-weight:600;
+  text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:30px;line-height:1.15}
+h2{font-size:20px;line-height:1.25}
+h3{font-size:15px;line-height:1.3}
+p{margin:0}
+a{color:var(--accent-ink)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:500;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100vh}
+.rail{background:var(--surface);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{padding:20px 18px 16px;border-bottom:1px solid var(--line)}
+.brand .mark{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.brand svg{flex:none}
+.brand h1{font-size:16.5px;line-height:1.2}
+.brand .sub{font-size:11.5px;color:var(--muted);line-height:1.45}
+.navgroup{padding:14px 10px 4px}
+.navgroup .eyebrow{padding:0 8px 7px}
+nav{display:flex;flex-direction:column;gap:1px}
+.nav-btn{display:flex;align-items:flex-start;gap:9px;width:100%;text-align:left;
+  background:none;border:0;padding:8px 9px;border-radius:6px;cursor:pointer;
+  color:var(--ink-2);font:inherit;font-size:13px;line-height:1.35;transition:background .12s,color .12s}
+.nav-btn .qi{flex:none;width:17px;height:17px;margin-top:1px;color:var(--muted)}
+.nav-btn:hover{background:var(--surface-2);color:var(--ink)}
+.nav-btn[aria-current="page"]{background:var(--accent-wash);color:var(--accent-ink);font-weight:600}
+.nav-btn[aria-current="page"] .qi{color:var(--accent)}
+.rail-foot{margin-top:auto;padding:14px 18px 18px;border-top:1px solid var(--line);
+  font-size:11px;color:var(--muted);line-height:1.5}
+main{min-width:0;display:flex;flex-direction:column}
+
+/* ---------- municipality bar ---------- */
+.munbar{position:sticky;top:0;z-index:40;background:var(--surface);
+  border-bottom:1px solid var(--line);padding:11px 26px;display:flex;align-items:center;
+  gap:14px;flex-wrap:wrap}
+.picker{position:relative;flex:1 1 330px;max-width:430px;min-width:230px}
+.picker input{width:100%;padding:8px 11px 8px 32px;border:1px solid var(--line-2);
+  border-radius:7px;background:var(--plane);color:var(--ink);font:inherit;font-size:13.5px}
+.picker input:focus{outline:2px solid var(--accent);outline-offset:-1px;background:var(--surface)}
+.picker .si{position:absolute;left:10px;top:9px;color:var(--muted);pointer-events:none}
+.results{position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--surface);
+  border:1px solid var(--line-2);border-radius:8px;box-shadow:var(--shadow);max-height:320px;
+  overflow-y:auto;z-index:60}
+.results button{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;
+  background:none;border:0;padding:7px 12px;cursor:pointer;color:var(--ink);font:inherit;font-size:13px}
+.results button:hover,.results button.on{background:var(--accent-wash);color:var(--accent-ink)}
+.results .uf{color:var(--muted);font-size:11.5px;font-family:"IBM Plex Mono",monospace}
+.sel{display:flex;align-items:baseline;gap:9px;min-width:0}
+.sel .nm{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel .meta{font-size:11.5px;color:var(--muted);white-space:nowrap;font-family:"IBM Plex Mono",monospace}
+.themetog{margin-left:auto;background:none;border:1px solid var(--line-2);border-radius:6px;
+  padding:6px 8px;cursor:pointer;color:var(--ink-2);display:flex;line-height:0}
+.themetog:hover{background:var(--surface-2);color:var(--ink)}
+
+/* ---------- pages ---------- */
+.page{display:none;padding:26px}
+.page.on{display:block}
+.wrap{max-width:1220px;margin:0 auto}
+.prose{max-width:66ch}
+.prose p+p{margin-top:11px}
+.phead{margin-bottom:20px}
+.phead h2{margin:5px 0 7px}
+.phead .lede{color:var(--ink-2);max-width:70ch;font-size:14.5px}
+
+/* ---------- cards / tiles ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:11px}
+.card-h{padding:14px 16px 11px;border-bottom:1px solid var(--line)}
+.card-h h3{margin-bottom:2px}
+.card-h .cap{font-size:12px;color:var(--muted)}
+.card-b{padding:16px}
+.grid{display:grid;gap:14px}
+.tiles{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(178px,1fr))}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 15px}
+.tile .lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.tile .val{font-size:25px;font-weight:600;line-height:1.05;letter-spacing:-.02em}
+.tile .val small{font-size:14px;font-weight:500;color:var(--ink-2);letter-spacing:0}
+.tile .note{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.4}
+.tile.flag{border-color:var(--critical);background:color-mix(in srgb,var(--critical) 6%,var(--surface))}
+
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;
+  padding:3px 8px;border-radius:20px;border:1px solid}
+.pill.crit{color:var(--pill-crit);border-color:var(--critical);background:color-mix(in srgb,var(--critical) 12%,transparent)}
+.pill.ok{color:var(--pill-ok);border-color:var(--good);background:color-mix(in srgb,var(--good) 12%,transparent)}
+.pill.warn{color:var(--pill-warn);border-color:var(--warning);background:color-mix(in srgb,var(--warning) 18%,transparent)}
+.pill.na{color:var(--muted);border-color:var(--line-2);background:var(--surface-2)}
+
+/* ---------- table ---------- */
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);font-weight:500;position:sticky;top:0;background:var(--surface);z-index:2}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr:hover{background:var(--surface-2)}
+tbody tr.me{background:var(--accent-wash)}
+tbody tr.me td{font-weight:600;color:var(--accent-ink)}
+.scroll320{max-height:340px;overflow-y:auto}
+.bar{height:7px;border-radius:4px;background:var(--ser1);display:block}
+.barbg{background:var(--sunken);border-radius:4px;width:88px;display:block}
+
+/* ---------- leitura / encaminhamentos ---------- */
+.leitura{border-color:var(--line-2)}
+.leitura-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:3px}
+.pacote{border-bottom:1px solid var(--line)}
+.pacote:last-child{border-bottom:0}
+.pacote-h{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);padding:11px 16px 8px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.acao{padding:14px 16px 14px 19px;border-bottom:1px solid var(--line);position:relative}
+.acao:last-child{border-bottom:0}
+.acao::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line-2)}
+.acao.t-crit::before{background:var(--critical)}
+.acao.t-warn::before{background:var(--warning)}
+.acao.t-na::before{background:var(--line-2)}
+.acao.t-ok::before{background:var(--good)}
+.acao-top{display:flex;align-items:baseline;justify-content:space-between;gap:11px;flex-wrap:wrap;margin-bottom:5px}
+.acao .ver{font-weight:600;font-size:14px;line-height:1.3}
+.grau{flex:none;font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
+  padding:2px 7px;border-radius:20px;border:1px solid var(--line-2);color:var(--muted);cursor:help}
+.grau.g-arit{color:var(--accent-ink);border-color:var(--accent);background:var(--accent-wash)}
+.acao .dado{font-size:12px;color:var(--ink-2);margin-bottom:7px}
+.acao-p{font-size:13px;color:var(--ink-2);max-width:72ch}
+.efeito{margin-top:9px;padding:10px 12px;background:var(--sunken);border-radius:7px;font-size:13px;
+  line-height:1.5;max-width:72ch}
+.efeito .ef-lab{display:block;font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.acao .ator{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);margin-top:8px}
+
+/* ---------- source / method ---------- */
+.srcgrid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(255px,1fr))}
+.src{border:1px solid var(--line);border-radius:9px;padding:12px 13px;background:var(--surface)}
+.src .org{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.src .ds{font-weight:600;font-size:13px;margin-bottom:3px}
+.src .de{font-size:11.5px;color:var(--ink-2);line-height:1.45}
+.src .ref{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);margin-top:6px}
+.steps{display:flex;flex-direction:column;gap:0;counter-reset:s}
+.step{display:grid;grid-template-columns:26px minmax(0,1fr);gap:12px;padding:13px 0;
+  border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:0}
+.step .k{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--accent);
+  font-weight:600;padding-top:2px}
+.step h3{margin-bottom:4px}
+.step p{font-size:13px;color:var(--ink-2)}
+.formula{font-family:"IBM Plex Mono",monospace;font-size:12px;background:var(--sunken);
+  border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-top:7px;
+  color:var(--ink);overflow-x:auto;white-space:nowrap}
+.callout{border-left:2.5px solid var(--accent);background:var(--accent-wash);
+  padding:11px 14px;border-radius:0 8px 8px 0;font-size:13px;color:var(--ink)}
+.callout.warn{border-color:var(--critical);background:color-mix(in srgb,var(--critical) 7%,var(--surface))}
+.deflist{display:flex;flex-direction:column;gap:9px}
+.deflist div{display:grid;grid-template-columns:126px minmax(0,1fr);gap:12px;font-size:13px}
+.deflist dt{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);
+  letter-spacing:.05em;text-transform:uppercase;padding-top:2px}
+.deflist dd{margin:0;color:var(--ink-2)}
+.canlist{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(285px,1fr))}
+.can{display:flex;gap:9px;align-items:flex-start;font-size:13px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.can .ic{flex:none;margin-top:1px}
+.can.no{color:var(--ink-2)}
+.can.no .ic{color:var(--critical)}
+.can.yes .ic{color:var(--good)}
+svg.chart{display:block;width:100%;height:auto;overflow:visible}
+.dl{display:inline-flex;align-items:center;gap:7px;background:var(--accent);color:#fff;
+  border:0;border-radius:7px;padding:8px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.dl:hover{background:var(--accent-ink)}
+@media (max-width:1080px){.maplayout{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:860px){
+  .shell{grid-template-columns:1fr}
+  .rail{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+  nav{flex-direction:row;flex-wrap:wrap}
+  .nav-btn{width:auto}
+  .rail-foot{display:none}
+  .page{padding:18px 15px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+</style>
+
+<div class="shell">
+<aside class="rail">
+  <div class="brand">
+    <div class="mark">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <path d="M11 1.6 3 7.2v8.2L11 20.4l8-5V7.2L11 1.6Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" opacity=".35"/>
+        <path d="M12.1 5.8 7.4 12.1h3.4l-1 4.4 4.8-6.4h-3.4l.9-4.3Z" fill="var(--accent)"/>
+      </svg>
+      <h1>Pobreza Energética</h1>
+    </div>
+    <div class="sub">5.570 municípios. Tarifa Social, tarifa, qualidade do fornecimento e território, a partir de dados abertos federais.</div>
+  </div>
+  <div class="navgroup">
+    <div class="eyebrow">Comece aqui</div>
+    <nav id="nav1"></nav>
+  </div>
+  <div class="navgroup">
+    <div class="eyebrow">O que você pode responder</div>
+    <nav id="nav2"></nav>
+  </div>
+  <div class="navgroup">
+    <div class="eyebrow">Como foi feito</div>
+    <nav id="nav3"></nav>
+  </div>
+  <div class="rail-foot">
+    Ano-base 2024 para os dados da ANEEL; CadÚnico de agosto de 2026; Censo 2022 para o IBGE.<br><br>
+    Não identifica famílias. Não estabelece causalidade.
+  </div>
+</aside>
+
+<main>
+  <div class="munbar">
+    <div class="picker">
+      <svg class="si" width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <circle cx="7" cy="7" r="4.6" stroke="currentColor" stroke-width="1.4"/>
+        <path d="m10.6 10.6 3.1 3.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <input id="q" type="search" placeholder="Busque seu município" autocomplete="off" aria-label="Buscar município">
+      <div class="results" id="res" hidden></div>
+    </div>
+    <div class="sel">
+      <span class="nm" id="selname">—</span>
+      <span class="meta" id="selmeta"></span>
+    </div>
+    <button class="themetog" id="tt" aria-label="Alternar tema">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M13.2 9.6A5.6 5.6 0 0 1 6.4 2.8a5.6 5.6 0 1 0 6.8 6.8Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+  <div id="pages"></div>
+</main>
+</div>
+<div class="tip" id="tip"></div>
+
+<script type="application/json" id="DATA">__DATA__</script>
+<script type="application/json" id="GEO">__GEO__</script>
+<script>
+"use strict";
+const D = JSON.parse(document.getElementById('DATA').textContent);
+const G = JSON.parse(document.getElementById('GEO').textContent);
+const N = D.n;
+
+/* ---------- formatting ---------- */
+const nf = n => n==null||Number.isNaN(n) ? '—' : n.toLocaleString('pt-BR');
+const nf1 = n => n==null||Number.isNaN(n) ? '—' : n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const nf2 = n => n==null||Number.isNaN(n) ? '—' : n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct = (n,d=1) => n==null||Number.isNaN(n) ? '—' : n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+const brl = n => n==null||Number.isNaN(n) ? '—' : 'R$ '+n.toLocaleString('pt-BR',{maximumFractionDigits:0});
+const brl2 = n => n==null||Number.isNaN(n) ? '—' : 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- national aggregates (computed, not hardcoded) ---------- */
+const AGG = (()=>{
+  let ele=0,ben=0,lac=0,cad=0,viol=0,withD3=0,rs=0,pob10=0,favMun=0;
+  for(let i=0;i<N;i++){
+    ele+=D.ele[i]; ben+=D.ben[i]; lac+=D.lac[i]; cad+=D.cad[i];
+    if(D.vio[i]!=null){withD3++; if(D.vio[i]===1)viol++;}
+    if(D.sind[i]===0 && D.rs[i]!=null && D.rs[i]>0) rs+=D.rs[i];
+    if(D.tar[i]*80/(218*D.hh[i])>0.10) pob10++;
+    if(D.fm[i]===1) favMun++;
+  }
+  const med = arr => {const a=arr.filter(v=>v!=null).slice().sort((x,y)=>x-y);return a[Math.floor(a.length/2)];};
+  return {ele,ben,lac,cad,viol,withD3,rs,pob10,favMun,
+    cob:100*ben/ele, decMed:med(D.dec), tarMed:med(D.tar), pcMed:med(D.pc),
+    tarMin:Math.min(...D.tar), tarMax:Math.max(...D.tar)};
+})();
+
+/* ---------- indices & ranks ---------- */
+const order = (vals,desc=true) => {
+  const idx=[...Array(N).keys()].filter(i=>vals[i]!=null);
+  idx.sort((a,b)=>desc?vals[b]-vals[a]:vals[a]-vals[b]);
+  const r=new Array(N).fill(null); idx.forEach((i,k)=>r[i]=k+1); return {rank:r,sorted:idx};
+};
+const R = {
+  lac: order(D.lac), cob: order(D.cob,false), tar: order(D.tar),
+  dec: order(D.dec), d3: order(D.d3), pc: order(D.pc), pf: order(D.pf), rs: order(D.rs)
+};
+const byCode = new Map(); for(let i=0;i<N;i++) byCode.set(D.cod[i],i);
+
+/* UF aggregates */
+const UFS = (()=>{
+  const m=new Map();
+  for(let i=0;i<N;i++){
+    const u=D.uf[i]; if(!m.has(u)) m.set(u,{uf:u,mun:0,ele:0,ben:0,lac:0,viol:0,d3n:0,tar:[],dec:[]});
+    const o=m.get(u); o.mun++; o.ele+=D.ele[i]; o.ben+=D.ben[i]; o.lac+=D.lac[i];
+    if(D.vio[i]!=null){o.d3n++; if(D.vio[i]===1)o.viol++; o.dec.push(D.dec[i]);}
+    o.tar.push(D.tar[i]);
+  }
+  const md=a=>{const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;};
+  return [...m.values()].map(o=>({...o,cob:100*o.ben/o.ele,tarMed:md(o.tar),decMed:md(o.dec),
+    pctViol:o.d3n?100*o.viol/o.d3n:null})).sort((a,b)=>a.cob-b.cob);
+})();
+
+/* per-UF concentration: municipalities holding 50% of state gap */
+const UFCONC = (()=>{
+  const m=new Map();
+  for(let i=0;i<N;i++){const u=D.uf[i]; if(!m.has(u))m.set(u,[]); m.get(u).push(D.lac[i]);}
+  const o={};
+  for(const [u,a] of m){const s=a.slice().sort((x,y)=>y-x);const t=s.reduce((p,c)=>p+c,0);
+    let c=0,k=0; for(const v of s){c+=v;k++; if(c>=t/2)break;} o[u]={k,mun:a.length,tot:t};}
+  return o;
+})();
+
+/* ---------- color scales ---------- */
+const SEQ=['--s100','--s200','--s300','--s400','--s500','--s600','--s700'].map(v=>`var(${v})`);
+const DIV=['var(--s500)','var(--s300)','var(--s150)','var(--div-mid)','var(--r2)','var(--r3)','var(--r4)'];
+function binner(breaks,ramp){
+  return v => { if(v==null) return 'var(--nodata)';
+    for(let i=0;i<breaks.length;i++) if(v<breaks[i]) return ramp[i];
+    return ramp[breaks.length]; };
+}
+
+/* ---------- rank statistics ---------- */
+function rankAvg(v){
+  const idx=[...v.keys()].sort((a,b)=>v[a]-v[b]);
+  const r=new Array(v.length); let i=0;
+  while(i<idx.length){
+    let j=i; while(j+1<idx.length && v[idx[j+1]]===v[idx[i]]) j++;
+    const avg=(i+j)/2+1;
+    for(let k=i;k<=j;k++) r[idx[k]]=avg;
+    i=j+1;
+  }
+  return r;
+}
+function spearman(xs,ys){
+  const n=xs.length; if(n<3) return null;
+  const rx=rankAvg(xs), ry=rankAvg(ys);
+  const mx=rx.reduce((a,b)=>a+b,0)/n, my=ry.reduce((a,b)=>a+b,0)/n;
+  let num=0,dx=0,dy=0;
+  for(let i=0;i<n;i++){const a=rx[i]-mx,b=ry[i]-my; num+=a*b; dx+=a*a; dy+=b*b;}
+  return num/Math.sqrt(dx*dy);
+}
+function paired(fa,fb,filter){
+  const A=[],B=[];
+  for(let i=0;i<N;i++){ if(filter&&!filter(i)) continue;
+    const a=fa(i), b=fb(i);
+    if(a==null||b==null||Number.isNaN(a)||Number.isNaN(b)) continue;
+    A.push(a); B.push(b); }
+  return [A,B];
+}
+function medianOf(f,filter){
+  const v=[];
+  for(let i=0;i<N;i++){ if(filter&&!filter(i)) continue;
+    const x=f(i); if(x!=null&&!Number.isNaN(x)) v.push(x); }
+  v.sort((a,b)=>a-b); return v.length?v[Math.floor(v.length/2)]:null;
+}
+const rho1=n=>n==null?'—':(n<0?'−':'+')+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:3,maximumFractionDigits:3});
+
+/* ---------- metrics ---------- */
+const METRICS = {
+  descob:{name:'Famílias elegíveis sem Tarifa Social',unit:'%',
+    get:i=>D.cob[i]==null?null:100-D.cob[i], fmt:v=>pct(v),
+    breaks:[10,20,30,40,50,65], ramp:SEQ,
+    labels:['menos de 10%','10 a 20%','20 a 30%','30 a 40%','40 a 50%','50 a 65%','65% ou mais'],
+    caption:'Quanto maior e mais escuro, maior a parcela de famílias elegíveis do CadÚnico que não constava como beneficiária da Tarifa Social em dezembro de 2024.'},
+  lac:{name:'Famílias não atendidas pela Tarifa Social',unit:'famílias',
+    get:i=>D.lac[i], fmt:v=>nf(v)+' famílias',
+    breaks:[100,500,2000,10000,50000,150000], ramp:SEQ,
+    labels:['menos de 100','100 a 500','500 a 2 mil','2 mil a 10 mil','10 mil a 50 mil','50 mil a 150 mil','mais de 150 mil'],
+    caption:'Número absoluto de famílias elegíveis que não recebem o benefício. Concentra-se nas cidades grandes — é a dimensão que define esforço operacional.'},
+  d3:{name:'DEC/FEC sobre o limite regulatório',unit:'×',
+    get:i=>D.d3[i], fmt:v=>nf2(v)+'× o limite',
+    breaks:[0.5,0.75,0.95,1.0,1.5,2.5], ramp:DIV, diverging:true,
+    labels:['até 0,50×','0,50 a 0,75×','0,75 a 0,95×','0,95 a 1,00×','1,00 a 1,50× — acima do limite','1,50 a 2,50× — acima do limite','mais de 2,50× — acima do limite'],
+    caption:'Razão entre a interrupção apurada em 2024 e o limite anual fixado pela ANEEL, ponderada pelos consumidores de cada conjunto. Em vermelho, os municípios acima do limite.'},
+  dec:{name:'Horas sem energia por ano (DEC)',unit:'h/ano',
+    get:i=>D.dec[i], fmt:v=>nf1(v)+' h/ano',
+    breaks:[5,10,15,25,40,60], ramp:SEQ,
+    labels:['até 5 h','5 a 10 h','10 a 15 h','15 a 25 h','25 a 40 h','40 a 60 h','mais de 60 h'],
+    caption:'Duração equivalente de interrupção por unidade consumidora em 2024, somando os doze meses e ponderando pelos consumidores de cada conjunto.'},
+  tar:{name:'Tarifa residencial',unit:'R$/kWh',
+    get:i=>D.tar[i], fmt:v=>brl2(v)+'/kWh',
+    breaks:[0.60,0.68,0.74,0.80,0.88,0.96], ramp:SEQ,
+    labels:['até R$ 0,60','R$ 0,60 a 0,68','R$ 0,68 a 0,74','R$ 0,74 a 0,80','R$ 0,80 a 0,88','R$ 0,88 a 0,96','mais de R$ 0,96'],
+    caption:'Tarifa B1 residencial convencional homologada, vigente em dezembro de 2024, da distribuidora que atende o município. Sem ICMS e sem PIS/COFINS.'},
+  pc:{name:'Peso da conta na faixa de pobreza',unit:'%',
+    get:i=>D.pc[i]==null?null:100*D.pc[i], fmt:v=>pct(v),
+    breaks:[7,8.5,10,11.5,13,15], ramp:SEQ,
+    labels:['até 7%','7 a 8,5%','8,5 a 10%','10 a 11,5% — acima do limiar','11,5 a 13%','13 a 15%','mais de 15%'],
+    caption:'Quanto uma conta de 80 kWh consome da renda de um domicílio no teto da faixa de pobreza do CadÚnico, com o tamanho médio de domicílio do município. Cenário, não medição.'},
+  pf:{name:'Domicílios em favela',unit:'%',
+    get:i=>D.fm[i]===1?100*D.pf[i]:0, fmt:v=>pct(v),
+    breaks:[0.0001,2,5,10,20,40], ramp:SEQ,
+    labels:['nenhuma identificada','menos de 2%','2 a 5%','5 a 10%','10 a 20%','20 a 40%','mais de 40%'],
+    caption:'Participação de domicílios em favelas e comunidades urbanas no total de domicílios do município, Censo 2022. Zero significa que o IBGE não identificou favela no município.'}
+};
+for(const k in METRICS){const m=METRICS[k]; m.color=binner(m.breaks,m.ramp);}
+
+/* ---------- state ---------- */
+let SEL = byCode.get(3550308) ?? 0;
+let PAGE = 'inicio';
+
+/* ================= PAGES ================= */
+const ICON = {
+  home:'<path d="M2.5 7 8.5 2.5 14.5 7v6.5a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1V7Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/>',
+  pin:'<path d="M8.5 14.5s5-4.2 5-7.6a5 5 0 1 0-10 0c0 3.4 5 7.6 5 7.6Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/><circle cx="8.5" cy="6.8" r="1.7" stroke="currentColor" stroke-width="1.3" fill="none"/>',
+  bolt:'<path d="M9.4 1.8 4 8.9h3.9L6.8 15.2 12.6 8h-3.9l.7-6.2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/>',
+  wave:'<path d="M1.8 8.5h2.6l1.6-4.6 2.3 9.2 1.8-6 1.2 3h3.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+  coin:'<circle cx="8.5" cy="8.5" r="6" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M8.5 5v7M6.6 6.6h3.1a1.4 1.4 0 0 1 0 2.8H7.3a1.4 1.4 0 0 0 0 2.8h3.1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>',
+  grid:'<rect x="2.5" y="2.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3" fill="none"/><rect x="9.5" y="2.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3" fill="none"/><rect x="2.5" y="9.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3" fill="none"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3" fill="none"/>',
+  book:'<path d="M2.8 3.2h4a2 2 0 0 1 2 2v8.6a1.6 1.6 0 0 0-1.6-1.6H2.8V3.2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/><path d="M14.2 3.2h-4a2 2 0 0 0-2 2v8.6a1.6 1.6 0 0 1 1.6-1.6h4.4V3.2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/>',
+  alert:'<path d="M8.5 2.4 15 13.8H2L8.5 2.4Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/><path d="M8.5 6.6v3.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8.5" cy="11.6" r=".85" fill="currentColor"/>',
+  check:'<path d="M3 8.6 6.6 12l6.6-7.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+  x:'<path d="M4.4 4.4 12.6 12.6M12.6 4.4 4.4 12.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'
+};
+const svgIcon = (k,cls='qi') => `<svg class="${cls}" viewBox="0 0 17 17" fill="none" aria-hidden="true">${ICON[k]}</svg>`;
+
+const NAVS = [
+  ['nav1',[['inicio','O que este mapa garante','home'],['municipio','Meu município','pin']]],
+  ['nav2',[['tarifasocial','Quem não recebe a Tarifa Social?','coin'],
+           ['qualidade','A distribuidora cumpre o limite?','wave'],
+           ['conta','Quanto pesa a conta aqui?','bolt'],
+           ['territorio','Território explica pobreza energética?','grid']]],
+  ['nav3',[['metodo','Fontes e cálculos','book'],['limites','O que os dados não dizem','alert']]]
+];
+
+/* ---------- leitura municipal: motor de regras determinístico ----------
+   Cada item é selecionado por um limiar sobre um valor medido do próprio
+   município e carrega o número que o produziu. O campo `efeito` só é
+   preenchido quando o resultado decorre de aritmética sobre o dado ou de
+   tarifa publicada — nunca de suposição sobre comportamento.            */
+
+const QCOB = (()=>{
+  const v=D.cob.filter(x=>x!=null).slice().sort((a,b)=>a-b);
+  return [.25,.5,.75].map(p=>v[Math.floor(p*v.length)]);
+})();
+const CONC = (()=>{
+  const byUf=new Map();
+  for(let i=0;i<N;i++){ if(!byUf.has(D.uf[i])) byUf.set(D.uf[i],[]); byUf.get(D.uf[i]).push(i); }
+  const s=new Set();
+  for(const [,arr] of byUf){
+    arr.sort((a,b)=>D.lac[b]-D.lac[a]);
+    const t=arr.reduce((p,i)=>p+D.lac[i],0); let c=0;
+    for(const i of arr){ c+=D.lac[i]; s.add(i); if(c>=t/2) break; }
+  }
+  return s;
+})();
+const TARQ10 = (()=>{ const v=D.tar.slice().sort((a,b)=>b-a); return v[Math.floor(.10*N)]; })();
+
+const GRAU = {
+  arit:{rot:'aritmética',exp:'O efeito decorre da definição do próprio indicador ou de tarifa publicada. Não é estimativa.'},
+  proc:{rot:'processo',exp:'A ação aciona um procedimento previsto em norma. O resultado depende do procedimento, não deste levantamento.'},
+  verif:{rot:'verificação',exp:'A ação resolve uma ambiguidade do dado. Deve preceder qualquer decisão baseada neste número.'}
+};
+
+function leitura(i){
+  const it=[], uf=D.uf[i];
+  const add=o=>it.push(o);
+
+  /* ===== 1. cadastrar quem falta — efeito aritmético ===== */
+  const lac=D.lac[i], anual=D.ec[i]*12;
+  if(lac>0){
+    const banda = D.cob[i]<QCOB[0] ? 'crit' : D.cob[i]<QCOB[1] ? 'warn' : D.cob[i]<QCOB[2] ? 'na' : 'ok';
+    add({pac:'A',grau:'arit',tom:banda,
+      ator:'Gestão municipal do CadÚnico',
+      ver:`Cadastrar as ${nf(lac)} famílias elegíveis que estão fora`,
+      dado:`cobertura de ${pct(D.cob[i])} — ${D.cob[i]<QCOB[1]?'abaixo':'acima'} da mediana nacional de ${pct(QCOB[1])}`,
+      acao:`Solicitar à ${esc(D.dist[D.di[i]])} a relação de unidades consumidoras com Tarifa Social no município e cruzá-la com o CadÚnico, do qual o município já é gestor. É a via direta para nomear quem falta.`,
+      efeito:`A cobertura vai de ${pct(D.cob[i])} para 100% — o número de não atendidas é, por definição, elegíveis menos beneficiários. A conta de cada família cai de ${brl2(D.cc[i])} para ${brl2(D.cs[i])} por mês num consumo de 80 kWh, economia de <strong>${brl2(D.ec[i])} por mês</strong>, ou ${brl2(anual)} ao ano. Somadas, as ${nf(lac)} famílias deixam de pagar <strong>${brl(lac*D.ec[i])} por mês</strong>.`});
+  } else {
+    add({pac:'A',grau:'verif',tom:'ok',
+      ator:'Gestão municipal do CadÚnico',
+      ver:'Não há famílias a alcançar pelo dado disponível',
+      dado:`${nf(D.ben[i])} benefícios ativos para ${nf(D.ele[i])} famílias elegíveis`,
+      acao:'Nenhuma busca ativa se justifica por este levantamento. Reavaliar quando a CDE for atualizada.',
+      efeito:null});
+  }
+
+  /* ===== 2. quem conduz a operação — escala ===== */
+  if(CONC.has(i)){
+    const k=UFCONC[uf].k;
+    add({pac:'A',grau:'proc',tom:'crit',
+      ator:'Coordenação estadual do CadÚnico',
+      ver:`Pleitear inclusão na força-tarefa estadual de ${uf}`,
+      dado:`entre os ${k} de ${UFCONC[uf].mun} municípios que concentram metade das famílias não atendidas de ${uf}`,
+      acao:`Metade das famílias não atendidas do estado está em ${k} municípios. Uma operação estadual dimensionada para esse conjunto alcança ${nf(UFCONC[uf].tot)} famílias sem percorrer os ${UFCONC[uf].mun} municípios do estado.`,
+      efeito:null});
+  } else if(lac>=1000){
+    add({pac:'A',grau:'proc',tom:'warn',
+      ator:'Secretaria de assistência social',
+      ver:'Montar mutirão com data e meta declaradas',
+      dado:`${nf(lac)} famílias — volume acima do atendimento de rotina`,
+      acao:'Mutirão articulado com a distribuidora para cadastro no ato, evitando que a família precise de segunda ida. A meta é verificável: a cobertura do mês seguinte na CDE.',
+      efeito:null});
+  } else if(lac>=100){
+    add({pac:'A',grau:'proc',tom:'na',
+      ator:'CRAS',
+      ver:'Incorporar a verificação da Tarifa Social ao atendimento corrente',
+      dado:`${nf(lac)} famílias — escala compatível com a rotina`,
+      acao:'Sem operação dedicada. Conferência do benefício em cada atendimento de atualização cadastral.',
+      efeito:null});
+  } else if(lac>0){
+    add({pac:'A',grau:'proc',tom:'ok',
+      ator:'CRAS',
+      ver:'Tratar caso a caso',
+      dado:`${nf(lac)} famílias`,
+      acao:'Contingente residual. Não há escala que justifique operação dedicada.',
+      efeito:null});
+  }
+
+  /* ===== 3. o benefício resolve o peso da conta aqui? ===== */
+  if(D.pc[i]>0.10 && D.ps[i]<=0.10){
+    add({pac:'B',grau:'arit',tom:'warn',
+      ator:'Gestão municipal do CadÚnico',
+      ver:'Aqui o benefício resolve o peso da conta — o problema é o cadastro',
+      dado:`${pct(100*D.pc[i])} da renda sem o benefício · ${pct(100*D.ps[i])} com ele`,
+      acao:'Não é caso de discutir tarifa. A família elegível que está fora paga acima do limiar de 10%; a mesma família dentro do benefício paga abaixo. O instrumento que resolve é o cadastro.',
+      efeito:`Sem o benefício, a conta de 80 kWh consome ${pct(100*D.pc[i])} da renda de um domicílio no teto da faixa de pobreza. Com o desconto escalonado da Tarifa Social, ${pct(100*D.ps[i])}. O limiar de 10% é cruzado numa situação e não na outra.`});
+  } else if(D.pc[i]<=0.10){
+    add({pac:'B',grau:'arit',tom:'ok',
+      ator:'—',
+      ver:'O peso da conta não é o vetor aqui',
+      dado:`${pct(100*D.pc[i])} da renda mesmo sem o benefício · ${pct(100*D.ps[i])} com ele`,
+      acao:'Abaixo do limiar de 10% nos dois cenários, na hipótese de 80 kWh. O argumento de pobreza energética neste município não se sustenta pelo peso da conta; se houver problema, ele está na cobertura ou na qualidade.',
+      efeito:null});
+  }
+
+  /* ===== 4. continuidade ===== */
+  if(D.vio[i]==null){
+    add({pac:'B',grau:'verif',tom:'na',
+      ator:'ANEEL',
+      ver:'Solicitar a vinculação do município no IndQual',
+      dado:'nenhum conjunto consumidor associado na base de 2024',
+      acao:'Sem esse vínculo o município não aparece em nenhuma estatística de qualidade do fornecimento, e nenhuma fiscalização o alcança pelos indicadores coletivos.',
+      efeito:null});
+  } else if(D.vio[i]===1){
+    add({pac:'B',grau:'proc',tom:'crit',
+      ator:'Agência estadual conveniada · Procon · Ministério Público',
+      ver:'Representar sobre o descumprimento do limite de continuidade',
+      dado:`${nf2(D.d3[i])}× o limite anual · ${nf1(D.dec[i])} h sem energia em 2024`,
+      acao:`O descumprimento consta da base da própria ANEEL, em ${nf(D.nc[i])} conjunto${D.nc[i]>1?'s':''} que atende${D.nc[i]>1?'m':''} o município. A representação instaura procedimento com prazo e resposta obrigatória da distribuidora.`,
+      efeito:null});
+  } else if(D.d3x[i]>=1 && D.nc[i]>1){
+    add({pac:'B',grau:'proc',tom:'warn',
+      ator:'Agência estadual conveniada · Procon',
+      ver:'Pedir a abertura por conjunto consumidor',
+      dado:`média ${nf2(D.d3[i])}× · pior dos ${nf(D.nc[i])} conjuntos em ${nf2(D.d3x[i])}×`,
+      acao:'A média municipal esconde o problema: ao menos um conjunto está acima do limite. A abertura identifica qual, e o problema passa a ter endereço de bairro.',
+      efeito:null});
+  } else {
+    add({pac:'B',grau:'proc',tom:'ok',
+      ator:'Agência estadual conveniada',
+      ver:'Não alocar esforço de fiscalização aqui',
+      dado:`${nf2(D.d3[i])}× o limite · ${nf1(D.dec[i])} h no ano`,
+      acao:'Todos os conjuntos que atendem o município ficaram dentro do limite em 2024. Saber onde não agir também é resultado.',
+      efeito:null});
+  }
+
+  /* ===== 5. tarifa no decil caro ===== */
+  if(D.tar[i]>=TARQ10){
+    add({pac:'B',grau:'proc',tom:'warn',
+      ator:'Conselho de consumidores da distribuidora',
+      ver:'Levar o dado à revisão tarifária',
+      dado:`${brl2(D.tar[i])}/kWh — ${nf(D.rkt[i])}ª mais cara de ${nf(N)}`,
+      acao:`O município não tem competência tarifária. O canal previsto é o conselho de consumidores de ${esc(D.dist[D.di[i]])}, que tem assento no processo de revisão. O dado municipalizado dá base à manifestação.`,
+      efeito:null});
+  }
+
+  /* ===== 6. antes de usar o dado ===== */
+  if(D.sob[i]===1)
+    add({pac:'C',grau:'verif',tom:'warn',
+      ator:'Gestão municipal do CadÚnico',
+      ver:'Conferir a base antes de concluir que não há famílias a alcançar',
+      dado:`${nf(D.ben[i])} benefícios ativos contra ${nf(D.ele[i])} famílias elegíveis`,
+      acao:'Ou há mais de uma unidade consumidora por família, ou há beneficiários que deixaram de ser elegíveis. O número de não atendidas deste município não deve ser lido como zero sem essa checagem.',
+      efeito:null});
+  if(D.sind[i]===1)
+    add({pac:'C',grau:'verif',tom:'warn',
+      ator:'Gestão municipal',
+      ver:'Não citar cifra de subsídio deste município',
+      dado:'a CDE ficou líquida negativa no mês de referência',
+      acao:'Solicitar à distribuidora ou à ANEEL a abertura dos lançamentos de dezembro de 2024 antes de usar o valor em qualquer peça orçamentária.',
+      efeito:null});
+  if(D.fm[i]===1 && D.fav[i]>2000 && lac>=1000)
+    add({pac:'C',grau:'verif',tom:'na',
+      ator:'Planejamento de campo',
+      ver:'Dimensionar a logística da busca ativa',
+      dado:`${nf(D.fav[i])} domicílios em favela, ${pct(100*D.pf[i])} do município`,
+      acao:'Insumo de endereçamento e de vínculo entre domicílio e unidade consumidora. Não é indicador de pobreza energética: na escala municipal as duas coisas não se correlacionam.',
+      efeito:null});
+
+  return it;
+}
+
+const PACNOME={A:'Cobertura da Tarifa Social',B:'Tarifa, qualidade e regulação',C:'Antes de usar o dado'};
+const TOMORD={crit:0,warn:1,na:2,ok:3};
+
+function boxLeitura(i){
+  const items=leitura(i);
+  const nArit=items.filter(x=>x.efeito).length;
+  const grupos=['A','B','C'].map(p=>[p,items.filter(x=>x.pac===p).sort((a,b)=>TOMORD[a.tom]-TOMORD[b.tom])]).filter(([,a])=>a.length);
+  return `<div class="card leitura">
+    <div class="card-h">
+      <div class="leitura-h">
+        <h3>O que fazer em ${esc(D.nome[i])}</h3>
+        <span class="eyebrow">${items.length} encaminhamentos</span>
+      </div>
+      <div class="cap">Cada item foi selecionado por um limiar sobre um valor medido deste município. ${nArit>0?`Os marcados como <span class="grau g-arit">aritmética</span> trazem o efeito calculado — ele decorre da definição do indicador ou de tarifa publicada, não de suposição.`:''}</div>
+    </div>
+    <div class="card-b" style="padding:0">
+      ${grupos.map(([p,arr])=>`
+        <div class="pacote">
+          <div class="pacote-h">${PACNOME[p]}</div>
+          ${arr.map(x=>`<div class="acao t-${x.tom}">
+            <div class="acao-top">
+              <span class="ver">${esc(x.ver)}</span>
+              <span class="grau g-${x.grau}" title="${GRAU[x.grau].exp}">${GRAU[x.grau].rot}</span>
+            </div>
+            <div class="dado mono num">${x.dado}</div>
+            <p class="acao-p">${x.acao}</p>
+            ${x.efeito?`<div class="efeito"><span class="ef-lab">Efeito</span>${x.efeito}</div>`:''}
+            <div class="ator">${x.ator}</div>
+          </div>`).join('')}
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ---------- INÍCIO ---------- */
+function pageInicio(){
+  return `<div class="wrap">
+  <div class="phead">
+    <div class="eyebrow">Reúso de dados abertos federais · ano-base 2024</div>
+    <h2>Quatro perguntas sobre pobreza energética que os dados públicos respondem, município a município.</h2>
+    <p class="lede">Não há aqui um índice único. A construção de um número composto foi testada e rejeitada: o ranking resultante era instável e mudava mais da metade do seu topo conforme a escolha metodológica. O que sobrevive à verificação são quatro medidas separadas, cada uma com sua fonte, seu cálculo e seu limite declarado.</p>
+  </div>
+
+  <div class="tiles" style="margin-bottom:22px">
+    <div class="tile"><div class="lab">Famílias não atendidas</div>
+      <div class="val num">${nf(AGG.lac)}</div>
+      <div class="note">famílias elegíveis no CadÚnico sem o benefício em dezembro de 2024. Cobertura nacional de ${pct(AGG.cob)}.</div></div>
+    <div class="tile"><div class="lab">Fora do limite de continuidade</div>
+      <div class="val num">${nf(AGG.viol)}</div>
+      <div class="note">municípios atendidos por conjuntos cujo DEC ou FEC de 2024 superou o limite da ANEEL — ${pct(100*AGG.viol/AGG.withD3)} dos ${nf(AGG.withD3)} com dado.</div></div>
+    <div class="tile"><div class="lab">Amplitude tarifária</div>
+      <div class="val num">${nf2(AGG.tarMax/AGG.tarMin)}<small>×</small></div>
+      <div class="note">entre a tarifa residencial mais cara e a mais barata do país: ${brl2(AGG.tarMin)} contra ${brl2(AGG.tarMax)} por kWh.</div></div>
+    <div class="tile"><div class="lab">Interrupção anual mediana</div>
+      <div class="val num">${nf1(AGG.decMed)}<small> h</small></div>
+      <div class="note">horas sem energia por unidade consumidora em 2024, no município mediano.</div></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(330px,1fr));margin-bottom:22px">
+    <div class="card"><div class="card-h"><h3>O que este material garante</h3>
+      <div class="cap">Cada item corresponde a uma coluna rastreável até o arquivo de origem.</div></div>
+      <div class="card-b"><div class="canlist" style="grid-template-columns:1fr">
+        ${[['Quantas famílias elegíveis do CadÚnico não constavam como beneficiárias da Tarifa Social'],
+           ['A tarifa residencial homologada da distribuidora que atende o município'],
+           ['Quantas horas por ano a energia faltou, e se isso superou o limite da ANEEL'],
+           ['A participação de domicílios em favelas e comunidades urbanas'],
+           ['O subsídio da CDE efetivamente pago no município, líquido de estornos'],
+           ['O tamanho médio do domicílio, que é o que converte renda por pessoa em renda da casa']
+          ].map(([t])=>`<div class="can yes">${svgIcon('check','ic')}<span>${t}</span></div>`).join('')}
+      </div></div></div>
+    <div class="card"><div class="card-h"><h3>O que ele não pode dizer</h3>
+      <div class="cap">Declarado aqui porque a ausência disso é o que separa evidência de suposição.</div></div>
+      <div class="card-b"><div class="canlist" style="grid-template-columns:1fr">
+        ${[['Quem é pobre em energia dentro de cada casa — as bases são agregadas por município'],
+           ['Se a família não atendida é caso de privação real ou de defasagem de cadastro, o que só a verificação local resolve'],
+           ['Quanto uma família paga de fato: a tarifa publicada não inclui ICMS nem PIS/COFINS'],
+           ['Qualquer relação de causa e efeito entre as quatro medidas'],
+           ['Qualquer inferência sobre furto de energia ou conduta de qualquer pessoa']
+          ].map(([t])=>`<div class="can no">${svgIcon('x','ic')}<span>${t}</span></div>`).join('')}
+      </div></div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:22px"><div class="card-h"><h3>Como ler um resultado</h3>
+    <div class="cap">Três hábitos que evitam a leitura errada.</div></div>
+    <div class="card-b"><div class="steps">
+      <div class="step"><div class="k">01</div><div>
+        <h3>Ordem é mais confiável que nível</h3>
+        <p>A comparação entre municípios é sólida, porque vem de dados observados. Os valores absolutos carregam hipóteses declaradas — a conta de energia, por exemplo, é calculada sem tributos e para um consumo de referência. Use o mapa para saber <em>onde</em>, não para citar <em>quanto</em>.</p></div></div>
+      <div class="step"><div class="k">02</div><div>
+        <h3>São quatro agendas, não uma fila</h3>
+        <p>As famílias não atendidas pela Tarifa Social e a qualidade do fornecimento apontam para municípios diferentes: a correlação entre as duas é praticamente nula, e a sobreposição dos piores casos fica abaixo do que o acaso produziria. Não existe uma lista única de prioridade — existem listas com responsáveis distintos.</p></div></div>
+      <div class="step"><div class="k">03</div><div>
+        <h3>Ausência de dado aparece como ausência</h3>
+        <p>Quando uma fonte não cobre um município, o campo diz que não sabe, em vez de mostrar zero. Isso vale para os ${nf(N-AGG.withD3)} municípios sem apuração de DEC/FEC em 2024 e para os municípios cujo subsídio da CDE ficou líquido negativo no mês de referência.</p></div></div>
+    </div></div></div>
+
+  <div class="card"><div class="card-h"><h3>Dados públicos utilizados</h3>
+    <div class="cap">Oito conjuntos, de três órgãos federais. Todos abertos, todos com data de referência declarada.</div></div>
+    <div class="card-b"><div class="srcgrid">
+      ${[['ANEEL','Beneficiários da CDE','Linhas de subsídio da Tarifa Social por município, com o valor pago. 18,3 milhões de registros.','dez/2024'],
+         ['ANEEL','Tarifas homologadas','Tarifa B1 residencial por distribuidora, convencional e Baixa Renda, por vigência.','dez/2024'],
+         ['ANEEL','Continuidade DEC e FEC','Interrupção apurada por conjunto consumidor, mês a mês.','2024'],
+         ['ANEEL','Limites de continuidade','Limite anual de DEC e FEC fixado por conjunto.','2024'],
+         ['ANEEL','IndQual Município','Ponte entre conjunto consumidor e município.','ago/2026'],
+         ['ANEEL','INDGER','Unidades consumidoras ativas por município e distribuidora. Faz a ponte tarifária.','2024'],
+         ['MDS','CECAD — painel municipal','Famílias cadastradas por faixa de renda, em 5.598 arquivos municipais.','ago/2026'],
+         ['IBGE','Censo 2022 — SIDRA','Renda por classes (10296), favelas (9887) e domicílios (4712).','2022']
+        ].map(([o,d,e,r])=>`<div class="src"><div class="org">${o}</div><div class="ds">${esc(d)}</div><div class="de">${esc(e)}</div><div class="ref">referência ${r}</div></div>`).join('')}
+    </div></div></div>
+  </div>`;
+}
+
+/* ---------- MUNICÍPIO ---------- */
+function pageMunicipio(){
+  const i=SEL;
+  const viol=D.vio[i];
+  const rsOk=D.sind[i]===0 && D.rs[i]!=null && D.rs[i]>0;
+  const conc=UFCONC[D.uf[i]];
+  const ufo=UFS.find(u=>u.uf===D.uf[i]);
+  const tile=(lab,val,note,flag)=>`<div class="tile${flag?' flag':''}"><div class="lab">${lab}</div><div class="val num">${val}</div><div class="note">${note}</div></div>`;
+
+  return `<div class="wrap">
+  <div class="phead">
+    <div class="eyebrow">Ficha municipal · ${esc(D.uf[i])} · IBGE ${D.cod[i]}</div>
+    <h2>${esc(D.nome[i])}</h2>
+    <p class="lede">Atendido por <strong>${esc(D.dist[D.di[i]])}</strong>. As quatro medidas abaixo vêm de fontes independentes entre si; cada uma traz a posição nacional entre os 5.570 municípios.</p>
+  </div>
+
+  ${boxLeitura(i)}
+
+  <div class="eyebrow" style="margin:22px 0 9px">As quatro medidas</div>
+  <div class="tiles" style="margin-bottom:18px">
+    ${tile('Famílias não atendidas', nf(D.lac[i]),
+      `famílias elegíveis que não recebem a Tarifa Social. Cobertura de ${pct(D.cob[i])}. ${R.lac.rank[i]}º maior contingente do país.`)}
+    ${tile('Conta de 80 kWh na faixa de pobreza', pct(100*D.pc[i]),
+      `da renda no teto da faixa, sem o benefício. Com Tarifa Social cai para ${pct(100*D.ps[i])}.`,
+      D.pc[i]>0.10)}
+    ${viol==null
+      ? tile('DEC/FEC sobre o limite','—','sem apuração de continuidade para 2024 neste município.')
+      : tile('DEC/FEC sobre o limite', nf2(D.d3[i])+'×',
+          `${nf1(D.dec[i])} h sem energia no ano, em ${nf(D.nc[i])} conjunto${D.nc[i]>1?'s':''}. ${viol===1?'Acima do limite da ANEEL.':'Dentro do limite.'}`,
+          viol===1)}
+    ${tile('Tarifa residencial', brl2(D.tar[i]),
+      `por kWh, sem tributos. ${R.tar.rank[i]}ª mais cara do país. Conta de 80 kWh: ${brl2(D.cc[i])}.`)}
+  </div>
+
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-bottom:18px">
+
+    <div class="card"><div class="card-h"><h3>Tarifa Social</h3>
+      <div class="cap">CadÚnico de agosto de 2026 contra a CDE de dezembro de 2024.</div></div>
+      <div class="card-b"><div class="deflist">
+        <div><dt>Cadastradas</dt><dd class="num">${nf(D.cad[i])} famílias no CadÚnico</dd></div>
+        <div><dt>Faixa pobreza</dt><dd class="num">${nf(D.pob[i])} famílias</dd></div>
+        <div><dt>Baixa renda</dt><dd class="num">${nf(D.bxr[i])} famílias</dd></div>
+        <div><dt>Elegíveis</dt><dd class="num">${nf(D.ele[i])} famílias</dd></div>
+        <div><dt>Com benefício</dt><dd class="num">${nf(D.ben[i])} benefícios ativos</dd></div>
+        <div><dt>Não atendidas</dt><dd class="num"><strong>${nf(D.lac[i])} famílias</strong> · cobertura ${pct(D.cob[i])}</dd></div>
+        <div><dt>Subsídio</dt><dd>${rsOk
+          ? `<span class="num">${brl(D.rs[i])}</span> por mês não acessados <span class="pill warn">cenário</span>`
+          : `<span class="pill na">indisponível</span> a CDE do município ficou líquida negativa no mês de referência`}</dd></div>
+        ${D.sob[i]===1?`<div><dt>Alerta</dt><dd><span class="pill warn">sobrecobertura</span> há mais benefícios que famílias elegíveis — sinal de que unidade consumidora não equivale a família</dd></div>`:''}
+      </div>
+      ${rsOk?`<div class="callout" style="margin-top:13px">Cenário construído com o subsídio médio por família paga no próprio município (${brl2(D.spf[i])}). Supõe que a família marginal receberia o mesmo valor médio — é projeção, não medição.</div>`:''}
+      </div></div>
+
+    <div class="card"><div class="card-h"><h3>Peso da conta</h3>
+      <div class="cap">Conta de 80 kWh, o limiar adotado pela Lei 15.235/2025.</div></div>
+      <div class="card-b">
+        ${barPair(D.cc[i], D.cs[i], D.pc[i], D.ps[i])}
+        <div class="deflist" style="margin-top:14px">
+          <div><dt>Domicílio médio</dt><dd class="num">${nf2(D.hh[i])} moradores</dd></div>
+          <div><dt>Renda de referência</dt><dd class="num">${brl(D.ren[i])} por pessoa ao mês (Censo 2022)</dd></div>
+          <div><dt>Teto da faixa</dt><dd>R$ 218,00 por pessoa · renda do domicílio <span class="num">${brl(218*D.hh[i])}</span></dd></div>
+        </div>
+        <div class="callout" style="margin-top:13px">A conta com Tarifa Social aplica o desconto escalonado da Lei 12.212/2010 sobre a tarifa da subclasse Baixa Renda: 65% nos primeiros 30 kWh e 40% nos 50 seguintes. Não é a tarifa publicada crua — essa é apenas a base sobre a qual o desconto incide.</div>
+        <div class="callout warn" style="margin-top:9px">O peso depende do consumo suposto. A 30 kWh nenhum município do país passa de 10% nem sem o benefício; a 100 kWh quase todos passam. Só os 80 kWh têm ancoragem legal.</div>
+      </div></div>
+
+    <div class="card"><div class="card-h"><h3>Qualidade do fornecimento</h3>
+      <div class="cap">DEC e FEC de 2024 somados nos doze meses, contra o limite anual.</div></div>
+      <div class="card-b">${viol==null
+        ? `<p style="color:var(--ink-2)">Não há apuração de DEC/FEC para 2024 vinculada a este município na base de continuidade da ANEEL. O campo fica vazio em vez de receber zero.</p>`
+        : `<div class="deflist">
+        <div><dt>Situação</dt><dd>${viol===1?'<span class="pill crit">acima do limite</span>':'<span class="pill ok">dentro do limite</span>'}</dd></div>
+        <div><dt>DEC anual</dt><dd class="num">${nf1(D.dec[i])} horas sem energia</dd></div>
+        <div><dt>Razão média</dt><dd class="num">${nf2(D.d3[i])}× o limite · ${R.d3.rank[i]}º pior do país</dd></div>
+        <div><dt>Pior conjunto</dt><dd class="num">${nf2(D.d3x[i])}× o limite</dd></div>
+        <div><dt>Conjuntos</dt><dd class="num">${nf(D.nc[i])} atendendo o município</dd></div>
+      </div>
+      ${D.nc[i]>1 && D.d3x[i]>=1 && D.d3[i]<1 ? `<div class="callout" style="margin-top:13px">Na média ponderada o município está dentro do limite, mas ao menos um conjunto está acima. Isso indica desigualdade interna: o problema tem endereço de bairro, não de cidade.</div>`:''}`}
+      </div></div>
+
+    <div class="card"><div class="card-h"><h3>Território e contexto estadual</h3>
+      <div class="cap">Censo 2022 e posição dentro de ${esc(D.uf[i])}.</div></div>
+      <div class="card-b"><div class="deflist">
+        <div><dt>Favelas</dt><dd>${D.fm[i]===1
+          ? `<span class="num">${nf(D.fav[i])}</span> domicílios de <span class="num">${nf(D.dt[i])}</span> — <strong>${pct(100*D.pf[i])}</strong>`
+          : 'nenhuma favela ou comunidade urbana identificada pelo Censo 2022'}</dd></div>
+        <div><dt>Domicílios</dt><dd class="num">${nf(D.dt[i])} particulares permanentes ocupados</dd></div>
+        <div><dt>Cobertura ${esc(D.uf[i])}</dt><dd class="num">${pct(ufo.cob)} · ${nf(ufo.lac)} famílias não atendidas no estado</dd></div>
+        <div><dt>Concentração</dt><dd>${conc.k} de ${conc.mun} municípios de ${esc(D.uf[i])} concentram metade das famílias não atendidas do estado</dd></div>
+        ${ufo.pctViol!=null?`<div><dt>Continuidade ${esc(D.uf[i])}</dt><dd class="num">${pct(ufo.pctViol,0)} dos municípios acima do limite</dd></div>`:''}
+      </div></div></div>
+  </div>
+
+  <div class="card"><div class="card-h"><h3>Municípios vizinhos em ${esc(D.uf[i])}</h3>
+    <div class="cap">Ordenados pelo número de famílias não atendidas. Seu município aparece destacado.</div></div>
+    <div class="tablewrap scroll320">${ufTable(D.uf[i],i)}</div></div>
+  </div>`;
+}
+
+function barPair(c1,c2,p1,p2){
+  const mx=Math.max(p1,p2,0.12);
+  const w=v=>Math.max(2,100*v/mx);
+  const thr=100*0.10/mx;
+  return `<div style="display:flex;flex-direction:column;gap:11px">
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>Tarifa cheia</span><span class="mono num" style="font-weight:600">${pct(100*p1)} · ${brl2(c1)}</span></div>
+      <div style="position:relative;height:13px;background:var(--sunken);border-radius:4px">
+        <div style="position:absolute;inset-block:0;left:0;width:${w(p1)}%;background:var(--ser1);border-radius:4px"></div>
+        <div style="position:absolute;inset-block:-3px;left:${thr}%;width:2px;background:var(--critical)"></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>Com Tarifa Social</span><span class="mono num" style="font-weight:600">${pct(100*p2)} · ${brl2(c2)}</span></div>
+      <div style="position:relative;height:13px;background:var(--sunken);border-radius:4px">
+        <div style="position:absolute;inset-block:0;left:0;width:${w(p2)}%;background:var(--ser2);border-radius:4px"></div>
+        <div style="position:absolute;inset-block:-3px;left:${thr}%;width:2px;background:var(--critical)"></div>
+      </div>
+    </div>
+    <div style="font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px">
+      <span style="display:inline-block;width:10px;height:2px;background:var(--critical)"></span>
+      limiar de 10% da renda do domicílio
+    </div>
+  </div>`;
+}
+
+function ufTable(uf,me){
+  const rows=[...Array(N).keys()].filter(i=>D.uf[i]===uf).sort((a,b)=>D.lac[b]-D.lac[a]);
+  return `<table><thead><tr><th>Município</th><th class="n">Elegíveis</th><th class="n">Com benefício</th>
+    <th class="n">Não atendidas</th><th class="n">Cobertura</th><th class="n">DEC/limite</th><th class="n">Tarifa</th></tr></thead><tbody>
+    ${rows.map(i=>`<tr class="${i===me?'me':''}" data-go="${D.cod[i]}" style="cursor:pointer">
+      <td>${esc(D.nome[i])}</td><td class="n">${nf(D.ele[i])}</td><td class="n">${nf(D.ben[i])}</td>
+      <td class="n">${nf(D.lac[i])}</td><td class="n">${pct(D.cob[i])}</td>
+      <td class="n">${D.d3[i]==null?'—':nf2(D.d3[i])+'×'}</td><td class="n">${brl2(D.tar[i])}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+/* ---------- MAP PAGES ---------- */
+function mapPage(key,title,lede,metrics,extra){
+  return `<div class="wrap">
+    <div class="phead"><div class="eyebrow">Pergunta</div><h2>${title}</h2><p class="lede">${lede}</p></div>
+    <div class="maplayout" style="margin-bottom:18px">
+      <div class="mapbox">
+        <svg class="mapsvg" id="svg-${key}" viewBox="0 0 ${G.vb[0]} ${G.vb[1]}" role="img" aria-label="Mapa do Brasil por município"></svg>
+        <div class="mapctl">
+          <button data-z="in" aria-label="Aproximar">+</button>
+          <button data-z="out" aria-label="Afastar">−</button>
+          <button data-z="reset" aria-label="Ver o Brasil inteiro">⌂</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card"><div class="card-h"><h3>O que mostrar</h3></div>
+          <div class="card-b" style="padding:8px"><div class="metricbtns" id="mb-${key}">
+            ${metrics.map((m,k)=>`<button data-m="${m}" class="${k===0?'on':''}">${METRICS[m].name}</button>`).join('')}
+          </div></div></div>
+        <div class="card"><div class="card-h"><h3 id="lt-${key}">Legenda</h3>
+          <div class="cap" id="lc-${key}"></div></div>
+          <div class="card-b"><div class="legend" id="lg-${key}"></div></div></div>
+      </div>
+    </div>
+    ${extra||''}
+  </div>`;
+}
+
+function pageTarifaSocial(){
+  const sorted=R.lac.sorted, tot=AGG.lac;
+  let c=0; const cut=[];
+  for(let k=0;k<sorted.length;k++){c+=D.lac[sorted[k]];
+    if([10,50,100,200,500,1000].includes(k+1)) cut.push([k+1,c,100*c/tot]);}
+  const conc=Object.entries(UFCONC).map(([u,o])=>({uf:u,...o})).sort((a,b)=>a.k-b.k);
+  return mapPage('ts','Quem não recebe a Tarifa Social a que teria direito?',
+    'A diferença entre as famílias do CadÚnico nas faixas elegíveis e os benefícios ativos da Tarifa Social. É a medida mais acionável do conjunto, e a que define o tamanho de uma busca ativa.',
+    ['descob','lac'],
+    `<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(330px,1fr))">
+      <div class="card"><div class="card-h"><h3>Poucos municípios concentram quase tudo</h3>
+        <div class="cap">Parcela do total nacional de famílias não atendidas acumulada pelos maiores casos.</div></div>
+        <div class="card-b">
+          <table><thead><tr><th>Maiores</th><th class="n">Famílias</th><th class="n">Do total nacional</th><th></th></tr></thead><tbody>
+          ${cut.map(([k,v,p])=>`<tr><td class="num">${nf(k)} municípios</td><td class="n">${nf(v)}</td>
+            <td class="n">${pct(p)}</td><td style="width:96px"><span class="barbg"><span class="bar" style="width:${p}%"></span></span></td></tr>`).join('')}
+          </tbody></table>
+          <div class="callout" style="margin-top:13px">Uma busca ativa nacional não precisa alcançar 5.570 municípios. Os 100 maiores respondem por ${pct(cut.find(x=>x[0]===100)[2])} do total.</div>
+        </div></div>
+      <div class="card"><div class="card-h"><h3>Cobertura por estado</h3>
+        <div class="cap">Benefícios ativos sobre famílias elegíveis, e quantos municípios reúnem metade das famílias não atendidas do estado.</div></div>
+        <div class="tablewrap scroll320"><table><thead><tr><th>UF</th><th class="n">Cobertura</th><th></th>
+          <th class="n">Não atendidas</th><th class="n">Metade delas cabe em</th></tr></thead><tbody>
+          ${UFS.map(u=>`<tr><td>${u.uf}</td><td class="n">${pct(u.cob)}</td>
+            <td style="width:80px"><span class="barbg" style="width:72px"><span class="bar" style="width:${u.cob}%"></span></span></td>
+            <td class="n">${nf(u.lac)}</td><td class="n">${UFCONC[u.uf].k} de ${UFCONC[u.uf].mun}</td></tr>`).join('')}
+        </tbody></table></div></div>
+    </div>`);
+}
+
+function pageQualidade(){
+  const worst=R.d3.sorted.slice(0,15);
+  return mapPage('q','A distribuidora que me atende cumpre o limite de continuidade?',
+    `Cada conjunto consumidor tem um limite anual de interrupção fixado pela ANEEL. Somando os doze meses de 2024 e ponderando pelos consumidores de cada conjunto, <strong>${nf(AGG.viol)} municípios</strong> ficaram acima do limite — ${pct(100*AGG.viol/AGG.withD3)} dos que têm apuração.`,
+    ['d3','dec'],
+    `<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(330px,1fr))">
+      <div class="card"><div class="card-h"><h3>Onde a violação é sistêmica</h3>
+        <div class="cap">Parcela dos municípios do estado acima do limite, e interrupção mediana.</div></div>
+        <div class="tablewrap scroll320"><table><thead><tr><th>UF</th><th class="n">Acima do limite</th><th></th>
+          <th class="n">DEC mediano</th></tr></thead><tbody>
+          ${UFS.filter(u=>u.pctViol!=null).sort((a,b)=>b.pctViol-a.pctViol).map(u=>`<tr><td>${u.uf}</td>
+            <td class="n">${pct(u.pctViol,0)}</td>
+            <td style="width:80px"><span class="barbg" style="width:72px"><span class="bar" style="width:${u.pctViol}%;background:var(--critical)"></span></span></td>
+            <td class="n">${nf1(u.decMed)} h</td></tr>`).join('')}
+        </tbody></table></div></div>
+      <div class="card"><div class="card-h"><h3>Os quinze casos mais graves do país</h3>
+        <div class="cap">Razão entre o apurado e o limite, ponderada por consumidores.</div></div>
+        <div class="tablewrap scroll320"><table><thead><tr><th>Município</th><th class="n">Sobre o limite</th>
+          <th class="n">DEC anual</th><th>Distribuidora</th></tr></thead><tbody>
+          ${worst.map(i=>`<tr data-go="${D.cod[i]}" style="cursor:pointer"><td>${esc(D.nome[i])} (${D.uf[i]})</td>
+            <td class="n">${nf2(D.d3[i])}×</td><td class="n">${nf1(D.dec[i])} h</td>
+            <td>${esc(D.dist[D.di[i]])}</td></tr>`).join('')}
+        </tbody></table></div></div>
+    </div>`);
+}
+
+function pageConta(){
+  const scen=[30,80,100].map(k=>{
+    const v=[]; let over=0;
+    for(let i=0;i<N;i++){const w=D.tar[i]*k/(218*D.hh[i]); v.push(w); if(w>0.10)over++;}
+    v.sort((a,b)=>a-b);
+    return {k,med:v[Math.floor(v.length/2)],over};
+  });
+  return mapPage('c','Quanto pesa a conta de energia para quem é pobre aqui?',
+    `A média municipal não detecta pobreza energética — testada, ela fica em torno de 2% e nenhum município cruza o limiar. O que revela alguma coisa é o cálculo sobre a faixa de renda elegível: uma conta de 80 kWh consome mais de 10% da renda do domicílio em <strong>${nf(scen[1].over)} municípios</strong>.`,
+    ['pc','tar'],
+    `<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(330px,1fr))">
+      <div class="card"><div class="card-h"><h3>O resultado depende do consumo suposto</h3>
+        <div class="cap">Peso mediano da conta sobre a renda de um domicílio no teto da faixa de pobreza, tarifa cheia.</div></div>
+        <div class="card-b">
+          <table><thead><tr><th>Consumo</th><th class="n">Peso mediano</th><th class="n">Municípios acima de 10%</th></tr></thead><tbody>
+            ${scen.map(x=>`<tr${x.k===80?' style="font-weight:600"':''}><td class="num">${x.k} kWh</td>
+              <td class="n">${pct(100*x.med,2)}</td><td class="n">${nf(x.over)}</td></tr>`).join('')}
+          </tbody></table>
+          <div class="callout warn" style="margin-top:13px">Este é o número mais frágil do conjunto, e por isso a faixa inteira está à vista. Os 80 kWh são o limiar que a própria Lei 15.235/2025 adotou — é a única das três hipóteses com ancoragem externa.</div>
+        </div></div>
+      <div class="card"><div class="card-h"><h3>O benefício resolve — onde ele chega</h3>
+        <div class="cap">Mesmo cálculo, com e sem a Tarifa Social, a 80 kWh.</div></div>
+        <div class="card-b">
+          ${(()=>{
+            let semB=0, comB=0, ecs=[];
+            for(let i=0;i<N;i++){ if(D.pc[i]>0.10) semB++; if(D.ps[i]>0.10) comB++; ecs.push(D.ec[i]); }
+            ecs.sort((a,b)=>a-b); const ecMed=ecs[Math.floor(ecs.length/2)];
+            return `<table><thead><tr><th>Cenário</th><th class="n">Peso mediano</th><th class="n">Municípios acima de 10%</th></tr></thead><tbody>
+              <tr><td>Sem o benefício</td><td class="n">${pct(100*medianOf(i=>D.pc[i]),2)}</td><td class="n">${nf(semB)}</td></tr>
+              <tr style="font-weight:600"><td>Com Tarifa Social</td><td class="n">${pct(100*medianOf(i=>D.ps[i]),2)}</td><td class="n">${nf(comB)}</td></tr>
+            </tbody></table>
+            <div class="callout" style="margin-top:13px">Sem o benefício, a conta cruza o limiar de 10% em ${nf(semB)} municípios. Com ele, em nenhum. A economia mediana da família é de <strong>${brl2(ecMed)} por mês</strong>, ${brl2(ecMed*12)} ao ano — soma da mudança de subclasse tarifária com o desconto escalonado.</div><div class="callout" style="margin-top:9px"><strong>Como sabemos que a regra do desconto está certa.</strong> Ela foi invertida contra a CDE: dado o subsídio que cada município efetivamente recebeu por família, qual consumo a regra implica? A resposta é <strong>97,7 kWh</strong> na mediana, com 95,8% dos municípios entre 40 e 150 kWh — faixa fisicamente plausível para consumo residencial de baixa renda. Se a regra estivesse errada por um fator, o consumo implícito sairia absurdo. Além disso, o subsídio observado escala com a tarifa como a regra exige: ao dividir o subsídio pela tarifa, a dispersão entre municípios cai 35%.</div><div style="font-size:11.5px;color:var(--muted);margin-top:9px">Desconto escalonado da Lei 12.212/2010 sobre a tarifa da subclasse Baixa Renda: 65% nos primeiros 30 kWh, 40% nos 50 seguintes. Os 80 kWh do cenário são o limiar da Lei 15.235/2025; o consumo que a CDE implica para quem já recebe o benefício é maior, cerca de 98 kWh, de modo que este cenário é conservador.</div>`;
+          })()}
+        </div></div>
+
+      <div class="card"><div class="card-h"><h3>Vieses conhecidos, em direções opostas</h3>
+        <div class="cap">Nenhum deles é corrigível com os dados disponíveis; todos estão declarados.</div></div>
+        <div class="card-b"><div class="deflist">
+          <div><dt>Subestima</dt><dd>A tarifa homologada não inclui ICMS nem PIS/COFINS. A conta real é maior.</dd></div>
+          <div><dt>Subestima</dt><dd>O cálculo usa o teto da faixa de renda. Quem está abaixo do teto sente peso maior.</dd></div>
+          <div><dt>Superestima</dt><dd>Usa o tamanho médio de domicílio do município. Domicílios pobres tendem a ser maiores, o que elevaria a renda da casa e reduziria o peso.</dd></div>
+          <div><dt>Consequência</dt><dd>Os vieses não se cancelam de forma conhecida. A ordenação entre municípios é confiável; o nível não é.</dd></div>
+        </div></div></div>
+    </div>`);
+}
+
+function pageTerritorio(){
+  const top=R.pf.sorted.filter(i=>D.fm[i]===1).slice(0,12);
+  const fav=i=>D.fm[i]===1?D.pf[i]:0;
+  const hasFav=i=>D.fm[i]===1;
+  const MED=[
+    ['Famílias elegíveis sem Tarifa Social', i=>D.cob[i]==null?null:100-D.cob[i], v=>pct(v)],
+    ['Peso da conta na faixa de pobreza', i=>100*D.tar[i]*80/(218*D.hh[i]), v=>pct(v)],
+    ['DEC/FEC sobre o limite', i=>D.d3[i], v=>nf2(v)+'×'],
+    ['Horas sem energia por ano', i=>D.dec[i], v=>nf1(v)+' h']
+  ];
+  const COR=[
+    ['Famílias elegíveis sem Tarifa Social', i=>D.ele[i]>0?D.lac[i]/D.ele[i]:null],
+    ['Peso da conta na faixa de pobreza', i=>D.tar[i]*80/(218*D.hh[i])],
+    ['DEC/FEC sobre o limite', i=>D.d3[i]],
+    ['Horas sem energia por ano', i=>D.dec[i]],
+    ['Tarifa residencial', i=>D.tar[i]]
+  ];
+  const corRows = COR.map(([nm,f])=>{
+    const [a1,b1]=paired(fav,f);
+    const [a2,b2]=paired(fav,f,hasFav);
+    return {nm, all:spearman(a1,b1), n1:a1.length, sub:spearman(a2,b2), n2:a2.length};
+  });
+  const maxAbs = Math.max(...corRows.map(r=>Math.abs(r.all)));
+
+  return mapPage('t','O território explica a pobreza energética?',
+    `Não, na escala municipal. A participação de domicílios em favelas e comunidades urbanas foi cruzada com cada uma das outras medidas deste mapa e <strong>não há associação detectável</strong> — nenhuma correlação de ordem passa de 0,09 nos 5.570 municípios. Municípios com favela mapeada e municípios sem favela têm praticamente a mesma cobertura de Tarifa Social e o mesmo peso de conta.`,
+    ['pf'],
+    `<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr));margin-bottom:14px">
+
+      <div class="card"><div class="card-h"><h3>Correlação com as demais medidas</h3>
+        <div class="cap">Correlação de ordem de Spearman. Zero significa que conhecer uma não ajuda a prever a outra.</div></div>
+        <div class="card-b">
+          <table><thead><tr><th>Medida</th><th class="n">Todos os municípios</th><th></th><th class="n">Só com favela</th></tr></thead><tbody>
+          ${corRows.map(r=>`<tr>
+            <td>${esc(r.nm)}</td>
+            <td class="n">${rho1(r.all)}</td>
+            <td style="width:78px">${rhoBar(r.all,maxAbs)}</td>
+            <td class="n" style="color:var(--muted)">${rho1(r.sub)}</td></tr>`).join('')}
+          </tbody></table>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:9px">
+            n = ${nf(corRows[0].n1)} municípios na primeira coluna, ${nf(corRows[0].n2)} na segunda.
+            Para referência, a correlação entre as famílias não atendidas pela Tarifa Social e a qualidade do fornecimento, que já é fraca, é de ${rho1(spearman(...paired(i=>D.ele[i]>0?D.lac[i]/D.ele[i]:null,i=>D.d3[i])))}.
+          </div>
+        </div></div>
+
+      <div class="card"><div class="card-h"><h3>Com favela e sem favela, lado a lado</h3>
+        <div class="cap">Mediana de cada medida nos dois grupos de municípios.</div></div>
+        <div class="card-b">
+          <table><thead><tr><th>Medida</th><th class="n">Com favela</th><th class="n">Sem favela</th></tr></thead><tbody>
+          ${MED.map(([nm,f,fm])=>{
+            const a=medianOf(f,hasFav), b=medianOf(f,i=>D.fm[i]!==1);
+            return `<tr><td>${esc(nm)}</td><td class="n">${fm(a)}</td><td class="n">${fm(b)}</td></tr>`;
+          }).join('')}
+          </tbody></table>
+          <div class="callout" style="margin-top:13px">A interrupção anual é <em>menor</em> onde há favela mapeada. Não é paradoxo: favela é fenômeno urbano, e rede urbana tem melhor continuidade que rede rural.</div>
+        </div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px"><div class="card-h"><h3>Como usar este resultado</h3>
+      <div class="cap">O que a ausência de correlação autoriza, e o que ela não autoriza.</div></div>
+      <div class="card-b"><div class="steps">
+        <div class="step"><div class="k">01</div><div>
+          <h3>Não é uma dimensão de vulnerabilidade energética</h3>
+          <p>Este mapa não sustenta tratar território de favela como indicador de pobreza energética, nem renomeá-lo como tal. Existe uma suposição difundida de que as duas coisas se sobrepõem; medida na escala municipal, ela não se confirma. Priorizar busca ativa por presença de favela levaria ao município errado.</p></div></div>
+        <div class="step"><div class="k">02</div><div>
+          <h3>É contexto operacional, e isso tem valor próprio</h3>
+          <p>Onde há concentração urbana mapeada pelo Censo, a busca ativa enfrenta desafio conhecido de endereçamento e de vínculo entre domicílio e unidade consumidora. O número absoluto de domicílios serve para dimensionar operação de campo — planejamento, não diagnóstico.</p></div></div>
+        <div class="step"><div class="k">03</div><div>
+          <h3>Um resultado nulo entre municípios não é um resultado nulo entre domicílios</h3>
+          <p>Todas as bases aqui são agregadas por município. A ausência de correlação diz que municípios com mais favela não têm pior situação energética média — não diz nada sobre a situação de um domicílio dentro de uma favela comparado a outro fora dela. Essa pergunta exige microdado que estas fontes não fornecem, e concluir o contrário seria falácia ecológica.</p></div></div>
+      </div></div></div>
+
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+      <div class="card"><div class="card-h"><h3>Maiores participações do país</h3>
+        <div class="cap">Domicílios em favela sobre o total de domicílios do município. Referência territorial, não ranking de prioridade.</div></div>
+        <div class="tablewrap scroll320"><table><thead><tr><th>Município</th><th class="n">Participação</th>
+          <th class="n">Em favela</th><th class="n">Total</th></tr></thead><tbody>
+          ${top.map(i=>`<tr data-go="${D.cod[i]}" style="cursor:pointer"><td>${esc(D.nome[i])} (${D.uf[i]})</td>
+            <td class="n">${pct(100*D.pf[i])}</td><td class="n">${nf(D.fav[i])}</td><td class="n">${nf(D.dt[i])}</td></tr>`).join('')}
+        </tbody></table></div></div>
+
+      <div class="card"><div class="card-h"><h3>Por que este número estava errado antes</h3>
+        <div class="cap">A correção mais silenciosa das cinco, e a que mais mudava a leitura.</div></div>
+        <div class="card-b">
+          <p style="color:var(--ink-2);font-size:13px">A tabela 9887 do SIDRA publica uma variável chamada “percentual do total geral”. Esse total geral é o universo <em>das favelas</em>, repartido por espécie de domicílio — não o total do município. Usá-la como participação municipal produzia valores em torno de 84% em toda parte, e São Paulo aparecia com 89,8% dos seus domicílios em favela.</p>
+          <p style="color:var(--ink-2);font-size:13px;margin-top:10px">O denominador correto está na tabela 4712, variável 381, na mesma espécie de domicílio do numerador. Com ele, São Paulo fica em ${pct(100*D.pf[byCode.get(3550308)])} e o Rio de Janeiro em ${pct(100*D.pf[byCode.get(3304557)])} — compatíveis com o que o IBGE divulgou.</p>
+          <p style="color:var(--ink-2);font-size:13px;margin-top:10px">O nome da variável permanece o do IBGE — “favelas e comunidades urbanas”, nomenclatura que o instituto adotou no Censo 2022 em substituição a “aglomerados subnormais”. Os critérios são territoriais e de infraestrutura: irregularidade fundiária, ausência de serviços públicos, padrão de urbanização. Não são critérios de renda nem de energia.</p>
+        </div></div>
+    </div>`);
+}
+
+function rhoBar(v,mx){
+  const half=34, w=Math.round(half*Math.abs(v)/(mx||1));
+  const neg=v<0;
+  return `<span style="position:relative;display:block;width:${half*2}px;height:11px;background:var(--sunken);border-radius:2px">
+    <span style="position:absolute;left:${half}px;top:-2px;bottom:-2px;width:1px;background:var(--line-2)"></span>
+    <span style="position:absolute;top:2px;height:7px;border-radius:2px;background:${neg?'var(--ser2)':'var(--ser1)'};
+      ${neg?`right:${half}px`:`left:${half}px`};width:${Math.max(w,1)}px"></span></span>`;
+}
+
+/* ---------- MÉTODO ---------- */
+function pageMetodo(){
+  const S=(k,h,p,f)=>`<div class="step"><div class="k">${k}</div><div><h3>${h}</h3><p>${p}</p>${f?`<div class="formula">${esc(f)}</div>`:''}</div></div>`;
+  return `<div class="wrap">
+  <div class="phead"><div class="eyebrow">Método</div><h2>Fontes, cálculos e por que cada um é feito assim</h2>
+    <p class="lede">Cada medida abaixo pode ser reproduzida a partir dos arquivos públicos citados. Onde a leitura de uma base exigiu uma decisão, a decisão está escrita.</p></div>
+
+  <div class="card" style="margin-bottom:18px"><div class="card-h"><h3>As quatro medidas</h3>
+    <div class="cap">Fórmula, fonte e razão da escolha.</div></div>
+    <div class="card-b"><div class="steps">
+    ${S('01','Famílias não atendidas pela Tarifa Social',
+      'Famílias do CadÚnico nas faixas de pobreza e baixa renda, que são as faixas de elegibilidade, menos as linhas de subsídio da Tarifa Social na CDE. A contagem usa linhas de benefício porque o CPF vem mascarado no arquivo aberto, o que impede deduplicação.',
+      'não atendidas = (famílias em pobreza + baixa renda) − linhas de benefício TSEE')}
+    ${S('02b','A conta com Tarifa Social',
+      'A ANEEL publica a tarifa da subclasse Baixa Renda, que é a base sobre a qual o desconto incide — e não a conta final. O desconto escalonado da Lei 12.212/2010 é aplicado por faixa e de forma cumulativa: 65% nos primeiros 30 kWh, 40% de 31 a 100, 10% de 101 a 220. Num consumo de 80 kWh isso equivale a 49,4% de desconto. Esta é a única aplicação de regra normativa em todo o cálculo. Ela foi testada por inversão contra a CDE: partindo do subsídio efetivamente pago por família em cada município, o consumo que a regra implica é de 97,7 kWh na mediana, com 95,8% dos municípios entre 40 e 150 kWh. Uma regra errada por fator produziria consumo implícito absurdo.',
+      'conta social = tarifa Baixa Renda × (30×0,35 + 50×0,60)')}
+    ${S('02','Peso da conta na faixa de pobreza',
+      'A conta de 80 kWh na tarifa da distribuidora que atende o município, dividida pela renda de um domicílio no teto da faixa de pobreza do CadÚnico. O teto é por pessoa, então precisa ser multiplicado pelo tamanho médio do domicílio — a conta é paga pela casa, não por indivíduo.',
+      'peso = (tarifa × 80 kWh) ÷ (R$ 218 × moradores por domicílio)')}
+    ${S('03','Qualidade do fornecimento',
+      'DEC e FEC são publicados por conjunto consumidor, mês a mês. O valor anual é a soma dos doze meses, comparada ao limite anual do mesmo conjunto. A agregação para município usa a ponte IndQual e pondera pelo número de consumidores de cada conjunto, porque um município grande é atendido por dezenas de conjuntos de tamanhos muito diferentes.',
+      'razão = (Σ dos 12 meses de DEC) ÷ limite anual do conjunto')}
+    ${S('04','Território',
+      'Domicílios em favelas e comunidades urbanas do Censo 2022, sobre o total de domicílios particulares permanentes ocupados do município, na mesma espécie de domicílio nos dois lados da divisão.',
+      'participação = domicílios em favela ÷ domicílios do município')}
+    </div></div></div>
+
+  <div class="card" style="margin-bottom:18px"><div class="card-h"><h3>Cinco correções aplicadas a uma versão anterior</h3>
+    <div class="cap">Publicadas porque um resultado sem a sua própria auditoria pede confiança em vez de oferecer verificação.</div></div>
+    <div class="card-b"><div class="steps">
+    ${S('C1','A interrupção era comparada na periodicidade errada',
+      'O arquivo de continuidade traz apenas os períodos 1 a 12 — são meses, e não existe registro anual. O limite, porém, é anual. Dividir a média mensal pelo limite anual comprimia o indicador cerca de doze vezes, e nenhum município do país aparecia acima do limite. Somando os doze meses, 952 conjuntos violaram o limite de DEC em 2024.')}
+    ${S('C2','A tarifa era uma constante nacional',
+      'Todos os 5.570 municípios recebiam a mesma tarifa mediana, de modo que o peso da conta virava apenas o inverso da renda e nenhuma informação tarifária entrava na comparação. A ponte entre distribuidora e município funciona pelo CNPJ, não pelo nome do agente — pelo nome casavam 560 municípios; pelo CNPJ, todos os 5.570.')}
+    ${S('C3','A participação de favela media outra coisa',
+      'O denominador em uso era o universo das favelas, não o do município, o que produzia cerca de 84% em toda parte. O denominador correto vem da tabela 4712 do SIDRA.')}
+    ${S('C4','O subsídio negativo era zerado',
+      'Estornos na CDE aparecem em 3.383 municípios. Zerá-los inflava o total nacional em R$ 25,8 milhões e apagava o valor de municípios inteiros. Agora o bruto, os estornos e o líquido aparecem separados, e onde o líquido é negativo o campo diz que não sabe.')}
+    ${S('C5','A renda usada não era a que paga a conta',
+      'A conta é do domicílio, mas a renda de referência é por pessoa. Como o tamanho médio do domicílio varia 2,56 vezes entre municípios, isso penalizava sistematicamente as regiões de domicílio maior.')}
+    </div></div></div>
+
+  <div class="card"><div class="card-h"><h3>Por que não há um índice único</h3></div>
+    <div class="card-b prose">
+      <p>Um índice composto das quatro dimensões foi construído e testado. Ele não resistiu: removendo duas das quatro dimensões, apenas 7 dos 100 primeiros colocados permaneciam no topo, e o deslocamento mediano passava de mil posições. Um número que muda tanto conforme a escolha de quem o monta não sustenta decisão de gestão.</p>
+      <p>Há ainda uma razão substantiva. As famílias não atendidas pela Tarifa Social e a qualidade do fornecimento são estatisticamente independentes: a correlação de ordem entre as duas é de −0,10, e a sobreposição dos piores quartis fica em 0,86 vez o que o acaso produziria. Somá-las num único número apaga exatamente a informação que o gestor precisa — que são problemas distintos, em municípios distintos, sob responsabilidades distintas.</p>
+    </div></div>
+  </div>`;
+}
+
+/* ---------- LIMITES ---------- */
+function pageLimites(){
+  const semD3=N-AGG.withD3;
+  let semRS=0,sobre=0; for(let i=0;i<N;i++){if(D.sind[i]===1)semRS++; if(D.sob[i]===1)sobre++;}
+  const L=(h,p)=>`<div class="step"><div class="k">${svgIcon('alert','')}</div><div><h3>${h}</h3><p>${p}</p></div></div>`;
+  return `<div class="wrap">
+  <div class="phead"><div class="eyebrow">Limites</div><h2>O que estes dados não dizem</h2>
+    <p class="lede">Esta página existe porque a lista abaixo é parte do resultado, não uma ressalva de rodapé. Um número entregue sem os seus limites transfere ao leitor um risco que quem calculou já conhecia.</p></div>
+
+  <div class="tiles" style="margin-bottom:18px">
+    <div class="tile"><div class="lab">Sem apuração de DEC/FEC</div><div class="val num">${nf(semD3)}</div>
+      <div class="note">municípios sem continuidade vinculada para 2024. O campo fica vazio, não zerado.</div></div>
+    <div class="tile"><div class="lab">Subsídio indisponível</div><div class="val num">${nf(semRS)}</div>
+      <div class="note">municípios com CDE líquida negativa no mês de referência. Nenhum valor em reais é exibido para eles.</div></div>
+    <div class="tile"><div class="lab">Sobrecobertura</div><div class="val num">${nf(sobre)}</div>
+      <div class="note">municípios com mais benefícios ativos que famílias elegíveis — prova de que unidade consumidora não é família.</div></div>
+    <div class="tile"><div class="lab">Defasagem entre bases</div><div class="val num">20<small> meses</small></div>
+      <div class="note">o CadÚnico é de agosto de 2026; a CDE, de dezembro de 2024. A contagem de não atendidas compara dois estoques em datas diferentes.</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px"><div class="card-h"><h3>Limites que atravessam todas as medidas</h3></div>
+    <div class="card-b"><div class="steps">
+    ${L('Não identifica ninguém','Todas as bases são agregadas por município e assim permanecem. Nada aqui permite chegar a uma família, a um endereço ou a uma unidade consumidora. O arquivo da CDE traz o CPF mascarado na origem.')}
+    ${L('Não estabelece causa','As quatro medidas descrevem contexto municipal. Nenhuma delas explica por que a família não é atendida, e nenhuma autoriza inferência sobre conduta de qualquer pessoa ou sobre furto de energia.')}
+    ${L('A ausência pode ser cadastral','Parte da diferença entre elegíveis e beneficiários pode ser defasagem de cadastro, não privação. Os dados não separam as duas coisas. A primeira ação que eles sustentam é verificação local, não campanha.')}
+    ${L('O valor da conta é subestimado','A tarifa homologada não inclui ICMS nem PIS/COFINS, e o ICMS varia entre estados. Serve para comparar municípios; não serve para dizer quanto alguém paga.')}
+    ${L('O consumo de referência é conservador','O cenário usa 80 kWh, que é o limiar da Lei 15.235/2025. Invertendo o desconto legal contra o subsídio que a CDE pagou, o consumo mediano de quem já recebe a Tarifa Social é de cerca de 98 kWh. Famílias ainda não atendidas podem consumir de outro modo, e o dado não separa as duas populações.')}
+    ${L('O peso da conta é cenário','Depende do consumo suposto, e a faixa é larga: a 30 kWh nenhum município cruza o limiar de 10%; a 100 kWh quase todos cruzam. O valor publicado usa 80 kWh, o limiar da Lei 15.235/2025.')}
+    ${L('A comparação entre estados é hipótese','Supõe que a defasagem de data e a diferença de unidade afetam os estados de modo parecido. É plausível, mas não verificado — a diferença entre a melhor e a pior cobertura é grande demais para ser só isso, e pequena demais para dispensar checagem.')}
+    ${L('O subsídio não acessado é projeção','Multiplica o número de não atendidas pelo subsídio médio pago no próprio município. Supõe que a família marginal receberia esse mesmo valor. É útil para ordem de grandeza orçamentária, não para previsão.')}
+    </div></div></div>
+
+  <div class="card"><div class="card-h"><h3>O que os dados de 2024 ainda podem fazer</h3></div>
+    <div class="card-b prose">
+      <p>A base da CDE é de dezembro de 2024, anterior à gratuidade automática instituída pela Lei 15.235/2025. Isso costuma ser lido como desatualização. É o contrário: é uma linha de base.</p>
+      <p>Todas as fontes usadas aqui permanecem públicas e o cálculo é reprodutível. Repetir o procedimento com a CDE de 2026 mede, município a município, quantas dessas famílias a lei efetivamente alcançou — e onde não fechou. Não existe hoje nada público que faça essa avaliação na escala municipal.</p>
+    </div></div>
+  </div>`;
+}
+
+const PAGEFN={inicio:pageInicio,municipio:pageMunicipio,tarifasocial:pageTarifaSocial,
+  qualidade:pageQualidade,conta:pageConta,territorio:pageTerritorio,metodo:pageMetodo,limites:pageLimites};
+
+/* ================= MAP ENGINE ================= */
+const mapState={};
+function buildMap(key,metric){
+  const svg=document.getElementById('svg-'+key); if(!svg||svg.dataset.built)return;
+  const NS='http://www.w3.org/2000/svg';
+  const g=document.createElementNS(NS,'g'); g.setAttribute('id','gz-'+key);
+  const gm=document.createElementNS(NS,'g');
+  const frag=document.createDocumentFragment();
+  for(let i=0;i<N;i++){
+    const p=document.createElementNS(NS,'path');
+    p.setAttribute('d',G.paths[i]); p.setAttribute('class','m'); p.dataset.i=i;
+    frag.appendChild(p);
+  }
+  gm.appendChild(frag); g.appendChild(gm);
+  const gu=document.createElementNS(NS,'g');
+  for(const uf in G.uf_paths){const p=document.createElementNS(NS,'path');
+    p.setAttribute('d',G.uf_paths[uf]); p.setAttribute('class','uf'); gu.appendChild(p);}
+  g.appendChild(gu);
+  const sp=document.createElementNS(NS,'path'); sp.setAttribute('class','sel'); sp.setAttribute('d','');
+  g.appendChild(sp);
+  svg.appendChild(g);
+  svg.dataset.built='1';
+  mapState[key]={svg,g,sp,paths:gm.children,metric,k:1,x:0,y:0};
+  wireMap(key);
+  paintMap(key,metric);
+}
+function paintMap(key,mk){
+  const st=mapState[key]; if(!st)return; st.metric=mk;
+  const m=METRICS[mk];
+  for(let i=0;i<N;i++) st.paths[i].setAttribute('fill',m.color(m.get(i)));
+  const lg=document.getElementById('lg-'+key);
+  lg.innerHTML=m.labels.map((l,k)=>`<div class="row"><span class="sw" style="background:${m.ramp[k]}"></span><span>${l}</span></div>`).join('')
+    +`<div class="row" style="margin-top:5px"><span class="sw" style="background:var(--nodata)"></span><span>sem dado</span></div>`;
+  document.getElementById('lt-'+key).textContent=m.name;
+  document.getElementById('lc-'+key).textContent=m.caption;
+  markSel(key);
+}
+function markSel(key){
+  const st=mapState[key]; if(!st)return;
+  st.sp.setAttribute('d',G.paths[SEL]||'');
+}
+function applyT(key){
+  const st=mapState[key];
+  st.g.setAttribute('transform',`translate(${st.x} ${st.y}) scale(${st.k})`);
+}
+function wireMap(key){
+  const st=mapState[key], svg=st.svg, tip=document.getElementById('tip');
+  svg.addEventListener('pointermove',e=>{
+    const t=e.target;
+    if(t.classList&&t.classList.contains('m')){
+      const i=+t.dataset.i, m=METRICS[st.metric], v=m.get(i);
+      tip.style.display='block';
+      tip.innerHTML=`<div class="tn">${esc(D.nome[i])} <span style="color:var(--muted);font-weight:400">${D.uf[i]}</span></div>
+        <div class="tv num">${v==null?'sem dado':m.fmt(v)}</div>
+        <div class="tm">${esc(D.dist[D.di[i]])}</div>`;
+      const pad=14, w=tip.offsetWidth, h=tip.offsetHeight;
+      let x=e.clientX+pad, y=e.clientY+pad;
+      if(x+w>innerWidth-8) x=e.clientX-w-pad;
+      if(y+h>innerHeight-8) y=e.clientY-h-pad;
+      tip.style.left=x+'px'; tip.style.top=y+'px';
+    } else tip.style.display='none';
+  });
+  svg.addEventListener('pointerleave',()=>{tip.style.display='none';});
+  svg.addEventListener('click',e=>{
+    const t=e.target;
+    if(t.classList&&t.classList.contains('m')) select(+t.dataset.i);
+  });
+  let drag=null;
+  svg.addEventListener('pointerdown',e=>{
+    drag={x:e.clientX,y:e.clientY,ox:st.x,oy:st.y}; svg.classList.add('drag');
+    svg.setPointerCapture(e.pointerId);
+  });
+  svg.addEventListener('pointerup',e=>{drag=null;svg.classList.remove('drag');
+    try{svg.releasePointerCapture(e.pointerId);}catch(_){}});
+  svg.addEventListener('pointermove',e=>{
+    if(!drag)return;
+    const r=svg.getBoundingClientRect(), s=G.vb[0]/r.width;
+    st.x=drag.ox+(e.clientX-drag.x)*s; st.y=drag.oy+(e.clientY-drag.y)*s; applyT(key);
+  });
+  svg.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const r=svg.getBoundingClientRect(), s=G.vb[0]/r.width;
+    const mx=(e.clientX-r.left)*s, my=(e.clientY-r.top)*s;
+    const f=e.deltaY<0?1.18:1/1.18, nk=Math.min(28,Math.max(1,st.k*f));
+    const rf=nk/st.k;
+    st.x=mx-(mx-st.x)*rf; st.y=my-(my-st.y)*rf; st.k=nk; applyT(key);
+  },{passive:false});
+  svg.closest('.mapbox').querySelectorAll('.mapctl button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const cx=G.vb[0]/2, cy=G.vb[1]/2;
+      if(b.dataset.z==='reset'){st.k=1;st.x=0;st.y=0;}
+      else{const f=b.dataset.z==='in'?1.5:1/1.5, nk=Math.min(28,Math.max(1,st.k*f)), rf=nk/st.k;
+        st.x=cx-(cx-st.x)*rf; st.y=cy-(cy-st.y)*rf; st.k=nk;}
+      applyT(key);
+    });
+  });
+  document.getElementById('mb-'+key).addEventListener('click',e=>{
+    const b=e.target.closest('button[data-m]'); if(!b)return;
+    b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); paintMap(key,b.dataset.m);
+  });
+}
+function zoomToSel(key){
+  const st=mapState[key]; if(!st)return;
+  const el=st.paths[SEL]; if(!el)return;
+  const bb=el.getBBox();
+  const k=Math.min(14,Math.max(3,G.vb[0]/Math.max(bb.width*7,40)));
+  st.k=k; st.x=G.vb[0]/2-(bb.x+bb.width/2)*k; st.y=G.vb[1]/2-(bb.y+bb.height/2)*k;
+  applyT(key);
+}
+
+/* ================= SHELL ================= */
+function renderNav(){
+  for(const [id,items] of NAVS){
+    document.getElementById(id).innerHTML=items.map(([k,l,ic])=>
+      `<button class="nav-btn" data-p="${k}" ${k===PAGE?'aria-current="page"':''}>${svgIcon(ic)}<span>${l}</span></button>`).join('');
+  }
+}
+function render(){
+  renderNav();
+  const host=document.getElementById('pages');
+  host.innerHTML=`<section class="page on">${PAGEFN[PAGE]()}</section>`;
+  const mk={tarifasocial:['ts','descob'],qualidade:['q','d3'],conta:['c','pc'],territorio:['t','pf']}[PAGE];
+  if(mk){ buildMap(mk[0],mk[1]); }
+  const i=SEL;
+  document.getElementById('selname').textContent=D.nome[i];
+  document.getElementById('selmeta').textContent=`${D.uf[i]} · ${nf(D.cad[i])} famílias no CadÚnico`;
+  scrollTo({top:0,behavior:'instant'});
+}
+function go(p){ PAGE=p; render(); }
+function select(i){
+  SEL=i;
+  document.getElementById('selname').textContent=D.nome[i];
+  document.getElementById('selmeta').textContent=`${D.uf[i]} · ${nf(D.cad[i])} famílias no CadÚnico`;
+  for(const k in mapState){markSel(k);}
+  if(PAGE==='municipio') render();
+}
+document.addEventListener('click',e=>{
+  const nb=e.target.closest('.nav-btn'); if(nb){go(nb.dataset.p);return;}
+  const tr=e.target.closest('tr[data-go]');
+  if(tr){const i=byCode.get(+tr.dataset.go); if(i!=null){select(i); go('municipio');} return;}
+  if(!e.target.closest('.picker')) document.getElementById('res').hidden=true;
+});
+
+/* search */
+const norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const NORM=D.nome.map(norm);
+const qEl=document.getElementById('q'), resEl=document.getElementById('res');
+let hits=[],cur=-1;
+function search(){
+  const v=norm(qEl.value.trim());
+  if(v.length<2){resEl.hidden=true;return;}
+  hits=[];
+  for(let i=0;i<N && hits.length<80;i++) if(NORM[i].startsWith(v)) hits.push(i);
+  if(hits.length<80) for(let i=0;i<N && hits.length<80;i++)
+    if(!NORM[i].startsWith(v)&&NORM[i].includes(v)) hits.push(i);
+  if(!hits.length){resEl.innerHTML='<div style="padding:9px 12px;color:var(--muted);font-size:12.5px">Nenhum município encontrado.</div>';resEl.hidden=false;return;}
+  cur=0;
+  resEl.innerHTML=hits.map((i,k)=>`<button data-i="${i}" class="${k===0?'on':''}">
+    <span>${esc(D.nome[i])}</span><span class="uf">${D.uf[i]}</span></button>`).join('');
+  resEl.hidden=false;
+}
+qEl.addEventListener('input',search);
+qEl.addEventListener('focus',search);
+qEl.addEventListener('keydown',e=>{
+  if(resEl.hidden)return;
+  const bs=[...resEl.querySelectorAll('button')];
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault(); if(!bs.length)return;
+    bs[cur]?.classList.remove('on');
+    cur=(cur+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;
+    bs[cur].classList.add('on'); bs[cur].scrollIntoView({block:'nearest'});
+  } else if(e.key==='Enter'){e.preventDefault(); bs[cur]?.click();}
+  else if(e.key==='Escape'){resEl.hidden=true;}
+});
+resEl.addEventListener('click',e=>{
+  const b=e.target.closest('button[data-i]'); if(!b)return;
+  select(+b.dataset.i); resEl.hidden=true; qEl.value='';
+  const mk={tarifasocial:'ts',qualidade:'q',conta:'c',territorio:'t'}[PAGE];
+  if(mk) zoomToSel(mk); else if(PAGE!=='municipio') go('municipio');
+});
+
+/* theme */
+const tt=document.getElementById('tt');
+tt.addEventListener('click',()=>{
+  const cur=document.documentElement.getAttribute('data-theme');
+  const sysDark=matchMedia('(prefers-color-scheme: dark)').matches;
+  const next=cur ? (cur==='dark'?'light':'dark') : (sysDark?'light':'dark');
+  document.documentElement.setAttribute('data-theme',next);
+  try{localStorage.setItem('mpe-theme',next);}catch(_){}
+});
+try{const t=localStorage.getItem('mpe-theme'); if(t) document.documentElement.setAttribute('data-theme',t);}catch(_){}
+
+render();
+</script>
