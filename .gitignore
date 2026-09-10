@@ -8,3 +8,7 @@ data/interim/
 *.7z
 *.gdb
 *.gpkg-journal
+
+# Rascunho e anotacoes de trabalho na raiz ficam fora do produto.
+/*.md
+!/README.md
