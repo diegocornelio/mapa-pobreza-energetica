@@ -3,10 +3,13 @@
 Quatro medidas de pobreza energética nos 5.570 municípios brasileiros, a partir de
 oito bases abertas da ANEEL, do MDS e do IBGE.
 
-**Aplicativo:** (aplicativo)
+**Aplicativo:** `site/index.html` — página única de 1,9 MB, autocontida, sem servidor,
+sem framework e sem dependência externa. Escolha um município e ele responde para ele em
+todas as páginas.
 
-Página única autocontida, sem servidor e sem dependência externa. Escolha um município
-e ele responde para ele em todas as páginas.
+Publicação: o repositório traz `netlify.toml` com `publish = "site"`. Não há etapa de
+build — basta apontar o Netlify para este repositório. Para regerar a página a partir dos
+dados, ver `docs/REPRODUCAO.md`.
 
 ---
 
@@ -44,8 +47,10 @@ Por isso o produto é um **mapa de medidas separadas**, e não um ranking.
 ## Estrutura do repositório
 
 ```
-reconstrucao/          o que produz o resultado publicado
-  app/                 fonte do aplicativo e HTML gerado
+site/index.html        a página publicada, pronta para deploy
+netlify.toml           configuração de publicação
+reconstrucao/          o que produz essa página
+  app/                 template do aplicativo
   dados/               dataset municipal, payloads e agregado da CDE
   pipeline/            19 scripts numerados na ordem de execução
 docs/                  método, correções, limites, dicionário, fontes

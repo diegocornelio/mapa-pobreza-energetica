@@ -39,7 +39,7 @@ python 07_tarifa_social.py        # desconto escalonado
 python 08_geometria.py            # projeção SIRGAS 2000 e paths SVG
 python 09_payload.py              # dados.json
 
-python build_app.py               # gera app/mapa.html
+python build_app.py               # gera site/index.html
 ```
 
 Validações avulsas, fora do encadeamento:
@@ -56,7 +56,7 @@ python valida_granularidade.py    # distribuição dos encaminhamentos
 **Toda reexecução deve ser conferida contra a seção 1 de `docs/VALIDACAO.md`.** São 13
 valores. Qualquer divergência é bug de porte ou mudança de fonte, não variação aceitável.
 
-Confira também o tamanho de `reconstrucao/app/mapa.html`: cerca de 1,94 MB.
+Confira também o tamanho de `site/index.html`: cerca de 1,94 MB.
 
 ## Registro de reprodução
 

@@ -1,7 +1,7 @@
 """Injeta os payloads no template e grava o HTML publicável.
 
 Uso:  python build_app.py
-Saída: reconstrucao/app/mapa.html  (~1,9 MB, autocontido)
+Saída: site/index.html  (~1,9 MB, autocontido)
 """
 import io, os
 from pathlib import Path
@@ -19,6 +19,7 @@ html = tpl.replace("__DATA__", dados).replace("__GEO__", geo)
 if "__DATA__" in html or "__GEO__" in html:
     raise SystemExit("placeholder não substituído")
 
-destino = BASE / "app" / "mapa.html"
+destino = BASE.parent / "site" / "index.html"
+destino.parent.mkdir(parents=True, exist_ok=True)
 io.open(destino, "w", encoding="utf-8", newline="\n").write(html)
 print(f"{destino}: {os.path.getsize(destino)/1e6:.2f} MB")

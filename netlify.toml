@@ -1,0 +1,11 @@
+# Publicacao do Mapa da Pobreza Energetica.
+# A pagina e autocontida: um unico HTML, sem build e sem dependencia externa.
+
+[build]
+  publish = "site"
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
