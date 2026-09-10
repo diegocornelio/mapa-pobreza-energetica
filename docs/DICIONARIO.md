@@ -1,50 +1,113 @@
-# Dicionário
+# Dicionário de dados
 
-| coluna | descrição |
+`reconstrucao/dados/municipios_corrigido.csv` — 5.570 linhas, 35 colunas, uma por
+município. Chave: `cod_ibge`. Codificação UTF-8, separador vírgula, decimal ponto.
+
+Campo vazio significa ausência de dado, nunca zero. Ver `docs/LIMITES.md`.
+
+## Identificação
+
+| coluna | tipo | descrição |
+|---|---|---|
+| `cod_ibge` | inteiro | código municipal IBGE de 7 dígitos |
+| `nome` | texto | nome do município na malha IBGE 2022 |
+| `uf` | texto | sigla da unidade da federação |
+| `distribuidora` | texto | distribuidora com mais unidades consumidoras ativas no município, INDGER 2024 |
+
+## Cadastro Único e Tarifa Social
+
+Fonte: painel municipal do CECAD (ago/2026) e beneficiários da CDE (dez/2024).
+
+| coluna | tipo | descrição |
+|---|---|---|
+| `familias_cadastradas` | inteiro | famílias no CadÚnico do município |
+| `familias_pobreza` | inteiro | famílias na faixa de pobreza, até R$ 218 por pessoa |
+| `familias_baixa_renda` | inteiro | famílias na faixa de baixa renda, até meio salário mínimo por pessoa |
+| `familias_elegiveis` | inteiro | soma das duas faixas acima, que são as que dão direito à Tarifa Social |
+| `beneficiarios_tsee` | inteiro | linhas de benefício `SubsBaixaRenda` na CDE; são unidades consumidoras, não famílias |
+| `cobertura` | número | `100 × beneficiarios_tsee ÷ familias_elegiveis` |
+| `lacuna_pos` | inteiro | famílias não atendidas: `familias_elegiveis − beneficiarios_tsee`, com piso zero |
+| `sobrecobertura` | 0 ou 1 | 1 quando há mais benefícios que famílias elegíveis; 80 municípios |
+
+## Subsídio da CDE
+
+Valores mensais, referência dezembro de 2024. Ver `docs/CORRECOES.md` § C4.
+
+| coluna | tipo | descrição |
+|---|---|---|
+| `subs_liquido` | número | subsídio bruto menos estornos, em reais; pode ser negativo |
+| `subsidio_familia_liq` | número | `subs_liquido ÷ beneficiarios_tsee` |
+| `rs_nao_acessado` | número | cenário: `lacuna_pos × subsidio_familia_liq`. Projeção, não medição |
+| `subsidio_indisponivel` | 0 ou 1 | 1 quando `subs_liquido` é negativo; 32 municípios. Nenhuma cifra em reais deve ser usada |
+
+## Tarifa e conta
+
+Tarifa B1 residencial convencional, base "Tarifa de Aplicação", vigente em dez/2024,
+ponderada por unidades consumidoras ativas. **Sem ICMS e sem PIS/COFINS.**
+
+| coluna | tipo | descrição |
+|---|---|---|
+| `tarifa_municipal` | número | tarifa da subclasse Residencial, em reais por kWh |
+| `tarifa_baixa_renda` | número | tarifa da subclasse Baixa Renda. É a **base** sobre a qual o desconto incide, não a conta final |
+| `rank_tarifa` | inteiro | posição nacional por `tarifa_municipal`, 1 é a mais cara |
+| `conta_cheia80` | número | `tarifa_municipal × 80` |
+| `conta_social80` | número | `tarifa_baixa_renda × 80 × 0,50625`, com o desconto escalonado da Lei 12.212/2010 |
+| `econ_mes` | número | `conta_cheia80 − conta_social80`: economia mensal da família |
+
+## Renda e peso da conta
+
+Renda: SIDRA 10296 do Censo 2022, média aproximada por pontos médios das faixas.
+
+| coluna | tipo | descrição |
+|---|---|---|
+| `renda_referencia` | número | rendimento nominal mensal domiciliar **por pessoa**, em reais |
+| `moradores_por_domicilio` | número | moradores (SIDRA 10296) ÷ domicílios (SIDRA 4712) |
+| `peso_pob80_cheia` | número | fração da renda domiciliar no teto da faixa de pobreza que a conta de 80 kWh consome, sem benefício |
+| `peso_social_ef` | número | o mesmo, com o desconto escalonado aplicado |
+
+Denominador dos dois pesos: `218 × moradores_por_domicilio`.
+
+## Qualidade do fornecimento
+
+DEC e FEC de 2024 somados nos doze meses, sobre o limite anual do conjunto, agregados ao
+município pela ponte IndQual e ponderados por consumidores.
+
+| coluna | tipo | descrição |
+|---|---|---|
+| `dec_h_ano` | número | horas de interrupção por unidade consumidora no ano, ponderado |
+| `d3_corr` | número | razão entre o apurado e o limite; valor 1,00 é a fronteira regulatória |
+| `d3_max` | número | mesma razão no pior conjunto que atende o município |
+| `n_conj` | inteiro | conjuntos consumidores que atendem o município |
+| `violacao` | 0 ou 1 | 1 quando `d3_corr ≥ 1`. Vazio nos 14 municípios sem apuração |
+
+Quando `d3_corr < 1` e `d3_max ≥ 1`, há desigualdade interna: o município está dentro do
+limite na média, mas ao menos um conjunto está acima.
+
+## Território
+
+Censo 2022, na espécie particular permanente ocupado nos dois lados da divisão.
+
+| coluna | tipo | descrição |
+|---|---|---|
+| `dom_favela` | inteiro | domicílios em favelas e comunidades urbanas, SIDRA 9887 variável 9909 |
+| `dom_total_mun` | inteiro | domicílios do município, SIDRA 4712 variável 381 |
+| `d4_corr` | número | `dom_favela ÷ dom_total_mun` |
+| `favela_mapeada` | booleano | verdadeiro nos 655 municípios com favela identificada pelo Censo |
+
+Onde `favela_mapeada` é falso, o zero é medição: o IBGE percorreu o território e não
+identificou favela. **Esta medida não é dimensão de vulnerabilidade energética** — ver
+`docs/METODO.md` § 5.
+
+---
+
+## Colunas que existiram e foram removidas
+
+| coluna | por quê |
 |---|---|
-| `cod_ibge` | Código municipal IBGE com 7 dígitos. |
-| `nome` | Nome do município conforme malha IBGE usada na espinha. |
-| `uf` | Sigla da unidade da federação. |
-| `nome_uf` | Nome municipal com UF entre parênteses. |
-| `familias_cadastradas` | Famílias cadastradas no CECAD municipal. |
-| `familias_pobreza` | Famílias no CECAD em situação de pobreza. |
-| `familias_baixa_renda` | Famílias no CECAD em situação de baixa renda. |
-| `familias_acima_meio_sm` | Famílias no CECAD acima de meio salário mínimo per capita. |
-| `familias_elegiveis` | Soma de `familias_pobreza` e `familias_baixa_renda`. |
-| `source_id` | Identificador da fonte principal da linha CECAD. |
-| `data_referencia` | Data de referência da linha CECAD. |
-| `renda_referencia` | Renda nominal mensal domiciliar per capita estimada por faixas do Censo 2022. |
-| `renda_fonte` | Descrição da fonte e do tratamento usado para renda. |
-| `beneficiarios_tsee` | Contagem de linhas de benefício TSEE no arquivo CDE de dezembro de 2024. |
-| `subsidio_tsee_reais` | Soma municipal do subsídio TSEE em reais. |
-| `source_id_tsee_municipio` | Identificador da fonte da tabela TSEE municipal. |
-| `data_referencia_tsee_municipio` | Data de referência da tabela TSEE municipal. |
-| `tarifa_municipal_estimada` | Tarifa estimada em R$/kWh para o consumo de referência. |
-| `tarifa_flag_estimativa` | Indica que a tarifa municipal é estimada. |
-| `distribuidoras_usadas` | Regra ou distribuidora usada na estimativa tarifária. |
-| `dec_apurado` | DEC anual apurado associado ao município. |
-| `fec_apurado` | FEC anual apurado associado ao município. |
-| `dec_limite` | Limite regulatório de DEC associado ao município. |
-| `fec_limite` | Limite regulatório de FEC associado ao município. |
-| `dec_rel` | Razão entre DEC apurado e DEC limite. |
-| `fec_rel` | Razão entre FEC apurado e FEC limite. |
-| `compensacoes_decfec_reais` | Compensações de continuidade agregadas a partir da fonte DEC/FEC. |
-| `dom_favela` | Domicílios em favelas e comunidades urbanas no Censo 2022. |
-| `dom_total` | Total estimado de domicílios usado como denominador territorial. |
-| `lacuna_bruta` | Diferença entre famílias elegíveis e beneficiários TSEE. |
-| `d1_lacuna_tsee` | Dimensão 1, lacuna proporcional da Tarifa Social. |
-| `conta_estimada` | Conta estimada para 100 kWh. |
-| `d2_peso_conta_renda` | Dimensão 2, peso da conta estimada na renda de referência. |
-| `d3_qualidade` | Dimensão 3, maior razão entre `dec_rel` e `fec_rel`. |
-| `d4_vulnerabilidade_territorial` | Dimensão 4, proporção de domicílios em favela. |
-| `n_d1_lacuna_tsee` | Dimensão 1 normalizada em 0 a 100. |
-| `n_d2_peso_conta_renda` | Dimensão 2 normalizada em 0 a 100. |
-| `n_d3_qualidade` | Dimensão 3 normalizada em 0 a 100. |
-| `n_d4_vulnerabilidade_territorial` | Dimensão 4 normalizada em 0 a 100. |
-| `n_dimensoes_validas` | Número de dimensões disponíveis para o município. |
-| `ipem` | Índice final, calculado como média das quatro dimensões normalizadas quando todas estão presentes. |
-| `ipem_dois_piores` | Média das duas dimensões normalizadas de maior severidade. |
-| `dois_piores_indicadores` | Rótulos curtos das duas dimensões de maior severidade. |
-| `ranking` | Posição nacional, com 1 para maior IPEM. |
-| `faixa` | Faixa ordinal do IPEM: Baixa, Média, Alta ou Muito alta. |
-| `subsidio_por_familia` | Subsídio TSEE médio por beneficiário registrado. |
+| `peso_pob80_social` | usava a tarifa Baixa Renda sem o desconto escalonado, subestimando o benefício. Superada por `peso_social_ef` |
+| `ipem`, `ranking`, `faixa`, `n_d1`…`n_d4` | pertenciam ao índice composto, rejeitado. Ver `docs/METODO.md` |
+| `compensacoes_decfec_reais` | valor de conjunto replicado sem rateio entre municípios; somar infla 1,20× |
+| `tarifa_flag_estimativa`, `distribuidoras_usadas` | descreviam a tarifa constante nacional, substituída pela tarifa municipal real |
+
+As colunas do dataset anterior permanecem em `data/processed/ipem_municipios.csv`, para
+que a comparação entre as duas versões seja auditável.
