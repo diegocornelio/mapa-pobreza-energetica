@@ -1,6 +1,6 @@
 import pandas as pd, numpy as np
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT, REF_TARIFA, ANO_UC, LINHA_POBREZA, SALARIO_MINIMO
 B=str(RAW)+"/aneel"
 num=lambda s: pd.to_numeric(s.astype(str).str.replace(".","",regex=False).str.replace(",",".",regex=False),errors="coerce")
 T=pd.read_csv(B+"/tarifas/2026-09-05/tarifas-homologadas-distribuidoras-energia-eletrica.csv",sep=";",encoding="utf-8",low_memory=False,dtype=str)
@@ -8,17 +8,17 @@ st=lambda c: T[c].astype(str).str.strip()
 base=(st("DscSubGrupo")=="B1")&(st("DscBaseTarifaria")=="Tarifa de Aplicação")&(st("DscModalidadeTarifaria")=="Convencional")&(st("DscDetalhe")=="Não se aplica")&(st("DscSubClasse")=="Baixa Renda")
 b=T[base].copy(); b["ini"]=pd.to_datetime(b.DatInicioVigencia,errors="coerce"); b["fim"]=pd.to_datetime(b.DatFimVigencia,errors="coerce")
 b["tar"]=(num(b.VlrTUSD)+num(b.VlrTE))/1000.0; b["cnpj"]=pd.to_numeric(b.NumCNPJDistribuidora,errors="coerce")
-ref=pd.Timestamp("2024-12-01"); v=b[(b.ini<=ref)&(b.fim>=ref)&(b.tar>0)]
+ref=pd.Timestamp(REF_TARIFA); v=b[(b.ini<=ref)&(b.fim>=ref)&(b.tar>0)]
 tb=v.groupby("cnpj").tar.median().rename("tarifa_br").reset_index()
 g=pd.read_parquet(B+"/indger/2026-09-05/indger-dados-comerciais.parquet",columns=["NumCNPJ","CodMunicipioIBGE","DatReferenciaInformada","QtdUCAtiva"])
-g["dt"]=pd.to_datetime(g.DatReferenciaInformada,errors="coerce"); g=g[g.dt.dt.year==2024]
+g["dt"]=pd.to_datetime(g.DatReferenciaInformada,errors="coerce"); g=g[g.dt.dt.year==ANO_UC]
 g["cnpj"]=pd.to_numeric(g.NumCNPJ,errors="coerce"); g["uc"]=pd.to_numeric(g.QtdUCAtiva,errors="coerce").fillna(0)
 g["cod_ibge"]=pd.to_numeric(g.CodMunicipioIBGE,errors="coerce"); g=g.dropna(subset=["cod_ibge","cnpj"]); g["cod_ibge"]=g.cod_ibge.astype(int)
 par=g.groupby(["cod_ibge","cnpj"],as_index=False).uc.sum().merge(tb,on="cnpj",how="left").dropna(subset=["tarifa_br"])
 mb=par.groupby("cod_ibge").apply(lambda x: np.average(x.tarifa_br,weights=x.uc) if x.uc.sum()>0 else x.tarifa_br.mean(),include_groups=False).rename("tarifa_baixa_renda").reset_index()
 df=pd.read_csv(str(OUT)+"/ipem_v3.csv").merge(mb,on="cod_ibge",how="left")
 print("municipios com tarifa Baixa Renda:",df.tarifa_baixa_renda.notna().sum())
-SM=1412.0; TETO_BR=SM/2; TETO_POB=218.0
+SM=SALARIO_MINIMO; TETO_BR=SM/2; TETO_POB=LINHA_POBREZA
 df["renda_dom_teto_br"]=TETO_BR*df.moradores_por_domicilio
 df["renda_dom_teto_pob"]=TETO_POB*df.moradores_por_domicilio
 df["peso_br_cheia"]=(df.tarifa_municipal*100)/df.renda_dom_teto_br

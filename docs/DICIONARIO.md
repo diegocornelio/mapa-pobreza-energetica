@@ -21,8 +21,8 @@ Fonte: painel municipal do CECAD (ago/2026) e beneficiários da CDE (dez/2024).
 | coluna | tipo | descrição |
 |---|---|---|
 | `familias_cadastradas` | inteiro | famílias no CadÚnico do município |
-| `familias_pobreza` | inteiro | famílias na faixa de pobreza, até R$ 218 por pessoa |
-| `familias_baixa_renda` | inteiro | famílias na faixa de baixa renda, até meio salário mínimo por pessoa |
+| `familias_pobreza` | inteiro | famílias na faixa de pobreza, até R$ 218 por pessoa (Decreto 11.566/2023, vigente na data da leitura) |
+| `familias_baixa_renda` | inteiro | famílias na faixa de baixa renda, até meio salário mínimo por pessoa (R$ 810,50 em março de 2026) |
 | `familias_elegiveis` | inteiro | soma das duas faixas acima, que são as que dão direito à Tarifa Social |
 | `beneficiarios_tsee` | inteiro | linhas de benefício `SubsBaixaRenda` na CDE; são unidades consumidoras, não famílias |
 | `cobertura` | número | `100 × beneficiarios_tsee ÷ familias_elegiveis` |
@@ -65,7 +65,9 @@ Renda: SIDRA 10296 do Censo 2022, média aproximada por pontos médios das faixa
 | `peso_pob80_cheia` | número | fração da renda domiciliar no teto da faixa de pobreza que a conta de 80 kWh consome, sem benefício |
 | `peso_social_ef` | número | o mesmo, com o desconto escalonado aplicado |
 
-Denominador dos dois pesos: `218 × moradores_por_domicilio`.
+Denominador dos dois pesos: `LINHA_POBREZA × moradores_por_domicilio`, com a linha de
+pobreza em `_paths.py` e publicada no payload como `lp`, junto da data `lpv` em que
+passou a valer. É valor nominal, não indexado: ver a ressalva em `docs/METODO.md`.
 
 ## Qualidade do fornecimento
 

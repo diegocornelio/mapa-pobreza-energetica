@@ -1,5 +1,11 @@
 # Correções
 
+> **Nota de data.** Os números da coluna *depois* são os da correção, apurados com a
+> tarifa homologada de dezembro de 2024. A tarifa foi depois movida para março de 2026,
+> para ficar na mesma data do CadÚnico e da CDE, e os valores atuais estão em
+> `docs/VALIDACAO.md`. Este documento registra o que foi corrigido, e quando; não é a
+> tabela de referência do projeto.
+
 Seis defeitos estruturais foram encontrados na versão anterior deste trabalho, ao
 auditá-la contra os arquivos brutos. Todos os seis alteravam o resultado, e três
 alteravam a conclusão.
@@ -184,6 +190,32 @@ de 10% em 2.392 municípios; com ele, em nenhum.** O instrumento funciona onde c
 problema é a cobertura.
 
 ---
+
+## C7 — O mesmo número era calculado por três caminhos, e davam três respostas
+
+O peso da conta na faixa de pobreza era publicado no payload como `pc`, recalculado na
+tela a partir da tarifa e do tamanho do domicílio, e apurado uma terceira vez pelo
+pipeline. Como `moradores_por_domicilio` ia ao payload com duas casas decimais, o
+recálculo da tela não reproduzia o valor publicado: seis municípios ficavam de lados
+diferentes do limiar de 10% conforme o caminho.
+
+| | antes | depois |
+|---|---|---|
+| pipeline, precisão plena | 3.233 municípios acima de 10% | 3.233 |
+| campo `pc` do payload | 3.231 | 3.233 |
+| recálculo na tela | 3.239 | 3.233 |
+| mediana publicada | 10,49% | 10,50% |
+
+O número que estava publicado, 3.239, era o da tela, isto é, o dos três o que partia
+dos dados mais arredondados. A correção tem duas partes: `hh`, `pc` e `ps` passam a ser
+publicados com casas suficientes para que a decisão de limiar não dependa do
+arredondamento, e onde o cenário é exatamente 80 kWh a tela lê o valor publicado em vez
+de recalculá-lo. Os cenários de 30 e 100 kWh não têm campo próprio e seguem calculados
+na tela, agora sobre um denominador com precisão bastante.
+
+**O que isto diz sobre o projeto.** Precisão de publicação é decisão de método, e não
+detalhe de formatação: quem arredonda o insumo de uma comparação de limiar está
+escolhendo, sem saber, de que lado alguns municípios vão cair.
 
 ## Um argumento de validação que foi descartado
 

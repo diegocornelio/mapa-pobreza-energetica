@@ -1,6 +1,6 @@
 import pandas as pd, numpy as np
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT, REF_TARIFA, ANO_UC
 B=str(RAW)+"/aneel"
 num = lambda s: pd.to_numeric(s.astype(str).str.replace(".","",regex=False).str.replace(",",".",regex=False), errors="coerce")
 T = pd.read_csv(B+"/tarifas/2026-09-05/tarifas-homologadas-distribuidoras-energia-eletrica.csv", sep=";", encoding="utf-8", low_memory=False, dtype=str)
@@ -9,12 +9,12 @@ sel = (st("DscSubGrupo")=="B1") & (st("DscModalidadeTarifaria")=="Convencional")
       & (st("DscSubClasse")=="Residencial") & (st("DscBaseTarifaria")=="Tarifa de Aplicação") & (st("DscDetalhe")=="Não se aplica")
 b=T[sel].copy(); b["ini"]=pd.to_datetime(b.DatInicioVigencia,errors="coerce"); b["fim"]=pd.to_datetime(b.DatFimVigencia,errors="coerce")
 b["tar"]=(num(b.VlrTUSD)+num(b.VlrTE))/1000.0
-ref=pd.Timestamp("2024-12-01"); v=b[(b.ini<=ref)&(b.fim>=ref)&(b.tar>0)].copy()
+ref=pd.Timestamp(REF_TARIFA); v=b[(b.ini<=ref)&(b.fim>=ref)&(b.tar>0)].copy()
 v["cnpj"]=pd.to_numeric(v.NumCNPJDistribuidora, errors="coerce")
 tc = v.dropna(subset=["cnpj"]).groupby("cnpj").tar.median().reset_index()
 print("distribuidoras (CNPJ) com tarifa 2024-12:", len(tc))
 g = pd.read_parquet(B+"/indger/2026-09-05/indger-dados-comerciais.parquet", columns=["NumCNPJ","SigAgente","CodMunicipioIBGE","DatReferenciaInformada","QtdUCAtiva"])
-g["dt"]=pd.to_datetime(g.DatReferenciaInformada,errors="coerce"); g=g[g.dt.dt.year==2024]
+g["dt"]=pd.to_datetime(g.DatReferenciaInformada,errors="coerce"); g=g[g.dt.dt.year==ANO_UC]
 g["cnpj"]=pd.to_numeric(g.NumCNPJ,errors="coerce"); g["uc"]=pd.to_numeric(g.QtdUCAtiva,errors="coerce").fillna(0)
 g["cod_ibge"]=pd.to_numeric(g.CodMunicipioIBGE,errors="coerce")
 g=g.dropna(subset=["cod_ibge","cnpj"]); g["cod_ibge"]=g.cod_ibge.astype(int)

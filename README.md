@@ -25,7 +25,7 @@ documento mude junto.
 |---|---|
 | Quantas famílias elegíveis não recebem a Tarifa Social? | **10.440.849** no país em março de 2026, cobertura de 62,5% |
 | A energia falta mais do que a ANEEL permite? | **1.412 municípios** acima do limite em 2024 e de novo em 2025 |
-| Quanto pesa a conta para quem é pobre aqui? | mediana de 9,75% da renda a 80 kWh, sem o benefício |
+| Quanto pesa a conta para quem é pobre aqui? | mediana de 10,50% da renda a 80 kWh, sem o benefício |
 | O que mudou depois da Lei 15.235/2025? | o benefício passou a cobrir de 58% para 88% da conta, sem ampliar alcance |
 | O território explica pobreza energética? | não, na escala municipal, e o resultado nulo está publicado |
 

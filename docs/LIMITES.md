@@ -61,9 +61,9 @@ não serve para dizer quanto alguém paga.
 
 | consumo | peso mediano na faixa de pobreza | municípios acima de 10% |
 |---|---|---|
-| 30 kWh | 3,66% | 0 |
-| **80 kWh** | **9,75%** | **2.392** |
-| 100 kWh | 12,19% | 5.031 |
+| 30 kWh | 3,94% | 0 |
+| **80 kWh** | **10,50%** | **3.233** |
+| 100 kWh | 13,12% | 5.440 |
 
 Os 80 kWh são o limiar da Lei 15.235/2025 e a única das três hipóteses com ancoragem
 externa. A 30 kWh o problema desaparece; a 100 kWh é quase universal.
@@ -83,7 +83,7 @@ conhecida.**
 | superestima | usa o tamanho médio de domicílio do município, e domicílios pobres tendem a ser maiores |
 
 **Consequência prática: a ordenação entre municípios é confiável; o nível não é.** A
-ordenação vem da tarifa real, com 2,53× de amplitude observada.
+ordenação vem da tarifa real, com 2,32× de amplitude observada.
 
 **O desconto da Tarifa Social é aplicação de regra, não leitura de dado.** É o único
 ponto do cálculo em que isso acontece. Se a regra estiver errada, os valores em reais e o

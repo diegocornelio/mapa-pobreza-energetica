@@ -1,7 +1,7 @@
 """Recalcula os numeros centrais por caminho independente e compara com o payload do app."""
 import pandas as pd, numpy as np, json, sys
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT, REF_TARIFA, ANO_UC
 D = json.load(open(str(OUT)+"/dados.json", encoding="utf-8"))
 P = pd.read_csv(str(OUT)+"/painel_municipal.csv")
 S = pd.read_csv(str(OUT)+"/cadunico_sagi.csv")
@@ -96,13 +96,13 @@ _bb["ini"] = pd.to_datetime(_bb.DatInicioVigencia, errors="coerce")
 _bb["fim"] = pd.to_datetime(_bb.DatFimVigencia, errors="coerce")
 _bb["tar"] = (_num(_bb.VlrTUSD) + _num(_bb.VlrTE)) / 1000.0
 _bb["cnpj"] = pd.to_numeric(_bb.NumCNPJDistribuidora, errors="coerce")
-_ref = pd.Timestamp("2024-12-01")
+_ref = pd.Timestamp(REF_TARIFA)
 _vv = _bb[(_bb.ini <= _ref) & (_bb.fim >= _ref) & (_bb.tar > 0)]
 _tc = _vv.dropna(subset=["cnpj"]).groupby("cnpj").tar.median().reset_index()
 _Gg = pd.read_parquet(B + "/indger/2026-09-05/indger-dados-comerciais.parquet",
                       columns=["NumCNPJ", "CodMunicipioIBGE", "DatReferenciaInformada", "QtdUCAtiva"])
 _Gg["dt"] = pd.to_datetime(_Gg.DatReferenciaInformada, errors="coerce")
-_Gg = _Gg[_Gg.dt.dt.year == 2024]
+_Gg = _Gg[_Gg.dt.dt.year == ANO_UC]
 _Gg["cnpj"] = pd.to_numeric(_Gg.NumCNPJ, errors="coerce")
 _Gg["uc"] = pd.to_numeric(_Gg.QtdUCAtiva, errors="coerce").fillna(0)
 _Gg["cod_ibge"] = pd.to_numeric(_Gg.CodMunicipioIBGE, errors="coerce")
@@ -130,8 +130,7 @@ cmp("tarifa reproduzida ate a ultima casa publicada", float((_dif <= 1.0001e-4).
     float(len(_j)), 0.5, fonte="ANEEL, arquivo bruto")
 print(f"  -> {_j.pay.min():.4f} a {_j.pay.max():.4f} = {_j.pay.max()/_j.pay.min():.2f}x")
 print(f"     coincidencia digito a digito em {_exatos:,} de {len(_j):,}; maior diferenca {_dif.max():.6f}")
-print( "     nota: a tarifa e de dezembro de 2024, enquanto o resto da leitura do presente")
-print( "     e de marco de 2026; o arquivo da ANEEL traz as duas datas.")
+print(f"     referencia: {REF_TARIFA}, a mesma do CadUnico e da CDE, com pesos de UC de {ANO_UC}")
 
 print("\n=== 4. FRACAO DA CONTA COBERTA ===")
 # O app so usa o municipio com subsidio positivo nas DUAS datas: onde a CDE ficou

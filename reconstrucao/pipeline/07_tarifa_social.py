@@ -1,6 +1,6 @@
 import pandas as pd, numpy as np
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT, LINHA_POBREZA
 d=pd.read_csv(str(OUT)+"/app_dados.csv")
 # desconto escalonado TSEE, Lei 12.212/2010 art.2 + REN ANEEL 1000/2021: cumulativo por faixa
 def fator(k):
@@ -14,7 +14,7 @@ F80=fator(80)
 d["conta_cheia80"]=d.tarifa_municipal*80
 d["conta_social80"]=d.tarifa_baixa_renda*80*F80
 d["econ_mes"]=d.conta_cheia80-d.conta_social80
-d["peso_social_ef"]=d.conta_social80/(218*d.moradores_por_domicilio)
+d["peso_social_ef"]=d.conta_social80/(LINHA_POBREZA*d.moradores_por_domicilio)
 print()
 print("=== conta de 80 kWh (sem tributos) ===")
 print(f"  cheia   : mediana {d.conta_cheia80.median():6.2f}  min {d.conta_cheia80.min():6.2f}  max {d.conta_cheia80.max():6.2f}")

@@ -45,9 +45,18 @@ cruza o limiar de 10%. Pobreza energética é fenômeno intradomiciliar e desapa
 agregação por município. O cálculo só diz algo quando feito sobre a faixa de renda
 elegível.
 
-**Por que o teto da faixa.** R$ 218 por pessoa é o teto da faixa de pobreza do CadÚnico.
-Usar o teto, e não a renda média da faixa, torna o resultado conservador: quem está
-abaixo do teto sente peso maior.
+**Por que o teto da faixa.** R$ 218 por pessoa é o teto da faixa de pobreza do CadÚnico,
+valor fixado pelo Decreto 11.566/2023 e ainda vigente na data desta leitura. Usar o teto,
+e não a renda média da faixa, torna o resultado conservador: quem está abaixo do teto
+sente peso maior.
+
+**A linha não é indexada e a tarifa é.** Os R$ 218 são valor nominal que só muda por novo
+ato do Executivo, enquanto a tarifa é reajustada todo ano. O peso, portanto, sobe entre
+duas leituras sem que nenhuma família tenha empobrecido. Foi o que aconteceu aqui: com a
+tarifa de dezembro de 2024 a mediana nacional era 9,75% e 2.392 municípios passavam de
+10%; com a de março de 2026, sem que o denominador mudasse, a mediana é 10,50% e são
+3.233. A variação mede reajuste tarifário contra linha parada, e não mudança de condição
+de vida.
 
 **Por que multiplicar pelo tamanho do domicílio.** O teto é por pessoa, mas a conta é do
 domicílio. O tamanho médio vem de moradores (SIDRA 10296) ÷ domicílios (SIDRA 4712) e

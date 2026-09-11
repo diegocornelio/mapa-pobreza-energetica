@@ -170,17 +170,17 @@ trezentos clientes e a uma concessionária com trezentos mil.
 
 | grandeza | valor |
 |---|---|
-| tarifa residencial | **R$ 0,841730/kWh** |
-| tarifa da subclasse Baixa Renda | R$ 0,735430/kWh |
+| tarifa residencial | **R$ 0,823560/kWh** |
+| tarifa da subclasse Baixa Renda | R$ 0,684600/kWh |
 | unidades consumidoras casadas a alguma tarifa | 100,00% |
 
 ## Como ler o resultado
 
-R$ 0,84/kWh é a tarifa **sem tributos**. A conta real da família é maior, porque o
+R$ 0,82/kWh é a tarifa **sem tributos**. A conta real da família é maior, porque o
 ICMS varia entre 17% e 30% conforme o estado e não entra aqui.
 
 Por isso a tarifa serve para **comparar municípios**, e não para dizer quanto alguém
-paga. A amplitude nacional observada é de **2,53×**, de R$ 0,4241 a R$ 1,0738 por
+paga. A amplitude nacional observada é de **2,32×**, de R$ 0,4862 a R$ 1,1268 por
 kWh: a mesma conta de 80 kWh custa mais que o dobro dependendo de onde a família
 mora, e essa ordenação é confiável mesmo com o nível subestimado.
 
@@ -389,7 +389,7 @@ m["moradores_por_domicilio"]=m.moradores/m.dom_total_mun
 
 <!-- fonte: reconstrucao/pipeline/06c_faixas_cadunico.py 21-23 -->
 ```python
-SM=1412.0; TETO_BR=SM/2; TETO_POB=218.0
+SM=SALARIO_MINIMO; TETO_BR=SM/2; TETO_POB=LINHA_POBREZA
 df["renda_dom_teto_br"]=TETO_BR*df.moradores_por_domicilio
 df["renda_dom_teto_pob"]=TETO_POB*df.moradores_por_domicilio
 ```
@@ -431,12 +431,21 @@ limite superior da faixa, usado como referência.
 **O viés é conhecido em direção:** quem está abaixo do teto sente a conta mais do que
 o calculado. O número subestima o peso.
 
+**O denominador não é indexado, e o numerador é.** Os R$ 218 são valor nominal fixado
+pelo Decreto 11.566/2023 e não foram reajustados até a data de referência desta
+leitura; a tarifa, ao contrário, é reajustada todo ano. Daí decorre que o peso da
+conta na renda sobe entre duas leituras sem que nenhuma família tenha empobrecido:
+é o efeito de comparar um preço corrigido com uma linha parada. Quem ler a variação
+do peso entre duas datas está lendo isso, e não mudança de condição de vida.
+
 ## O que a tornaria errada
 
 A tabela 10296 do SIDRA conta **pessoas** excluindo pensionistas e empregados
 domésticos, então o tamanho do domicílio sai levemente subestimado, e com ele a renda
-do domicílio. Se o valor da linha de pobreza do CadÚnico mudar, a constante 218
-precisa mudar junto, e ela aparece em mais de um arquivo.
+do domicílio. Se o valor da linha de pobreza do CadÚnico mudar, a constante
+precisa mudar junto. Ela vive em `_paths.py`, com a data em que passou a valer, e é
+lida de lá pelo pipeline e publicada no payload para o cálculo ao vivo na tela; antes
+estava escrita à mão em nove lugares, e nada garantia que todos dissessem o mesmo.
 ---
 
 # 6. Quanto pesa a conta de luz
@@ -466,9 +475,9 @@ foram calculados e publicados:
 
 | consumo | peso mediano | municípios acima de 10% |
 |---|---|---|
-| 30 kWh | 3,66% | 0 |
-| **80 kWh** | **9,75%** | **2.392** |
-| 100 kWh | 12,19% | 5.031 |
+| 30 kWh | 3,94% | 0 |
+| **80 kWh** | **10,50%** | **3.233** |
+| 100 kWh | 13,12% | 5.440 |
 
 A 30 kWh o problema desaparece; a 100 kWh é quase universal. Os 80 kWh foram
 escolhidos porque são o limiar da Lei 15.235/2025, e são a **única das três hipóteses
@@ -477,13 +486,13 @@ outras duas ao lado.
 
 ## Aplicação: São João de Meriti
 
-$$\frac{0{,}841730 \times 80}{569{,}3645}=\frac{67{,}3384}{569{,}3645}=0{,}118269 \;\to\; \mathbf{11{,}83\%}$$
+$$\frac{0{,}823560 \times 80}{569{,}3645}=\frac{65{,}8848}{569{,}3645}=0{,}115713 \;\to\; \mathbf{11{,}57\%}$$
 
 ## Como ler o resultado
 
-Uma conta de 80 kWh consome 11,83% da renda de um domicílio no teto da faixa de
+Uma conta de 80 kWh consome 11,57% da renda de um domicílio no teto da faixa de
 pobreza em São João de Meriti. O limiar de referência usual na literatura é 10%, e
-ele é cruzado aqui.
+ele é cruzado aqui, como passou a ser cruzado **na mediana nacional**, que é de 10,50%.
 
 **Três vieses conhecidos, em direções opostas, que não se cancelam de forma
 conhecida:**
@@ -495,7 +504,7 @@ conhecida:**
 | superestima | usa o tamanho médio de domicílio do município, e domicílios pobres tendem a ser maiores |
 
 **A consequência prática é a regra de leitura deste número: a ordenação entre
-municípios é confiável; o nível não é.** A ordenação vem da tarifa real, com 2,53× de
+municípios é confiável; o nível não é.** A ordenação vem da tarifa real, com 2,32× de
 amplitude observada. O nível depende de um consumo suposto e de uma renda de
 referência.
 
@@ -566,11 +575,11 @@ $$F_{80}=\frac{30(0{,}35)+50(0{,}60)}{80}=\frac{10{,}5+30{,}0}{80}=\mathbf{0{,}5
 
 | passo | conta |
 |---|---|
-| conta cheia | 0,841730 × 80 = **R$ 67,3384** |
-| conta com Tarifa Social | 0,735430 × 80 × 0,506250 = **R$ 29,7849** |
-| economia | 67,3384 − 29,7849 = **R$ 37,5535 por mês** |
-| peso sem o benefício | 11,83% |
-| peso com o benefício | **5,23%** |
+| conta cheia | 0,823560 × 80 = **R$ 65,8848** |
+| conta com Tarifa Social | 0,684600 × 80 × 0,506250 = **R$ 27,7263** |
+| economia | 65,8848 − 27,7263 = **R$ 38,1585 por mês** |
+| peso sem o benefício | 11,57% |
+| peso com o benefício | **4,87%** |
 
 ## Como ler o resultado
 
@@ -578,7 +587,7 @@ A família paga 50,625% do que pagaria sem a regra, o que corresponde a um desco
 efetivo de 49,4% a 80 kWh.
 
 **A economia tem duas componentes, não uma.** A troca de subclasse tarifária, de
-Residencial (R$ 0,8417) para Baixa Renda (R$ 0,7354), e o desconto escalonado sobre
+Residencial (R$ 0,8236) para Baixa Renda (R$ 0,6846), e o desconto escalonado sobre
 ela. **A CDE reembolsa apenas a segunda.** Confundir as duas produziu um argumento de
 validação que depois foi descartado em público, e o registro está em
 `docs/VALIDACAO.md`.
@@ -973,21 +982,23 @@ na banda mais grave por ausência de dado. Os agregados tratam nulo explicitamen
 
 # Apêndice: o inventário completo
 
-As 734 operações do projeto que foram extraídas e **verificadas**: a transcrição
-de cada uma foi comparada caractere a caractere com as linhas que ela declara, e só
-entrou aqui o que bateu. As doze que produzem os números publicados têm tratamento
-completo no corpo do documento; este índice existe para que nenhuma das outras fique
-fora, e para que se possa pular direto para a linha.
+As 823 operações do projeto que foram extraídas e **verificadas**. As doze que
+produzem os números publicados têm tratamento completo no corpo do documento; este
+índice existe para que nenhuma das outras fique fora, e para que se possa pular
+direto para a linha.
 
-O inventário saiu de duas varreduras com verificação adversarial, uma por arquivo, em
-que um agente extrai e outro tenta derrubar a extração abrindo o arquivo. Foram 973
-candidatas; **239 foram descartadas** por não baterem com o código, e não entraram.
+A verificação não é a mesma para todas, e a diferença fica declarada. Em
+733 delas a transcrição do agente foi comparada caractere a caractere com as
+linhas que ela declara, e só entrou aqui o que bateu; o inventário saiu de duas
+varreduras com verificação adversarial, uma por arquivo, em que um agente extrai e
+outro tenta derrubar a extração abrindo o arquivo. Nas 90 de `valida_numeros.py`,
+auditado depois de reescrito, o arquivo de transcrições do agente se perdeu: o código
+foi relido das linhas reais do arquivo, o que o torna correto por construção, e o que
+passou por conferência mecânica foram as faixas declaradas, que estão dentro do
+arquivo, em ordem crescente e sem sobreposição.
 
-A maior parte das descartadas descreve versões anteriores de arquivos que foram
-reescritos depois da varredura: a troca para a base casada por data, a substituição do
-mapa e a correção do próprio validador. É o comportamento pretendido: **uma transcrição
-que não bate com o código não entra no documento**, ainda que descreva bem o que o
-código fazia ontem.
+Nos dois casos, o que nenhuma máquina conferiu é se a descrição corresponde ao que o
+código faz: a transcrição é verificável, a leitura do que ela significa não é.
 
 ## Ingestão das fontes
 
@@ -1861,7 +1872,7 @@ código fazia ontem.
 
 ## Scripts de validação
 
-33 operações em 5 arquivos.
+122 operações em 5 arquivos.
 
 ### `reconstrucao/pipeline/valida_decomposicao.py`
 
@@ -1909,7 +1920,96 @@ código fazia ontem.
 
 | linhas | operação | espécie | o que faz, e o que a tornaria errada |
 |---|---|---|---|
-| `5-9` | Leitura das cinco fontes de conferencia | leitura | O cabecalho do arquivo (linha 1) declara a intencao: recalcular por caminho independente e comparar com o payload do app. D e o lado a conferir; P, S… **Risco:** A independencia e apenas de codigo, nao de fonte: se P e D derivam do mesmo CSV intermediario com o mesmo erro a montante, a comparacao passa sem det… |
+| `4` | importacao dos caminhos e das constantes de referencia | leitura | tirar a data de referencia da tarifa e o ano das unidades consumidoras de um modulo compartilhado e o que permite que este validador use exatamente o… **Risco:** INTERIM_ORIG e PROCESSED_ORIG sao importados e nunca usados, o que sugere resto de versao anterior; se _paths mudar o valor das constantes sem que os… |
+| `5-9` | leitura do payload e dos artefatos de apoio | leitura | D e o artefato publicado que se quer auditar e P, S, A, F sao artefatos gravados por etapas anteriores do pipeline, logo servem como lado esquerdo de… **Risco:** se qualquer um desses CSV for regravado pela mesma etapa que escreve o payload, a independencia se perde; se os arquivos estiverem desatualizados em … |
+| `20` | contador das especies de conferencia | agregação | o comentario imediatamente acima justifica separar as duas especies de conferencia; o contador e o que permite ao resumo dizer quantas comparacoes fo… **Risco:** se alguma comparacao futura nao passar por cmp nem por coer, o resumo subcontara e dara impressao de cobertura menor ou maior que a real |
+| `22-23` | atalho posicional cmp_f | apresentação | reordenar os parametros poe a fonte em posicao obrigatoria de leitura na chamada, o que torna visivel, linha a linha, de onde vem o lado recalculado;… **Risco:** a ordem posicional difere da de cmp, entao inverter calc e app ou passar a fonte na posicao errada produz comparacao invertida ou rotulo absurdo sem … |
+| `25-33` | comparacao contra fonte anterior ao payload | limiar | o comentario das linhas 11 a 19 registra a razao explicita: o arquivo ja teve cinco comparacoes que nao podiam falhar, porque comparavam uma expressa… **Risco:** a checagem e apenas de fonte nao vazia, nao de fonte verdadeira: uma string qualquer satisfaz o requisito, logo a garantia e documental e nao mecanic… |
+| `35-40` | comparacao de coerencia interna do payload | limiar | o comentario das linhas 11 a 19 declara que conferir dois campos do payload entre si e util mas nao e a mesma coisa que validar calculo: nao detecta … **Risco:** passar por coer uma comparacao que poderia ser feita contra fonte anterior enfraquece a auditoria sem alertar ninguem; os dois lados podem estar igua… |
+| `46` | elegiveis do CECAD somados no painel | agregação | e soma simples de coluna municipal do painel; o codigo usa esse valor apenas para exibicao na linha 66, onde o rotulo diz que e base preservada no pa… **Risco:** se a coluna tiver nulos, sum os ignora e o total sai subestimado sem aviso; somar uma base de data diferente junto com as de marco de 2026 confundiri… |
+| `47` | agregado nacional do SAGI em marco de 2026 | agregação | filtra a competencia e soma a coluna que o proprio pipeline trata como definicao de elegivel; o valor e usado nas linhas 67 a 69 para explicar o exce… **Risco:** se anomes vier como texto e nao inteiro, o filtro retorna vazio e a soma vira zero silenciosamente; mudanca de nome da coluna quebra o acesso por atr… |
+| `48` | elegiveis e beneficios em marco de 2026 | agregação | sao os dois lados recalculados das comparacoes das linhas 54 e 55, vindos de painel_municipal.csv, escrito por 09a, contra o payload escrito por 06d … **Risco:** nulos na coluna sao ignorados por sum, o que produziria total menor que o do payload se o payload tratar nulo como zero |
+| `49` | elegiveis e beneficios em dezembro de 2024 | agregação | mesmas colunas do painel na competencia anterior, usadas apenas para impressao comparativa nas linhas 61 a 63; o codigo nao as submete a cmp **Risco:** as duas colunas vem de fontes de natureza distinta, elegiveis do CadUnico e beneficiarios da TSEE, e o codigo nao verifica se sao da mesma competencia |
+| `50` | familias nao atendidas como soma das lacunas positivas | aritmética | o truncamento em zero e justificado nas linhas 58 e 59, que imprimem o saldo liquido e explicam que a diferenca para a soma das positivas e o excesso… **Risco:** se alguma linha tiver nulo, a subtracao propaga nulo e max compara com None, o que quebra ou distorce; o int trunca a fracao acumulada em vez de arre… |
+| `51-53` | somas nacionais reconstruidas do payload | agregação | as listas do payload sao municipais, entao o total nacional publicado tem de ser a soma delas; o padrao x or 0 protege contra nulos, que no payload r… **Risco:** x or 0 tambem converte zero e valores falsos em zero, o que aqui e inofensivo, mas mascararia um payload que usasse False ou string vazia; se a lista… |
+| `54` | conferencia dos elegiveis de marco de 2026 | limiar | os dois lados vem de codigos distintos lendo as mesmas fontes, painel escrito por 09a contra payload escrito por 06d e 09, como diz o comentario das … **Risco:** se 09a passar a derivar o painel do proprio payload, a independencia desaparece sem que o codigo perceba, pois a checagem de fonte e textual |
+| `55` | conferencia dos beneficios de marco de 2026 | limiar | mesma estrutura da linha anterior, com o painel como caminho anterior ao payload e a fonte declarada **Risco:** tratamento diferente de nulos entre painel e payload deslocaria o total sem indicar erro de calculo |
+| `56` | conferencia das familias nao atendidas | limiar | o rotulo diz explicitamente que a grandeza comparada e a soma das positivas, e nao o saldo liquido, evitando a confusao que as linhas 58 e 59 explicam **Risco:** se o payload passar a publicar saldo liquido em lac, a comparacao acusara divergencia que na verdade e mudanca de definicao |
+| `57` | cobertura nacional em percentual | aritmética | a razao e calculada dos dois lados a partir de totais obtidos por caminhos distintos, e a tolerancia e reduzida para 0.01 porque a grandeza esta em p… **Risco:** divisao por zero se e26 ou app_ele for zero; erros compensatorios nos dois totais podem manter a razao correta e esconder divergencia nas contagens, … |
+| `58-59` | impressao do saldo liquido nacional | apresentação | publicar as duas grandezas lado a lado evita que o leitor confunda saldo liquido com familias nao atendidas; a explicacao impressa e a propria justif… **Risco:** o formato com zero casas arredonda para exibicao e pode sugerir precisao inteira que os dados nao tem; a segunda linha usa prefixo f sem nenhum campo… |
+| `61-63` | impressao da data anterior, dezembro de 2024 | aritmética | repete para 2024 exatamente a mesma definicao usada para 2026 nas linhas 50 e 57, o que torna os dois anos comparaveis entre si **Risco:** a repeticao literal da formula permite que as duas versoes divirjam numa edicao futura; esse total de 2024 nao passa por cmp, portanto e impresso sem… |
+| `66` | impressao dos elegiveis do CECAD | apresentação | o titulo impresso na linha 65 e a data no rotulo deixam registrado que essa base tem competencia diferente da leitura do presente, evitando que o num… **Risco:** se a data no texto nao acompanhar uma troca de base, o rotulo passa a mentir sobre a competencia |
+| `67-69` | excedente do SAGI sobre a soma municipal | aritmética | a explicacao impressa atribui a diferenca a cobertura de 5.571 municipios no SAGI contra a malha do Censo 2022, nomeando o municipio excedente e seu … **Risco:** a diferenca e atribuida inteiramente a um municipio sem que o codigo verifique isso numericamente; se houver outra causa somada, como revisao de comp… |
+| `72` | municipios acima do limite de continuidade em 2024 | limiar | o limiar rel maior ou igual a 1 define ultrapassagem do limite regulatorio, ja que rel e a razao entre o indicador apurado e o limite; a contagem e r… **Risco:** empate exato em rel igual a 1 depende de arredondamento na origem e pode mudar a contagem; linhas com rel nulo sao contadas como falso e somem da est… |
+| `73` | municipios acima do limite de continuidade em 2025 | limiar | mesma regra de limiar aplicada ao ano seguinte, com a mesma fonte anterior ao payload declarada **Risco:** se as duas competencias tiverem cobertura municipal diferente, as contagens nao sao diretamente comparaveis entre si, ainda que cada uma bata com o p… |
+| `74` | reincidentes nos dois anos | agregação | a intersecao logica das duas marcas define reincidencia, e o recalculo parte do CSV de 03c, anterior ao payload **Risco:** se viol nao for estritamente a indicadora de rel maior ou igual a 1, as cinco contagens desta secao deixam de ser mutuamente consistentes; valores nu… |
+| `75` | municipios que deixaram de passar do limite | agregação | uma das quatro categorias mutuamente exclusivas cuja soma e conferida na linha 78; recalculada da fonte anterior ao payload **Risco:** municipio sem dado em qualquer dos anos nao entra em nenhuma das quatro categorias, o que so nao produz inconsistencia porque a linha 78 compara a so… |
+| `76` | municipios que passaram a ficar acima do limite | agregação | completa o par de transicoes junto com a linha 75, sobre a mesma fonte anterior ao payload **Risco:** o mesmo tratamento de nulos das linhas anteriores; alem disso a categoria limpo, que fecha a soma na linha 78, nao e recalculada aqui e vem apenas do… |
+| `77` | soma das quatro categorias de continuidade | agregação | as quatro categorias sao mutuamente exclusivas e exaustivas para quem tem dado nos dois anos, logo devem somar o total com dado; o codigo confere iss… **Risco:** todos os termos saem do payload, entao esta e uma verificacao de coerencia interna e nao detecta erro de calculo comum as quatro categorias |
+| `78` | conferencia do fechamento das categorias | limiar | como sao contagens inteiras, a igualdade exata e o criterio correto e dispensa tolerancia **Risco:** por nao usar coer nem cmp, a comparacao nao incrementa nenhum contador, entao uma divergencia aqui e impressa mas nao afeta o codigo de saida do scri… |
+| `85` | raiz dos arquivos brutos da ANEEL | leitura | o comentario das linhas 81 a 84 registra que a secao passou a reconstruir a tarifa do arquivo bruto da ANEEL, e nao mais do payload, justamente para … **Risco:** caminho montado por concatenacao de texto, sensivel a mudanca de organizacao dos diretorios brutos |
+| `86-87` | conversao de numero em formato brasileiro | aritmética | o arquivo bruto e lido inteiro como texto na linha 89, entao a conversao precisa remover o separador de milhar antes de trocar o decimal; a ordem das… **Risco:** inverter a ordem das substituicoes destruiria o valor; errors coerce transforma sujeira em nulo silenciosamente, o que reduz a base sem aviso |
+| `88-89` | leitura bruta das tarifas homologadas | leitura | ler com dtype texto preserva os campos numericos em formato brasileiro para a conversao explicita de _num e evita inferencia de tipo por amostra; low… **Risco:** o caminho fixa a data do snapshot, entao uma atualizacao da base exige editar o codigo; se o arquivo vier em outra codificacao, os rotulos com acento… |
+| `90` | acesso limpo a coluna textual | leitura | as comparacoes do filtro sao por igualdade exata de rotulo, entao espacos residuais fariam linhas validas sairem da selecao **Risco:** nao normaliza caixa nem acento, entao variacao de grafia na origem ainda derruba linhas; astype str converte nulo no texto nan, que simplesmente nao … |
+| `91-93` | selecao da tarifa residencial B1 convencional | limiar | as seis condicoes juntas isolam uma unica linha tarifaria por distribuidora e vigencia: B1 residencial convencional e a tarifa do consumidor domestic… **Risco:** depende de rotulos textuais com acento e caixa exatos; qualquer mudanca de nomenclatura na ANEEL zera a selecao e a secao inteira quebra ou compara c… |
+| `94` | copia da selecao tarifaria | leitura | copiar antes de criar colunas evita escrever em uma fatia da tabela original, que geraria aviso e comportamento indefinido **Risco:** se a selecao for vazia, todas as etapas seguintes operam sobre tabela vazia e as comparacoes finais comparam conjuntos vazios sem erro evidente |
+| `95-96` | datas de vigencia da tarifa | aritmética | a tarifa so pode ser atribuida a uma data se o intervalo de vigencia for comparavel, o que exige converter o texto em data **Risco:** errors coerce transforma data invalida em nulo, e nulo falha as comparacoes da linha 100, eliminando a linha sem aviso; o formato e inferido, o que p… |
+| `97` | tarifa por quilowatt hora, soma de TUSD e TE | aritmética | a tarifa cheia e a soma da parcela de distribuicao com a de energia, e a divisao por mil converte a unidade publicada, reais por megawatt hora, para … **Risco:** se uma das parcelas nao converter, a soma vira nulo e a linha e descartada adiante; se a unidade da base mudar, a divisao fixa por mil passa a estar … |
+| `98` | CNPJ numerico da distribuidora | aritmética | converter para numero nos dois lados e o que permite a juncao da linha 111 casar, ja que a base de tarifas e a comercial podem gravar o CNPJ com form… **Risco:** CNPJ como ponto flutuante perde precisao acima de quinze digitos significativos, o que aqui e tolerado porque o CNPJ tem quatorze; se a base trouxer … |
+| `99` | data de referencia da tarifa | leitura | a data nao e escrita aqui: vem da constante compartilhada REF_TARIFA, a mesma que as etapas do pipeline usam, e a linha 133 imprime esse valor dizend… **Risco:** se REF_TARIFA cair fora de toda vigencia da base da ANEEL, o filtro da linha 100 esvazia e as comparacoes seguintes passam a confrontar conjuntos vaz… |
+| `100` | tarifas vigentes e positivas na data de referencia | limiar | o intervalo fechado nos dois extremos garante que uma tarifa que inicia ou termina exatamente na data de referencia seja considerada vigente; o corte… **Risco:** se houver sobreposicao de vigencias na base, mais de uma tarifa por distribuidora entra e a mediana da linha 101 e que resolve o empate; nulos em ini… |
+| `101` | mediana da tarifa por distribuidora | estatística | o comentario das linhas 81 a 84 declara que a reconstrucao refaz a mediana por CNPJ; a mediana e robusta a registro atipico remanescente quando mais … **Risco:** se o filtro deixar passar linhas de naturezas diferentes para o mesmo CNPJ, a mediana escolhe uma delas sem sinalizar a heterogeneidade; distribuidor… |
+| `102-103` | leitura da base comercial por municipio | leitura | restringir as colunas na leitura e o que torna viavel carregar a base, e sao exatamente as quatro necessarias para o par municipio e distribuidora co… **Risco:** se algum desses nomes de coluna mudar no arquivo, a leitura falha por completo; a data do snapshot esta fixa no caminho |
+| `104` | data de referencia da base comercial | aritmética | a restricao ao ano exige data tipada, o que a conversao fornece **Risco:** data invalida vira nulo e a linha e descartada no filtro seguinte sem aviso |
+| `105` | restricao da base comercial ao ano dos pesos | limiar | o peso de unidades consumidoras precisa ser de um periodo definido e declarado, e o ano vem da constante compartilhada ANO_UC, impressa na linha 133 … **Risco:** ANO_UC e REF_TARIFA sao constantes independentes, entao nada no codigo garante que o ano dos pesos corresponda a data da tarifa; se houver varias com… |
+| `106` | CNPJ numerico na base comercial | aritmética | a juncao da linha 111 exige o mesmo tipo nos dois lados, e a linha 98 faz a conversao equivalente na base de tarifas **Risco:** nulo aqui elimina a linha na limpeza da linha 109; formatacao com pontuacao na origem produziria nulo em massa |
+| `107` | unidades consumidoras ativas como peso | aritmética | substituir nulo por zero mantem a linha na base mas com peso nulo, o que preserva o par na estrutura sem influenciar a media ponderada da linha 113 **Risco:** se todos os pesos de um municipio forem nulos, a soma e zero e a media ponderada seria invalida, situacao que a linha 113 trata caindo para a media s… |
+| `108` | codigo IBGE numerico do municipio | aritmética | o payload identifica municipio pelo codigo IBGE, entao a chave precisa ser do mesmo tipo para o alinhamento da linha 116 funcionar **Risco:** codigo de sete digitos cabe sem perda em ponto flutuante, mas se a base trouxer codigo de seis digitos sem o verificador, o alinhamento com o payload… |
+| `109` | limpeza das chaves e tipo inteiro do codigo IBGE | aritmética | linha sem uma das chaves nao pode ser agrupada nem casada, e o inteiro e o tipo que casa com os codigos publicados no payload na linha 115 **Risco:** a conversao para inteiro trunca a parte decimal em vez de arredondar, o que so e seguro porque a limpeza anterior garante ausencia de nulo; o descart… |
+| `110-111` | unidades consumidoras por municipio e distribuidora com a tarifa casa… | agregação | somar por par consolida as varias competencias em um unico peso antes da ponderacao; a juncao a esquerda seguida do descarte de tarifa nula mantem ap… **Risco:** municipio cujas distribuidoras todas ficaram sem tarifa desaparece da reconstrucao e some da comparacao final sem contabilizacao; o descarte nao e co… |
+| `112-114` | tarifa municipal como media ponderada por unidades consumidoras | estatística | o comentario das linhas 81 a 84 declara que a reconstrucao refaz a media ponderada por unidades consumidoras; ponderar por unidades consumidoras faz … **Risco:** a alternativa de peso zero devolve uma media simples com significado diferente, sem marcar quais municipios cairam nesse caso; se os pesos forem de c… |
+| `115` | tarifas publicadas extraidas do payload | leitura | o payload guarda codigo e tarifa em listas paralelas, e o zip as remonta em serie indexada; excluir os nulos evita que municipio sem tarifa publicada… **Risco:** o zip assume que as duas listas tem o mesmo comprimento e a mesma ordem; se divergirem, a associacao entre municipio e tarifa fica errada sem qualque… |
+| `116` | alinhamento entre tarifa reconstruida e publicada | agregação | o alinhamento por indice garante que cada linha compara o mesmo municipio nos dois lados, e o descarte de nulos restringe a intersecao, unico dominio… **Risco:** a intersecao pode ser bem menor que os 5.570 municipios sem que isso apareca, ja que so o tamanho da tabela e impresso na linha 132; municipio presen… |
+| `117-118` | conferencia dos extremos da tarifa | limiar | o comentario das linhas 81 a 84 registra que esta secao antes comparava o minimo com ele mesmo sobre o proprio payload e por isso nao podia falhar; a… **Risco:** extremos sao sensiveis a uma unica distribuidora atipica, entao a comparacao testa bem as pontas e pouco o miolo da distribuicao, o que e coberto pel… |
+| `119-120` | amplitude tarifaria entre o maximo e o minimo | aritmética | a razao e a grandeza divulgada como amplitude e e recalculada dos dois lados a partir dos mesmos extremos ja conferidos nas linhas 117 e 118, com fon… **Risco:** divisao pelo minimo torna a razao muito sensivel a erro no menor valor; se o minimo se aproximar de zero, a amplitude explode e a tolerancia fixa per… |
+| `127` | diferenca absoluta por municipio na ultima casa publicada | aritmética | o comentario das linhas 121 a 126 registra que o payload grava a tarifa com quatro casas, entao o lado reconstruido precisa ser arredondado a mesma p… **Risco:** o arredondamento em ponto flutuante decide diferente no meio-passo, que e exatamente a causa das 139 diferencas de uma unidade descritas no comentari… |
+| `128` | contagem de coincidencias exatas | agregação | o limiar de um bilionesimo e muito menor que a ultima casa publicada, entao funciona como igualdade exata tolerando apenas residuo de ponto flutuante… **Risco:** o limiar e arbitrario e nao derivado da precisao do formato; se o payload passasse a gravar com mais casas, ele deixaria de separar igualdade de resi… |
+| `129-130` | conferencia da reproducao da tarifa em todos os municipios | limiar | o comentario das linhas 121 a 126 declara que a afirmacao verificada e a honesta: reproduz dentro de uma unidade da ultima casa publicada, em todos; … **Risco:** a folga aceita erro real de uma unidade da ultima casa, portanto um vies sistematico dessa magnitude passaria; como so a contagem e comparada, um mun… |
+| `131` | impressao da faixa e da amplitude publicadas | apresentação | imprime com quatro casas, que e a precisao com que o payload grava a tarifa segundo o comentario das linhas 121 a 126 **Risco:** a razao exibida com duas casas arredonda e pode diferir da conferida na linha 119 na terceira casa |
+| `132` | impressao das coincidencias e da maior diferenca | apresentação | publicar o maior desvio ao lado da contagem permite ao leitor verificar que o pior caso cabe na ultima casa publicada, sustentando a afirmacao do com… **Risco:** seis casas podem sugerir precisao que a origem, com quatro casas, nao possui |
+| `133` | impressao da referencia temporal da tarifa e dos pesos | apresentação | imprimir as duas constantes tal como foram usadas nas linhas 99 e 105 deixa a competencia auditavel na propria saida, e o texto afirma que a referenc… **Risco:** a afirmacao de que a referencia e a mesma do CadUnico e da CDE e texto fixo e nao e verificada por nenhuma comparacao do arquivo: se REF_TARIFA deixa… |
+| `139-140` | pares de fracao coberta com subsidio positivo nas duas datas | limiar | o comentario das linhas 136 a 138 registra que o app so usa o municipio com subsidio positivo nas duas datas, porque onde a CDE ficou liquida negativ… **Risco:** o zip depende de as duas listas estarem na mesma ordem municipal; o criterio maior que zero exclui o municipio com fracao exatamente zero, decisao qu… |
+| `141` | mediana por indice do meio | estatística | para lista de tamanho impar, esse indice e exatamente a mediana; o codigo usa essa definicao como caminho independente da mediana do payload **Risco:** com numero par de municipios, esta funcao devolve o elemento superior e nao a media dos dois centrais, entao pode diferir da mediana do payload por u… |
+| `142` | coerencia da mediana da fracao coberta em 2024 | limiar | os dois lados saem do payload, a lista municipal e o campo nacional, por isso o codigo usa coer e nao cmp; conforme o comentario das linhas 11 a 19, … **Risco:** se a lista municipal e o agregado estiverem igualmente errados, a conferencia passa; a tolerancia de 0.06 ponto percentual absorve a diferenca de def… |
+| `143` | coerencia da mediana da fracao coberta em 2026 | limiar | mesma estrutura da competencia anterior, sobre o mesmo conjunto de pares filtrado, o que mantem as duas medianas comparaveis entre si **Risco:** os mesmos da conferencia de 2024, por serem dois campos do proprio payload |
+| `144` | municipios com ganho na fracao coberta | agregação | a comparacao estrita entre as duas datas do mesmo municipio define ganho, e o universo e o mesmo conjunto filtrado das medianas **Risco:** a comparacao estrita classifica como sem ganho o municipio com variacao nula, e uma variacao infinitesimal por ruido numerico conta como ganho |
+| `145` | coerencia do percentual de municipios com ganho | aritmética | o denominador e o mesmo conjunto filtrado usado nas medianas, o que e exigido pelo comentario das linhas 136 a 138; ambos os lados saem do payload, p… **Risco:** divisao por zero se o filtro esvaziar a lista; por ser coerencia interna, nao detecta erro comum a lista e ao agregado |
+| `146-147` | impressao do universo e das exclusoes por CDE negativa | aritmética | publicar o tamanho do universo e das exclusoes torna auditavel o recorte descrito no comentario das linhas 136 a 138, em vez de deixar o filtro impli… **Risco:** o texto atribui toda exclusao a CDE liquida negativa, mas o filtro das linhas 139 e 140 tambem remove nulo e valor exatamente zero, causas que a mens… |
+| `150` | variacao por distribuidora entre as duas datas | aritmética | a diferenca entre as duas competencias e a grandeza que a decomposicao nacional reparte entre Enel, EDP e demais nas linhas 152 a 154 **Risco:** nulo em qualquer das colunas propaga para a diferenca e a soma do grupo o ignora, o que desloca a parcela sem aviso |
+| `151` | listas de agentes dos grupos Enel e EDP | leitura | agrupar as concessionarias por controlador e o que permite falar em variacao do grupo; os rotulos correspondem ao indice de por_agente.csv **Risco:** lista fixa no codigo: se o CSV mudar a grafia de um agente ou se surgir outra distribuidora do grupo, ela cai silenciosamente em demais e as tres par… |
+| `152` | conferencia da parcela Enel | limiar | o lado recalculado vem de por_agente.csv, escrito por 10c, anterior ao payload, e a fonte e declarada como cmp exige **Risco:** a tolerancia de 0.51 e apertada para valores grandes em reais, entao diferenca de arredondamento na origem pode acusar divergencia sem haver erro de … |
+| `153` | conferencia da parcela EDP | limiar | mesma estrutura da parcela anterior, com a mesma fonte anterior ao payload declarada **Risco:** os mesmos da parcela Enel, alem da dependencia dos rotulos fixos da linha 151 |
+| `154` | conferencia da parcela dos demais agentes | limiar | a negacao da uniao dos dois grupos garante particao exaustiva dos agentes, sem sobreposicao nem lacuna, o que sustenta o fechamento conferido na linh… **Risco:** qualquer agente com rotulo grafado diferente do esperado entra aqui sem alarme, e como a particao continua exaustiva o fechamento nao denuncia o erro |
+| `155` | soma das tres parcelas publicadas | agregação | como as tres parcelas particionam os agentes, a soma delas deve reproduzir a variacao nacional, o que e conferido na linha seguinte **Risco:** por sair inteiramente do payload, a soma nao detecta erro comum as tres parcelas |
+| `156` | coerencia entre a soma das parcelas e a variacao nacional | limiar | os dois lados vem do payload, por isso coer e nao cmp, conforme a distincao das linhas 11 a 19; a tolerancia de 200 e muito maior que a padrao, o que… **Risco:** tolerancia de 200 sem justificativa escrita pode esconder erro real de ate essa magnitude; como e coerencia interna, erro comum ao numerador e ao den… |
+| `159` | atalho para os campos de fluxo do CadUnico | leitura | encurta o acesso repetido aos campos de pobreza, baixa renda e elegiveis das duas competencias no laco seguinte **Risco:** se a chave fluxo nao existir no payload, a secao inteira quebra no acesso |
+| `160-164` | comparacao dos agregados do CadUnico por faixa e competencia | limiar | o lado esquerdo vem de cadunico_sagi.csv, escrito por 05b, anterior ao payload, e a fonte e declarada, como cmp exige; o laco duplo garante que a mes… **Risco:** o rotulo e derivado do penultimo pedaco do nome da coluna, entao uma renomeacao na origem produz rotulo sem sentido sem quebrar nada; se anomes nao f… |
+| `165` | fechamento pobreza mais baixa renda em 2024 | limiar | as duas faixas particionam o universo elegivel, entao a soma deve reproduzir o total; a folga de 2 absorve arredondamento das duas parcelas **Risco:** por nao usar coer nem cmp, uma divergencia aqui e impressa mas nao incrementa o contador de falhas e nao altera o codigo de saida do script; todos os… |
+| `166` | fechamento pobreza mais baixa renda em 2026 | limiar | mesma identidade de particao aplicada a competencia seguinte, com a mesma folga de 2 **Risco:** os mesmos da linha anterior: fora da contagem e do codigo de saida |
+| `167` | variacao do universo elegivel entre as competencias | aritmética | a razao menos um e a definicao usual de variacao relativa, e o formato com sinal deixa claro se houve expansao ou retracao **Risco:** divisao por zero se o total de 2024 for zero; o valor e apenas impresso e nao passa por nenhuma conferencia |
+| `168` | saida da faixa de pobreza entre as competencias | aritmética | e a diferenca entre dois estoques na mesma definicao de faixa, ja conferidos contra o SAGI no laco das linhas 160 a 164 **Risco:** o rotulo fala em familias que sairam da faixa, mas a diferenca de estoques nao e fluxo liquido de saida: entradas e saidas se compensam dentro do per… |
+| `175` | leitura do painel por municipio e agente | leitura | o comentario das linhas 171 a 174 registra que esta secao lia os pares do payload e comparava com um campo que 10a escreveu a partir da mesma lista, … **Risco:** se 07b passar a derivar mun_agente.csv do payload, a independencia se perde sem que o codigo perceba |
+| `176` | variacao percentual por par municipio e agente | aritmética | trocar zero por nulo antes de dividir evita infinito no denominador nulo e marca o caso como indefinido em vez de gerar valor impossivel, que seria f… **Risco:** variacao relativa sobre base pequena e instavel, o que e mitigado pelo corte de base minima na linha seguinte; base nula no numerador tambem produz n… |
+| `177` | filtro de base minima e variacao finita | limiar | o corte em 100 beneficiarios evita que variacao percentual sobre base minuscula domine a analise, e a checagem de finitude remove nulo e infinito; o … **Risco:** o limiar de 100 e arbitrario e nao documentado, e precisa ser identico ao usado por quem escreveu o campo publicado, senao as contagens comparadas na… |
+| `178` | quantidade de agentes distintos por municipio | agregação | contar valores distintos, e nao linhas, evita contar duas vezes o mesmo agente que apareca em mais de uma linha para o mesmo municipio **Risco:** a contagem e feita depois do filtro da linha 177, entao municipio cuja segunda distribuidora foi cortada por base pequena deixa de ser contado como t… |
+| `179` | municipios com duas ou mais distribuidoras | limiar | o limiar de dois e a propria definicao do fenomeno estudado na secao, municipios com duas concessionarias **Risco:** herda integralmente o recorte da linha 177, entao o conjunto e de municipios com dois agentes acima da base minima, e nao de municipios com dois agen… |
+| `180` | subconjunto dos pares em municipios com atendimento multiplo | agregação | a analise de sinais opostos so faz sentido dentro de municipios com mais de um agente, e este recorte garante isso **Risco:** nenhum alem da dependencia dos recortes anteriores |
+| `181-185` | contagem de municipios com variacoes de sinais opostos | agregação | ordenar e olhar o primeiro e o ultimo elemento equivale a comparar o minimo com o maximo, e a dupla desigualdade estrita exige que haja ao menos uma … **Risco:** as desigualdades sao estritas, entao variacao exatamente zero nao conta como nenhum dos sinais; a ordenacao por municipio e feita em laco Python, o q… |
+| `186-187` | conferencia da contagem de municipios com duas ou mais distribuidoras | limiar | o comentario das linhas 171 a 174 registra que antes os dois lados saiam da mesma linha do mesmo script, e que agora o recalculo parte de mun_agente.… **Risco:** a comparacao so vale se o recorte desta secao, base minima de 100 e variacao finita, for identico ao usado por quem publicou o campo; qualquer difere… |
+| `188-189` | conferencia da contagem de municipios com sinais opostos | limiar | mesma reconstrucao a partir de mun_agente.csv, com fonte declarada e tolerancia que exige igualdade exata entre inteiros **Risco:** depende do mesmo recorte da conferencia anterior e ainda do tratamento de variacao exatamente zero, que a comparacao estrita da linha 184 exclui de a… |
+| `192-194` | resumo das especies de conferencia | apresentação | o comentario das linhas 11 a 19 diz que o resumo final separa as duas especies, e e o que estas linhas fazem: quem le sabe quantas comparacoes de fat… **Risco:** as conferencias impressas direto nas linhas 78, 165 e 166 nao passam por cmp nem por coer, entao o resumo subconta o que foi realmente verificado |
+| `196-200` | nota final sobre o alcance de cada especie de conferencia | apresentação | e a versao impressa da regra que o comentario das linhas 11 a 19 fixa no codigo: so ha deteccao de erro de calculo quando os dois lados vem por camin… **Risco:** e texto fixo: se alguem passar a usar coer onde caberia cmp, a nota continuara afirmando o mesmo rigor sem que nada no codigo detecte a troca |
+| `201` | codigo de saida conforme as divergencias | serialização | converter o resultado da auditoria em codigo de saida e o que faz a validacao ter efeito sobre quem a executa, em vez de apenas imprimir texto **Risco:** so conta as divergencias registradas por cmp e coer, entao uma falha nas conferencias impressas diretamente nas linhas 78, 165 e 166 nao altera o cod… |
 
 ### `reconstrucao/pipeline/valida_territorio.py`
 

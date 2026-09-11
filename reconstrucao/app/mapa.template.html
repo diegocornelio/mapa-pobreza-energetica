@@ -571,13 +571,16 @@ const AGG = (()=>{
     ele+=D.ele[i]; ben+=D.ben[i]; lac+=D.lac[i]; cad+=D.cad[i];
     if(D.vio[i]!=null){withD3++; if(D.vio[i]===1)viol++;}
     if(D.sind[i]===0 && D.rs[i]!=null && D.rs[i]>0) rs+=D.rs[i];
-    if(D.tar[i]*80/(218*D.hh[i])>0.10) pob10++;
+    if(D.pc[i]!=null && D.pc[i]>0.10) pob10++;
     if(D.fm[i]===1) favMun++;
   }
   const med = arr => {const a=arr.filter(v=>v!=null).slice().sort((x,y)=>x-y);return a[Math.floor(a.length/2)];};
   return {ele,ben,lac,cad,viol,withD3,rs,pob10,favMun,
     cob:100*ben/ele, decMed:med(D.dec), tarMed:med(D.tar), pcMed:med(D.pc),
-    tarMin:Math.min(...D.tar), tarMax:Math.max(...D.tar)};
+    /* Math.min sobre vetor com null devolve 0, porque null coage para zero em
+       contexto numerico, e a amplitude vira Infinity. Com a tarifa em marco de 2026
+       ha um municipio sem registro no INDGER, entao o filtro deixou de ser opcional. */
+    tarMin:Math.min(...D.tar.filter(v=>v!=null)), tarMax:Math.max(...D.tar.filter(v=>v!=null))};
 })();
 
 /* ---------- indices & ranks ---------- */
@@ -687,7 +690,7 @@ const METRICS = {
     get:i=>D.tar[i], fmt:v=>brl2(v)+'/kWh',
     breaks:[0.60,0.68,0.74,0.80,0.88,0.96], ramp:SEQ,
     labels:['até R$ 0,60','R$ 0,60 a 0,68','R$ 0,68 a 0,74','R$ 0,74 a 0,80','R$ 0,80 a 0,88','R$ 0,88 a 0,96','mais de R$ 0,96'],
-    caption:'Tarifa B1 residencial convencional homologada, vigente em dezembro de 2024, da distribuidora que atende o município. É a única medida do aplicativo que ainda não foi movida para março de 2026; o arquivo da ANEEL traz as duas datas. Sem ICMS e sem PIS/COFINS.'},
+    caption:'Tarifa B1 residencial convencional homologada, vigente em março de 2026, da distribuidora que atende o município, na mesma data do CadÚnico e da CDE. Sem ICMS e sem PIS/COFINS.'},
   pc:{name:'Peso da conta na faixa de pobreza',unit:'%',
     get:i=>D.pc[i]==null?null:100*D.pc[i], fmt:v=>pct(v),
     breaks:[7,8.5,10,11.5,13,15], ramp:SEQ,
@@ -777,6 +780,14 @@ const GRAU = {
   proc:{rot:'processo',exp:'A ação aciona um procedimento previsto em norma. O resultado depende do procedimento, não deste levantamento.'},
   verif:{rot:'verificação',exp:'A ação resolve uma ambiguidade do dado. Deve preceder qualquer decisão baseada neste número.'}
 };
+
+/* O municipio pode nao ter registro no INDGER da data de referencia, e entao nao
+   tem distribuidora conhecida. Dizer isso e melhor que exibir vazio ou atribuir a
+   errada: em marco de 2026 e o caso de Acegua, no Rio Grande do Sul. */
+function nomeDist(i){
+  const k = D.di[i];
+  return k==null ? 'sem registro no INDGER desta data' : (D.dist[k] || 'sem registro no INDGER desta data');
+}
 
 /* ---------- escopos de comparacao: estado, regiao e pais ----------
    As macrorregioes sao as cinco do IBGE. O ranking de um municipio so tem
@@ -885,7 +896,7 @@ function leitura(i){
       quem:['social'],ator:'Gestão municipal do CadÚnico',
       ver:`Cadastrar as ${nf(lac)} famílias elegíveis que estão fora`,
       dado:`cobertura de ${pct(D.cob[i])} — ${D.cob[i]<QCOB[1]?'abaixo':'acima'} da mediana nacional de ${pct(QCOB[1])}`,
-      acao:`Solicitar à ${esc(D.dist[D.di[i]])} a relação de unidades consumidoras com Tarifa Social no município e cruzá-la com o CadÚnico, do qual o município já é gestor. É a via direta para nomear quem falta.`,
+      acao:`Solicitar à ${esc(nomeDist(i))} a relação de unidades consumidoras com Tarifa Social no município e cruzá-la com o CadÚnico, do qual o município já é gestor. É a via direta para nomear quem falta.`,
       efeito:`A cobertura vai de ${pct(D.cob[i])} para 100% — o número de não atendidas é, por definição, elegíveis menos beneficiários. A conta de cada família cai de ${brl2(D.cc[i])} para ${brl2(D.cs[i])} por mês num consumo de 80 kWh, economia de <strong>${brl2(D.ec[i])} por mês</strong>, ou ${brl2(anual)} ao ano. Somadas, as ${nf(lac)} famílias deixam de pagar <strong>${brl(lac*D.ec[i])} por mês</strong>.`});
   } else {
     add({pac:'A',grau:'verif',tom:'ok',
@@ -938,7 +949,7 @@ function leitura(i){
   if(lac>0){
     add({pac:'A',grau:'arit',tom: D.cob[i]<QCOB[1] ? 'crit' : 'warn',
       quem:['dist','social'],
-      ator:`${esc(D.dist[D.di[i]])} · cadastro de unidades consumidoras`,
+      ator:`${esc(nomeDist(i))} · cadastro de unidades consumidoras`,
       ver:'Cruzar o próprio cadastro de Tarifa Social com o CadÚnico do município',
       dado:`${nf(D.ben[i])} unidades com o benefício aqui, para ${nf(D.ele[i])} famílias elegíveis`,
       acao:`A distribuidora tem um lado da conta, que é quem recebe o desconto. O município tem o outro, que é quem tem direito. A interseção nunca foi calculada por nenhum dos dois, e é ela que transforma ${nf(lac)} em nomes e endereços.`,
@@ -1012,7 +1023,7 @@ function leitura(i){
       quem:['conselho'],ator:'Conselho de consumidores da distribuidora',
       ver:'Levar o dado à revisão tarifária',
       dado:`${brl2(D.tar[i])}/kWh — ${nf(D.rkt[i])}ª mais cara de ${nf(N)}`,
-      acao:`O município não tem competência tarifária. O canal previsto é o conselho de consumidores de ${esc(D.dist[D.di[i]])}, que tem assento no processo de revisão. O dado municipalizado dá base à manifestação.`,
+      acao:`O município não tem competência tarifária. O canal previsto é o conselho de consumidores de ${esc(nomeDist(i))}, que tem assento no processo de revisão. O dado municipalizado dá base à manifestação.`,
       efeito:null});
   }
 
@@ -1361,7 +1372,7 @@ function boxPersonas(i){
   /* Ordem dentro da persona: primeiro o que tem efeito calculado, depois por gravidade.
      O item de maior consequencia lidera em vez de ficar atras de um item de processo. */
   const ord=(a,b)=>(b.efeito?1:0)-(a.efeito?1:0) || TOMORD[a.tom]-TOMORD[b.tom];
-  const nomeP=k=>k==='dist'?esc(D.dist[D.di[i]]):PNOME[k];
+  const nomeP=k=>k==='dist'?esc(nomeDist(i)):PNOME[k];
 
   const porP=PERSONAS.map(([k,nome,comp])=>{
     const q=x=>x.quem||[];
@@ -1560,7 +1571,7 @@ function pageMunicipio(){
   <div class="phead">
     <div class="eyebrow">Ficha municipal · ${esc(D.uf[i])} · IBGE ${D.cod[i]}</div>
     <h2>${esc(D.nome[i])}</h2>
-    <p class="lede">Atendido por <strong>${esc(D.dist[D.di[i]])}</strong>. As quatro medidas abaixo vêm de fontes independentes entre si; cada uma traz a posição nacional entre os 5.570 municípios.</p>
+    <p class="lede">Atendido por <strong>${esc(nomeDist(i))}</strong>. As quatro medidas abaixo vêm de fontes independentes entre si; cada uma traz a posição nacional entre os 5.570 municípios.</p>
   </div>
 
   ${barraAcoes(i)}
@@ -1624,7 +1635,7 @@ function pageMunicipio(){
         <div class="deflist" style="margin-top:14px">
           <div><dt>Domicílio médio</dt><dd class="num">${nf2(D.hh[i])} moradores</dd></div>
           <div><dt>Renda de referência</dt><dd class="num">${brl(D.ren[i])} por pessoa ao mês (Censo 2022)</dd></div>
-          <div><dt>Teto da faixa</dt><dd>R$ 218,00 por pessoa · renda do domicílio <span class="num">${brl(218*D.hh[i])}</span></dd></div>
+          <div><dt>Teto da faixa</dt><dd>${brl2(D.lp)} por pessoa · renda do domicílio <span class="num">${brl(D.lp*D.hh[i])}</span></dd></div>
         </div>
         <div class="callout" style="margin-top:13px">A conta com Tarifa Social aplica o desconto escalonado da Lei 12.212/2010 sobre a tarifa da subclasse Baixa Renda: 65% nos primeiros 30 kWh e 40% nos 50 seguintes. A tarifa publicada é apenas a base sobre a qual o desconto incide.</div>
         <div class="callout warn" style="margin-top:9px">O peso depende do consumo suposto. A 30 kWh nenhum município do país passa de 10% nem sem o benefício; a 100 kWh quase todos passam. Só os 80 kWh têm ancoragem legal.</div>
@@ -1754,10 +1765,10 @@ function pageTarifaSocial(){
       <div class="card"><div class="card-h"><h3>Poucos municípios concentram quase tudo</h3>
         <div class="cap">Parcela do total nacional de famílias não atendidas acumulada pelos maiores casos.</div></div>
         <div class="card-b">
-          <table><thead><tr><th>Maiores</th><th class="n">Famílias</th><th class="n">Do total nacional</th><th></th></tr></thead><tbody>
+          <div class="tablewrap"><table><thead><tr><th>Maiores</th><th class="n">Famílias</th><th class="n">Do total nacional</th><th></th></tr></thead><tbody>
           ${cut.map(([k,v,p])=>`<tr><td class="num">${nf(k)} municípios</td><td class="n">${nf(v)}</td>
             <td class="n">${pct(p)}</td><td style="width:96px"><span class="barbg"><span class="bar" style="width:${p}%"></span></span></td></tr>`).join('')}
-          </tbody></table>
+          </tbody></table></div>
           <div class="callout" style="margin-top:13px">Uma busca ativa nacional não precisa alcançar 5.570 municípios. <button class="ilink" data-p="lista:cem">Os 100 maiores</button> respondem por ${pct(cut.find(x=>x[0]===100)[2])} do total.</div>
         </div></div>
       <div class="card"><div class="card-h"><h3>Cobertura por estado</h3>
@@ -1792,7 +1803,7 @@ function pageQualidade(){
           <th class="n">DEC anual</th><th>Distribuidora</th></tr></thead><tbody>
           ${worst.map(i=>`<tr data-go="${D.cod[i]}" style="cursor:pointer"><td>${esc(D.nome[i])} (${D.uf[i]})</td>
             <td class="n">${nf2(D.d3[i])}×</td><td class="n">${nf1(D.dec[i])} h</td>
-            <td>${esc(D.dist[D.di[i]])}</td></tr>`).join('')}
+            <td>${esc(nomeDist(i))}</td></tr>`).join('')}
         </tbody></table></div></div>
     </div>`);
 }
@@ -1800,7 +1811,11 @@ function pageQualidade(){
 function pageConta(){
   const scen=[30,80,100].map(k=>{
     const v=[]; let over=0;
-    for(let i=0;i<N;i++){const w=D.tar[i]*k/(218*D.hh[i]); v.push(w); if(w>0.10)over++;}
+    // No cenario de 80 kWh o peso ja esta publicado em pc: recalcula-lo daria um
+    // numero ligeiramente diferente do que o resto do app mostra. Os outros dois
+    // cenarios nao tem campo proprio e sao calculados aqui.
+    for(let i=0;i<N;i++){const w=k===80?D.pc[i]:D.tar[i]*k/(D.lp*D.hh[i]);
+      if(w==null) continue; v.push(w); if(w>0.10)over++;}
     v.sort((a,b)=>a-b);
     return {k,med:v[Math.floor(v.length/2)],over};
   });
@@ -1811,10 +1826,10 @@ function pageConta(){
       <div class="card"><div class="card-h"><h3>O resultado depende do consumo suposto</h3>
         <div class="cap">Peso mediano da conta sobre a renda de um domicílio no teto da faixa de pobreza, tarifa cheia.</div></div>
         <div class="card-b">
-          <table><thead><tr><th>Consumo</th><th class="n">Peso mediano</th><th class="n">Municípios acima de 10%</th></tr></thead><tbody>
+          <div class="tablewrap"><table><thead><tr><th>Consumo</th><th class="n">Peso mediano</th><th class="n">Municípios acima de 10%</th></tr></thead><tbody>
             ${scen.map(x=>`<tr${x.k===80?' style="font-weight:600"':''}><td class="num">${x.k} kWh</td>
               <td class="n">${pct(100*x.med,2)}</td><td class="n">${nf(x.over)}</td></tr>`).join('')}
-          </tbody></table>
+          </tbody></table></div>
           <div class="callout warn" style="margin-top:13px">Este é o número mais frágil do conjunto, e por isso a faixa inteira está à vista. Os 80 kWh são o limiar que a própria Lei 15.235/2025 adotou, e é a única das três hipóteses com ancoragem externa.</div>
         </div></div>
       <div class="card"><div class="card-h"><h3>O benefício resolve onde ele chega</h3>
@@ -1824,10 +1839,10 @@ function pageConta(){
             let semB=0, comB=0, ecs=[];
             for(let i=0;i<N;i++){ if(D.pc[i]>0.10) semB++; if(D.ps[i]>0.10) comB++; ecs.push(D.ec[i]); }
             ecs.sort((a,b)=>a-b); const ecMed=ecs[Math.floor(ecs.length/2)];
-            return `<table><thead><tr><th>Cenário</th><th class="n">Peso mediano</th><th class="n">Municípios acima de 10%</th></tr></thead><tbody>
+            return `<div class="tablewrap"><table><thead><tr><th>Cenário</th><th class="n">Peso mediano</th><th class="n">Municípios acima de 10%</th></tr></thead><tbody>
               <tr><td>Sem o benefício</td><td class="n">${pct(100*medianOf(i=>D.pc[i]),2)}</td><td class="n">${nf(semB)}</td></tr>
               <tr style="font-weight:600"><td>Com Tarifa Social</td><td class="n">${pct(100*medianOf(i=>D.ps[i]),2)}</td><td class="n">${nf(comB)}</td></tr>
-            </tbody></table>
+            </tbody></table></div>
             <div class="callout" style="margin-top:13px">Sem o benefício, a conta cruza o limiar de 10% em ${nf(semB)} municípios. Com ele, em nenhum. A economia mediana da família é de <strong>${brl2(ecMed)} por mês</strong>, ${brl2(ecMed*12)} ao ano, somando a mudança de subclasse tarifária e o desconto escalonado.</div><div class="callout" style="margin-top:9px"><strong>Como sabemos que a regra do desconto está certa.</strong> Ela foi invertida contra a CDE: dado o subsídio que cada município efetivamente recebeu por família, qual consumo a regra implica? A resposta é <strong>97,7 kWh</strong> na mediana, com 95,8% dos municípios entre 40 e 150 kWh, faixa fisicamente plausível para consumo residencial de baixa renda. Se a regra estivesse errada por um fator, o consumo implícito sairia absurdo. Além disso, o subsídio observado escala com a tarifa como a regra exige: ao dividir o subsídio pela tarifa, a dispersão entre municípios cai 35%.</div><div style="font-size:11.5px;color:var(--muted);margin-top:9px">Desconto escalonado da Lei 12.212/2010 sobre a tarifa da subclasse Baixa Renda: 65% nos primeiros 30 kWh, 40% nos 50 seguintes. Os 80 kWh do cenário são o limiar da Lei 15.235/2025; o consumo que a CDE implica para quem já recebe o benefício é maior, cerca de 98 kWh, de modo que este cenário é conservador.</div>`;
           })()}
         </div></div>
@@ -1849,13 +1864,13 @@ function pageTerritorio(){
   const hasFav=i=>D.fm[i]===1;
   const MED=[
     ['Famílias elegíveis sem Tarifa Social', i=>D.cob[i]==null?null:100-D.cob[i], v=>pct(v)],
-    ['Peso da conta na faixa de pobreza', i=>100*D.tar[i]*80/(218*D.hh[i]), v=>pct(v)],
+    ['Peso da conta na faixa de pobreza', i=>D.pc[i]==null?null:100*D.pc[i], v=>pct(v)],
     ['DEC/FEC sobre o limite', i=>D.d3[i], v=>nf2(v)+'×'],
     ['Horas sem energia por ano', i=>D.dec[i], v=>nf1(v)+' h']
   ];
   const COR=[
     ['Famílias elegíveis sem Tarifa Social', i=>D.ele[i]>0?D.lac[i]/D.ele[i]:null],
-    ['Peso da conta na faixa de pobreza', i=>D.tar[i]*80/(218*D.hh[i])],
+    ['Peso da conta na faixa de pobreza', i=>D.pc[i]],
     ['DEC/FEC sobre o limite', i=>D.d3[i]],
     ['Horas sem energia por ano', i=>D.dec[i]],
     ['Tarifa residencial', i=>D.tar[i]]
@@ -1875,13 +1890,13 @@ function pageTerritorio(){
       <div class="card"><div class="card-h"><h3>Correlação com as demais medidas</h3>
         <div class="cap">Correlação de ordem de Spearman. Zero significa que conhecer uma não ajuda a prever a outra.</div></div>
         <div class="card-b">
-          <table><thead><tr><th>Medida</th><th class="n">Todos os municípios</th><th></th><th class="n">Só com favela</th></tr></thead><tbody>
+          <div class="tablewrap"><table><thead><tr><th>Medida</th><th class="n">Todos os municípios</th><th></th><th class="n">Só com favela</th></tr></thead><tbody>
           ${corRows.map(r=>`<tr>
             <td>${esc(r.nm)}</td>
             <td class="n">${rho1(r.all)}</td>
             <td style="width:78px">${rhoBar(r.all,maxAbs)}</td>
             <td class="n" style="color:var(--muted)">${rho1(r.sub)}</td></tr>`).join('')}
-          </tbody></table>
+          </tbody></table></div>
           <div style="font-size:11.5px;color:var(--muted);margin-top:9px">
             n = ${nf(corRows[0].n1)} municípios na primeira coluna, ${nf(corRows[0].n2)} na segunda.
             Para referência, a correlação entre as famílias não atendidas pela Tarifa Social e a qualidade do fornecimento, que já é fraca, é de ${rho1(spearman(...paired(i=>D.ele[i]>0?D.lac[i]/D.ele[i]:null,i=>D.d3[i])))}.
@@ -1891,12 +1906,12 @@ function pageTerritorio(){
       <div class="card"><div class="card-h"><h3>Com favela e sem favela, lado a lado</h3>
         <div class="cap">Mediana de cada medida nos dois grupos de municípios.</div></div>
         <div class="card-b">
-          <table><thead><tr><th>Medida</th><th class="n">Com favela</th><th class="n">Sem favela</th></tr></thead><tbody>
+          <div class="tablewrap"><table><thead><tr><th>Medida</th><th class="n">Com favela</th><th class="n">Sem favela</th></tr></thead><tbody>
           ${MED.map(([nm,f,fm])=>{
             const a=medianOf(f,hasFav), b=medianOf(f,i=>D.fm[i]!==1);
             return `<tr><td>${esc(nm)}</td><td class="n">${fm(a)}</td><td class="n">${fm(b)}</td></tr>`;
           }).join('')}
-          </tbody></table>
+          </tbody></table></div>
           <div class="callout" style="margin-top:13px">A interrupção anual é <em>menor</em> onde há favela mapeada. Não é paradoxo: favela é fenômeno urbano, e rede urbana tem melhor continuidade que rede rural.</div>
         </div></div>
     </div>
@@ -2112,7 +2127,7 @@ function pageMetodo(){
       'conta social = tarifa Baixa Renda × (30×0,35 + 50×0,60)')}
     ${S('02','Peso da conta na faixa de pobreza',
       'A conta de 80 kWh na tarifa da distribuidora que atende o município, dividida pela renda de um domicílio no teto da faixa de pobreza do CadÚnico. O teto é por pessoa, então precisa ser multiplicado pelo tamanho médio do domicílio: a conta é paga pela casa, e não por indivíduo.',
-      'peso = (tarifa × 80 kWh) ÷ (R$ 218 × moradores por domicílio)')}
+      `peso = (tarifa × 80 kWh) ÷ (${brl2(D.lp)} × moradores por domicílio)`)}
     ${S('03','Qualidade do fornecimento',
       'DEC e FEC são publicados por conjunto consumidor, mês a mês. O valor anual é a soma dos doze meses, comparada ao limite anual do mesmo conjunto. A agregação para município usa a ponte IndQual e pondera pelo número de consumidores de cada conjunto, porque um município grande é atendido por dezenas de conjuntos de tamanhos muito diferentes.',
       'razão = (Σ dos 12 meses de DEC) ÷ limite anual do conjunto')}
@@ -2245,7 +2260,7 @@ const COLDEF = {
   tar:  { rot: 'Tarifa',              fmt: i => brl2(D.tar[i]), n: true },
   /* nome de razao social e longo e estourava a borda da tabela; corta com o inteiro no title */
   dist: { rot: 'Distribuidora', n: false,
-          fmt: i => { const t=D.dist[D.di[i]]||'';
+          fmt: i => { const t=nomeDist(i);
                       return `<span title="${esc(t)}">${esc(t.length>30?t.slice(0,29)+'…':t)}</span>`; } },
 };
 
@@ -2464,7 +2479,7 @@ function mostraTip(key,i){
   tip.style.display='block';
   tip.innerHTML=`<div class="tn">${esc(D.nome[i])} <span style="color:var(--muted);font-weight:400">${D.uf[i]}</span></div>
     <div class="tv num">${v==null?'sem dado':m.fmt(v)}</div>
-    <div class="tm">${esc(D.dist[D.di[i]])}</div>`;
+    <div class="tm">${esc(nomeDist(i))}</div>`;
 }
 function moveTip(e){
   const tip=document.getElementById('tip');

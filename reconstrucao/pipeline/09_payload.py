@@ -1,13 +1,20 @@
 import pandas as pd, numpy as np, json, os
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+from _paths import (RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT,
+                    LINHA_POBREZA, LINHA_POBREZA_VIGENCIA)
 d=pd.read_csv(str(OUT)+"/app_dados2.csv")
 dist=sorted(d.distribuidora.dropna().unique().tolist()); di={v:i for i,v in enumerate(dist)}
 def col(s,dec=None):
     if dec is None: return [None if pd.isna(x) else int(x) for x in s]
     return [None if pd.isna(x) else round(float(x),dec) for x in s]
-out={"n":len(d),"dist":dist,
-  "cod":d.cod_ibge.tolist(),"nome":d.nome.tolist(),"uf":d.uf.tolist(),"di":[di[x] for x in d.distribuidora],
+# A linha de pobreza vai no payload, e nao escrita a mao no JavaScript: o peso da
+# conta na renda e calculado ao vivo na tela, e enquanto o valor vivia em seis
+# lugares do template nada garantia que a tela e o pipeline usassem o mesmo numero.
+out={"n":len(d),"dist":dist,"lp":LINHA_POBREZA,"lpv":LINHA_POBREZA_VIGENCIA,
+  "cod":d.cod_ibge.tolist(),"nome":d.nome.tolist(),"uf":d.uf.tolist(),# Um municipio pode nao ter registro no INDGER da data de referencia (Acegua, RS,
+  # em marco de 2026). O indice sai nulo, e a tela diz que nao sabe, em vez de o
+  # pipeline quebrar ou de atribuir a distribuidora errada.
+  "di":[None if pd.isna(x) else di[x] for x in d.distribuidora],
   "cad":col(d.familias_cadastradas),"pob":col(d.familias_pobreza),"bxr":col(d.familias_baixa_renda),
   # A leitura do presente e casada em marco de 2026 nas duas pontas; as colunas de
   # dezembro de 2024 seguem no payload por 10a, para a pagina de comparacao.
@@ -16,8 +23,12 @@ out={"n":len(d),"dist":dist,
   "cob":col(d.cobertura,1),"lac":col(d.lacuna_pos),"sob":col(d.sobrecobertura),
   "rs":col(d.rs_nao_acessado,0),"spf":col(d.subsidio_familia_mar26,2),"sind":col(d.subsidio_indisponivel),
   "tar":col(d.tarifa_municipal,4),"tas":col(d.tarifa_baixa_renda,4),"rkt":col(d.rank_tarifa),
-  "hh":col(d.moradores_por_domicilio,2),
-  "pc":col(d.peso_pob80_cheia,4),"ps":col(d.peso_social_ef,4),
+  # hh, pc e ps saem com casas a mais do que a tela exibe: com duas casas em hh, o
+  # recalculo ao vivo do peso cruzava o limiar de 10% em 6 municipios diferentes dos
+  # que o pipeline conta. A precisao publicada tem de bastar para a decisao, e nao
+  # apenas para a exibicao.
+  "hh":col(d.moradores_por_domicilio,4),
+  "pc":col(d.peso_pob80_cheia,6),"ps":col(d.peso_social_ef,6),
   "cc":col(d.conta_cheia80,2),"cs":col(d.conta_social80,2),"ec":col(d.econ_mes,2),
   "dec":col(d.dec_h_ano,1),"d3":col(d.d3_corr,3),"d3x":col(d.d3_max,2),"nc":col(d.n_conj),
   "vio":col(d.violacao),"fav":col(d.dom_favela),"dt":col(d.dom_total_mun),"pf":col(d.d4_corr,4),

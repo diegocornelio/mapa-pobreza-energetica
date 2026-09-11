@@ -49,11 +49,11 @@ Boa Esperança do Norte (MT, IBGE 5101837), instalado depois do Censo.
 
 | medida | valor |
 |---|---|
-| Tarifa residencial, faixa nacional | R$ 0,4241 a R$ 1,0738 por kWh |
-| Amplitude | 2,53× |
-| Conta de 80 kWh, tarifa cheia, mediana | R$ 59,53 |
-| Conta de 80 kWh com Tarifa Social, mediana | R$ 26,33 |
-| Peso na faixa de pobreza a 80 kWh, sem benefício | mediana 9,75%, acima de 10% em 2.392 municípios |
+| Tarifa residencial, faixa nacional | R$ 0,4862 a R$ 1,1268 por kWh |
+| Amplitude | 2,32× |
+| Conta de 80 kWh, tarifa cheia, mediana | R$ 65,76 |
+| Conta de 80 kWh com Tarifa Social, mediana | R$ 27,64 |
+| Peso na faixa de pobreza a 80 kWh, sem benefício | mediana 10,50%, acima de 10% em 3.233 municípios |
 | Fração da conta coberta, dez/2024 | 58,19% |
 | Fração da conta coberta, mar/2026 | 88,11% |
 | Municípios com ganho | 5.427 de 5.441, ou 99,74% |
