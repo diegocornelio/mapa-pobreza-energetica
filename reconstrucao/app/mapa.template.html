@@ -1865,6 +1865,25 @@ function pageConta(){
           <div class="callout" style="margin-top:9px">Com a Tarifa Social, o mesmo cálculo cai de ${pct(100*medianOf(i=>D.pc[i]),2)} para ${pct(100*medianOf(i=>D.ps[i]),2)} na mediana, uma redução de ${nf2(100*(medianOf(i=>D.pc[i])-medianOf(i=>D.ps[i])))} pontos.</div>
         </div></div>
 
+      <div class="card"><div class="card-h"><h3>E quando a bandeira sobe</h3>
+        <div class="cap">Cenário. A conta acima é a tarifa homologada, que não inclui bandeira.</div></div>
+        <div class="card-b">
+          ${(()=>{
+            const cheia=medianOf(i=>D.cc[i]);
+            const linhas=[['Verde','verde'],['Amarela','amarela'],
+                          ['Vermelha patamar 1','vermelha1'],['Vermelha patamar 2','vermelha2']];
+            return `<div class="tablewrap"><table><thead><tr><th>Bandeira</th>
+              <th class="n">Adicional em 80 kWh</th><th class="n">Conta de 80 kWh</th></tr></thead><tbody>
+              ${linhas.map(([rot,k])=>{const a=D.bnd[k]*80;
+                return `<tr${k==='vermelha2'?' style="font-weight:600"':''}><td>${rot}</td>
+                  <td class="n">${a===0?'—':'+ '+brl2(a)}</td><td class="n">${brl2(cheia+a)}</td></tr>`;}).join('')}
+            </tbody></table></div>
+            <div class="callout warn" style="margin-top:13px">A bandeira é o caminho mais curto entre hidrologia e conta de luz: estiagem e estação seca no Norte reduzem a afluência, o despacho térmico sobe, o custo sobe e a bandeira acompanha. Na vermelha patamar 2 a mesma conta de 80 kWh fica <strong>${brl2(D.bnd.vermelha2*80)}</strong> mais cara, ${pct(100*D.bnd.vermelha2*80/cheia,1)} acima da conta sem bandeira.</div>
+            <div class="callout" style="margin-top:9px">Este cenário <strong>não altera nenhum número publicado neste mapa</strong>. Ele existe porque a tarifa homologada que usamos não inclui bandeira, e por isso a conta que o mapa mostra é piso. Também não inclui ICMS nem PIS/COFINS.</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:9px">Há ainda um repasse de hidrologia que o mapa <em>carrega sem poder separar</em>: o reajuste tarifário anual transfere custo de aquisição de energia e a variação da Parcela A, de modo que parte do aumento tarifário medido entre as duas datas tem origem hidrológica. O projeto não decompõe essa parcela. Valores de bandeira: ${esc(D.bndf)}.</div>`;
+          })()}
+        </div></div>
+
       <div class="card"><div class="card-h"><h3>Vieses conhecidos, e a quem se aplicam</h3>
         <div class="cap">Nenhum é corrigível com os dados disponíveis; todos estão declarados.</div></div>
         <div class="card-b"><div class="deflist">

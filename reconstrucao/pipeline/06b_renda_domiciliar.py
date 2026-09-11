@@ -11,7 +11,11 @@ df["d2_domiciliar"]=df.conta/df.renda_domiciliar      # peso real da conta no or
 print("=== PESO DA CONTA (100 kWh, tarifa sem tributos) ===")
 for c,nm in [("d2_percap","denominador PER CAPITA (atual)"),("d2_domiciliar","denominador DOMICILIAR (correto)")]:
     s=df[c]; print(f"  {nm:34s} MED={s.median()*100:5.2f}%  p90={s.quantile(.9)*100:5.2f}%  max={s.max()*100:5.2f}%")
-print("\n  municipios acima de 10%% da renda DOMICILIAR (limiar de Boardman):", int((df.d2_domiciliar>0.10).sum()))
+# O corte de 10% aparece aqui como diagnostico de dispersao, e nao como limiar de
+# ninguem: a atribuicao anterior, a Boardman, era referencia nao lida e nao constava
+# de bibliografia nenhuma. A fonte que o projeto le sobre o tema, Rediteia 53 (2021),
+# nao menciona esse limiar e registra que nao ha definicao operacional consensual.
+print("\n  municipios acima de 10%% da renda DOMICILIAR (corte de diagnostico):", int((df.d2_domiciliar>0.10).sum()))
 print("  acima de 5%%:", int((df.d2_domiciliar>0.05).sum()), f"({100*(df.d2_domiciliar>0.05).mean():.1f}%)")
 print("  referencia POF 2017-18: familias ate R$1.908 gastam 4,4%% da renda com energia")
 print("\n=== quanto o denominador muda o ranking ===")

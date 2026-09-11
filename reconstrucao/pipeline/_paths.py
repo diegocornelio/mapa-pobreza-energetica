@@ -42,3 +42,13 @@ LINHA_POBREZA = 218.0          # por pessoa ao mes, teto da faixa de pobreza do 
 LINHA_POBREZA_VIGENCIA = "2023-06-16"   # Decreto 11.566/2023; sem reajuste ate REF_TARIFA
 SALARIO_MINIMO = 1621.0        # teto da faixa de baixa renda e meio salario minimo
 SALARIO_MINIMO_VIGENCIA = "2026-01-01"  # Decreto 12.797/2025
+
+# --- bandeiras tarifarias ----------------------------------------------------
+# Adicional por kWh consumido, uniforme no pais, cobrado por fora da tarifa
+# homologada. E o canal de curto prazo pelo qual a hidrologia chega a conta: seca
+# eleva o despacho termico, o custo sobe e a bandeira acompanha. A tarifa que este
+# projeto usa NAO inclui bandeira, entao a conta publicada e piso.
+# Fonte: ANEEL, pagina de bandeiras tarifarias, lida em 2026-09-11.
+BANDEIRAS = {"verde": 0.0, "amarela": 0.01885,
+             "vermelha1": 0.04463, "vermelha2": 0.07877}
+BANDEIRAS_FONTE = "ANEEL, bandeiras tarifarias, pagina atualizada em 2026-01-08"

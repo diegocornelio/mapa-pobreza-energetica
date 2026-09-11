@@ -16,6 +16,7 @@ permitem rebaixá-los.
 | Beneficiários da CDE | `cde-beneficiarios-01dec2024.zip`, 345 MB, com CSV de 2,3 GB | dez/2024 | linhas de benefício da Tarifa Social e valor do subsídio, por `CodIbgeMunicipio` |
 | Beneficiários da CDE | `cde-beneficiarios-01mar2026.zip`, 326 MB, com CSV de 2,26 GB | mar/2026 | a mesma leitura na data recente, para comparação temporal |
 | Tarifas homologadas | `tarifas-homologadas-distribuidoras-energia-eletrica.csv`, 85 MB | dez/2024 | tarifa B1 residencial, subclasses Residencial e Baixa Renda, por vigência |
+| Bandeiras tarifárias | página institucional da ANEEL, quatro valores | vigente em 2026 | adicional por kWh usado apenas no cenário de bandeira; **não entra em nenhum número publicado** |
 | Continuidade DEC e FEC | `indicadores-continuidade-coletivos-2020-2029.parquet`, 29 MB | 2020 a 2026 | interrupção apurada por conjunto consumidor, mês a mês; usados 2024 e 2025 fechados e o primeiro semestre de 2026 |
 | Limites de continuidade | `indicadores-continuidade-coletivos-limite.csv`, 25 MB | 2024 e 2025 | limite anual de DEC e FEC por conjunto |
 | IndQual Município | `indqual-municipio.csv`, 2,1 MB | ago/2026 | ponte entre conjunto consumidor e município |
@@ -99,3 +100,16 @@ espécie de domicílio, o que torna a divisão direta.
 
 ANEEL: Licença Aberta ANEEL. MDS: dados públicos federais. IBGE: licença IBGE.
 Dados derivados deste trabalho: CC-BY 4.0.
+
+## Referência bibliográfica
+
+Usada apenas para descrever o mecanismo de repasse da Parcela A na ressalva de
+`docs/LIMITES.md`. **Nenhum número publicado depende dela.**
+
+| referência | estado de leitura |
+|---|---|
+| TANCINI, G. R. *Itens regulatórios: um estudo aplicado à regulamentação tarifária da energia elétrica no Brasil*. Dissertação (Mestrado) — FEA/USP, São Paulo, 2013. 133 p. Orientador: Ariovaldo dos Santos. | **resumo lido**; texto integral não lido |
+| BRASIL. Portaria Interministerial MF/MME nº 25, de 24 de janeiro de 2002. Cria a CVA. D.O. de 25/01/2002, seção 1, p. 30. Alterada pelas Portarias Interministeriais nº 116/2003 e nº 361/2004. | **lida**, em texto consolidado que declara não substituir o publicado no D.O. |
+| PRORET, Submódulo 4.2 — CVA, versão 1.3 | identificado na página da ANEEL; **não lido** |
+| BRASIL. Conselho Nacional de Política Energética. Resolução que institui a Política Nacional de Transição Energética, 26/08/2024, com a definição oficial de pobreza energética. | definição **verificada** na página do Ministério de Minas e Energia; texto da resolução **não lido** |
+| *Rediteia* nº 53 — Pobreza Energética. Revista de Política Social. Porto: EAPN Portugal, 2021. ISSN 1646-0782. 120 p. Inclui HORTA, A.; SCHMIDT, L. *Pobreza Energética: do diagnóstico à mudança necessária*, p. 13-22. | **lida**, por extração de texto do PDF. Sustenta a inexistência de definição consensual e a descrição do indicador 2M. **Não menciona Boardman nem limiar de 10%** |

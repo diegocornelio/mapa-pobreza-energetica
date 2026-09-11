@@ -53,9 +53,55 @@ beneficiário deixou de ser elegível sem sair da base, a contagem se desloca.
 
 ## Limites da conta de energia
 
-**O valor é subestimado.** A tarifa homologada não inclui ICMS nem PIS/COFINS, e o ICMS
-varia entre estados, tipicamente de 17% a 30%. A tarifa serve para comparar municípios;
-não serve para dizer quanto alguém paga.
+**O valor é subestimado, por três exclusões.** A tarifa homologada não inclui ICMS nem
+PIS/COFINS, e o ICMS varia entre estados, tipicamente de 17% a 30%. Também **não inclui
+bandeira tarifária**: o filtro seleciona a linha `DscDetalhe = "Não se aplica"`, e a
+bandeira é adicional cobrado por fora. A tarifa serve para comparar municípios; não serve
+para dizer quanto alguém paga.
+
+**A bandeira é o caminho curto entre hidrologia e conta, e está fora da medição.** Sobre a
+conta mediana de 80 kWh, que é de R$ 65,76 sem bandeira, o adicional publicado pela ANEEL
+leva a R$ 67,27 na amarela, R$ 69,33 na vermelha patamar 1 e **R$ 72,06 na vermelha
+patamar 2**, ou 9,6% a mais. O aplicativo publica esse cenário à parte, na página da
+conta, e nenhum número do mapa o incorpora.
+
+**Há um repasse hidrológico que o projeto carrega e não consegue separar.** Seria errado
+concluir, do parágrafo acima, que a tarifa medida é limpa de hidrologia. O reajuste
+tarifário anual transfere ao consumidor a variação dos itens da Parcela A pelo mecanismo da
+CVA, Conta de Compensação de Variação de Valores de Itens da "Parcela A", criada pela
+Portaria Interministerial MF/MME nº 25, de 24 de janeiro de 2002:
+
+> **Art. 3º** O saldo da CVA deverá ser compensado nas tarifas de fornecimento de energia
+> elétrica da concessionária nos 12 (doze) meses subseqüentes à data de reajuste tarifário
+> anual, sendo eventual diferença considerada no cálculo do reajuste tarifário seguinte.
+>
+> **§ 1º** Durante o período de que trata o *caput*, o saldo da CVA não compensado será
+> remunerado com base na taxa de juros SELIC para o período, até a data de sua efetiva
+> compensação.
+
+**Dois itens registrados na CVA são o canal hidrológico direto.** Os encargos de serviços
+de sistema, art. 1º, VII, que sobem quando a estiagem força despacho térmico fora da ordem
+de mérito; e os custos de aquisição de energia elétrica, art. 1º, IX, na redação da
+Portaria Interministerial nº 361/2004. A compensação financeira pela utilização dos
+recursos hídricos, art. 1º, VI, é um terceiro.
+
+**E um quarto item fecha um círculo que interessa diretamente a este trabalho.** A quota de
+recolhimento à **Conta de Desenvolvimento Energético**, art. 1º, IV, na redação da Portaria
+Interministerial nº 116/2003, é item da CVA. É a mesma CDE que financia o desconto da
+Tarifa Social medido neste projeto: a variação do que as distribuidoras recolhem ao fundo
+retorna à tarifa de fornecimento em doze meses.
+
+**A consequência para a leitura dos números.** Parte do aumento de 7,36% na tarifa mediana
+entre dezembro de 2024 e março de 2026 tem origem hidrológica, e parte tem origem na
+própria política de subsídio. **O projeto não decompõe nenhuma das duas.** Quem quiser essa
+decomposição precisa dos processos tarifários de cada distribuidora, que não estão aqui.
+
+> **Estado de leitura.** A Portaria Interministerial MF/MME nº 25/2002 foi **lida**, em
+> texto consolidado que registra as alterações das Portarias nº 116/2003 e nº 361/2004 e que
+> declara não substituir o publicado no D.O. de 25/01/2002. O Submódulo 4.2 do PRORET,
+> versão 1.3, que hoje operacionaliza o mecanismo, foi *identificado* na página da ANEEL e
+> **não lido**. Nenhum número publicado por este projeto depende desses textos: eles
+> sustentam apenas a ressalva de que existe repasse não decomposto.
 
 **O nível do peso da conta é cenário; a ordenação não é.** A faixa do nível é larga:
 

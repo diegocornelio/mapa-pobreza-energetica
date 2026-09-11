@@ -1,7 +1,8 @@
 import pandas as pd, numpy as np, json, os
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _paths import (RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT,
-                    LINHA_POBREZA, LINHA_POBREZA_VIGENCIA)
+                    LINHA_POBREZA, LINHA_POBREZA_VIGENCIA,
+                    BANDEIRAS, BANDEIRAS_FONTE)
 d=pd.read_csv(str(OUT)+"/app_dados2.csv")
 dist=sorted(d.distribuidora.dropna().unique().tolist()); di={v:i for i,v in enumerate(dist)}
 def col(s,dec=None):
@@ -11,6 +12,10 @@ def col(s,dec=None):
 # conta na renda e calculado ao vivo na tela, e enquanto o valor vivia em seis
 # lugares do template nada garantia que a tela e o pipeline usassem o mesmo numero.
 out={"n":len(d),"dist":dist,"lp":LINHA_POBREZA,"lpv":LINHA_POBREZA_VIGENCIA,
+  # A bandeira e adicional por kWh cobrado por fora da tarifa homologada, entao
+  # nao entra em tar nem em cc: vai como constante para a tela montar o cenario
+  # sem que o numero publicado da conta mude.
+  "bnd":BANDEIRAS,"bndf":BANDEIRAS_FONTE,
   "cod":d.cod_ibge.tolist(),"nome":d.nome.tolist(),"uf":d.uf.tolist(),# Um municipio pode nao ter registro no INDGER da data de referencia (Acegua, RS,
   # em marco de 2026). O indice sai nulo, e a tela diz que nao sabe, em vez de o
   # pipeline quebrar ou de atribuir a distribuidora errada.

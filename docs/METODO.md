@@ -34,6 +34,44 @@ A leitura do presente casa as duas pontas em março de 2026: o CadÚnico vem da 
 as 103 distribuidoras. Uma versão anterior cruzava CadÚnico de agosto de 2026 com CDE de
 dezembro de 2024, e a defasagem de vinte meses aparecia como contradição na própria tela.
 
+## 1b. O que é pobreza energética, e por que este projeto não fixa um limiar
+
+**A definição é oficial e brasileira.** Desde 26 de agosto de 2024 o país tem definição
+aprovada em resolução do Conselho Nacional de Política Energética, no ato que instituiu a
+Política Nacional de Transição Energética: pobreza energética é a
+
+> "situação em que domicílios ou comunidades não têm acesso a uma cesta básica de serviços
+> energéticos ou não têm plenamente satisfeitas suas necessidades energéticas".
+
+Ela é multidimensional e **não fixa limiar numérico**, o que é coerente com o que este
+projeto publica: três medidas separadas, acesso ao benefício, preço e continuidade do
+fornecimento, sem índice composto que as funda.
+
+**Não há definição operacional consensual, e a literatura diz isso com todas as letras.**
+A edição da *Rediteia* dedicada ao tema registra, em quatro passagens independentes, que
+não existe definição legal na União Europeia nem em Portugal, e que "energy poverty is a
+complex multidimensional problem with no clear and precise definition" (p. 68); que "a
+specific definition for energy poverty cannot be provided as the problem cannot be
+narrowed to one (or a few) factors" (p. 69); e que "não existe atualmente ainda uma
+definição consensual" (p. 85).
+
+**Onde os indicadores europeus cortam, eles cortam em relação à mediana nacional.** O
+indicador **2M**, um dos primários do observatório europeu, mede "a proporção de famílias
+cujo rácio de despesas energéticas em função do rendimento disponível é mais do que o dobro
+que a proporção mediana nacional" (p. 96). É corte **relativo**, e não absoluto.
+
+**Consequência para este projeto.** O filtro da página de municípios seleciona o quartil
+mais pesado da distribuição nacional, e não um limiar externo. A lógica é a mesma família do
+2M: comparar cada unidade com a distribuição do próprio país. **Não é o 2M**, e não deve ser
+chamado assim: o 2M usa despesa energética observada sobre rendimento disponível observado,
+de inquérito de orçamento familiar, e este projeto usa uma conta de cenário sobre o teto de
+uma faixa de renda. São insumos diferentes.
+
+**O limiar de 10% não é adotado por este projeto e não é atribuído a ninguém.** Ele aparece
+apenas nas tabelas de cenário de `docs/LIMITES.md` e da página do método, que existem para
+mostrar que a contagem de municípios acima dele varia de zero a quase todos conforme a
+hipótese de consumo, e que por isso ela não é publicada.
+
 ## 2. O que a Tarifa Social devolve, em reais
 
 ```
@@ -57,9 +95,12 @@ peso = (tarifa × 80 kWh) ÷ (R$ 218 × moradores por domicílio)
 Medida secundária, publicada como **ordenação entre municípios**, não como diagnóstico
 de quem cruza um limiar de renda. A razão está declarada abaixo.
 
-**Por que não a média municipal.** Testada, ela fica em torno de 2,3%. Pobreza energética
-é fenômeno intradomiciliar e desaparece na agregação por município. O cálculo só diz algo
-quando feito sobre a faixa de renda elegível.
+**Por que não a média municipal.** Testada, ela não enxerga nada: a conta de 80 kWh sobre
+a renda domiciliar média do município dá **2,01%** na mediana, e **nenhum dos 5.569
+municípios** com os três campos disponíveis passa de 10%. A 100 kWh o resultado é 2,51%, e
+continuam sendo zero. Pobreza energética é fenômeno intradomiciliar e desaparece na
+agregação por município. O cálculo só diz algo quando feito sobre a faixa de renda
+elegível, onde a mesma conta pesa 10,50%.
 
 **Por que o teto da faixa.** R$ 218 por pessoa é o teto da faixa de pobreza do CadÚnico,
 valor fixado pelo Decreto 11.566/2023 e ainda vigente na data desta leitura. Usar o teto,
