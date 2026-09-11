@@ -111,6 +111,40 @@ A diferença de 147 vem de códigos municipais da CDE fora da malha do IBGE de 2
 
 ---
 
+## 1b. Que espécie de conferência cada uma é
+
+Uma validação só detecta erro de cálculo se os dois lados chegarem ao mesmo número por
+**caminhos independentes**. Se ambos descendem do mesmo artefato, a comparação não pode
+falhar: não é um teste, é uma tautologia.
+
+Este arquivo já teve cinco delas. A seção da tarifa comparava `min(t)` com `min(t)`
+sobre o próprio payload; a dos municípios com duas concessionárias comparava
+`len(D['pares'])` com um campo que o mesmo script escreveu a partir do mesmo objeto.
+Passavam sempre, e não diziam nada.
+
+A correção foi estrutural, e não um remendo nas cinco. O validador passou a ter **duas
+funções distintas**:
+
+| função | compara | o que detecta |
+|---|---|---|
+| `cmp` | fonte **anterior ao payload** contra o payload | erro de cálculo em qualquer etapa entre a fonte e a publicação |
+| `coer` | dois campos do próprio payload | incoerência interna: o agregado publicado não bate com os campos que o compõem |
+
+`cmp` **recusa chamada sem fonte declarada**, e o script imprime ao final quantas
+conferências foram de cada espécie. Uma tautologia não consegue mais se disfarçar de
+validação sem que alguém escreva explicitamente de onde ela veio.
+
+O balanço atual: **24 conferências contra fonte independente, 4 de coerência interna,
+zero divergências.**
+
+A tarifa, que era a pior das cinco, passou a ser reconstruída do **arquivo bruto da
+ANEEL**, refazendo a soma TUSD mais TE, a mediana por CNPJ e a média ponderada por
+unidades consumidoras. Ela reproduz os 5.570 municípios até a última casa publicada,
+com 5.431 batendo dígito a dígito; os outros 139 diferem por exatamente uma unidade na
+quarta casa, porque o recálculo cai do outro lado do meio-passo do arredondamento.
+
+---
+
 ## 2. Validações contra fontes externas
 
 Cada uma compara um resultado do pipeline com um valor publicado de forma independente.
@@ -259,6 +293,7 @@ Em `reconstrucao/pipeline/`, fora do encadeamento principal:
 | `valida_decomposicao.py` | decomposição da economia em subclasse e desconto |
 | `valida_territorio.py` | correlações da participação de favela, seção 3 |
 | `valida_granularidade.py` | distribuição das combinações de encaminhamento |
+| `valida_formulas.py` | confere que cada trecho transcrito em `docs/FORMULAS.md` ainda bate com o código |
 
 ---
 

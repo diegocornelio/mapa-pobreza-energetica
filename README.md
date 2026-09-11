@@ -13,6 +13,10 @@ direto do disco: `site/index.html`.
 Publicação: o repositório traz `netlify.toml` com `publish = "site"`, e não há etapa de
 build. Para regerar a página a partir dos dados, ver `docs/REPRODUCAO.md`.
 
+As contas estão transcritas em `docs/FORMULAS.md`, com o trecho literal e o intervalo
+de linhas de cada uma. `valida_formulas.py` falha se o código mudar sem que o
+documento mude junto.
+
 ---
 
 ## O que responde

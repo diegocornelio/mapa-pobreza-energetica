@@ -687,7 +687,7 @@ const METRICS = {
     get:i=>D.tar[i], fmt:v=>brl2(v)+'/kWh',
     breaks:[0.60,0.68,0.74,0.80,0.88,0.96], ramp:SEQ,
     labels:['até R$ 0,60','R$ 0,60 a 0,68','R$ 0,68 a 0,74','R$ 0,74 a 0,80','R$ 0,80 a 0,88','R$ 0,88 a 0,96','mais de R$ 0,96'],
-    caption:'Tarifa B1 residencial convencional homologada, vigente em março de 2026, da distribuidora que atende o município. Sem ICMS e sem PIS/COFINS.'},
+    caption:'Tarifa B1 residencial convencional homologada, vigente em dezembro de 2024, da distribuidora que atende o município. É a única medida do aplicativo que ainda não foi movida para março de 2026; o arquivo da ANEEL traz as duas datas. Sem ICMS e sem PIS/COFINS.'},
   pc:{name:'Peso da conta na faixa de pobreza',unit:'%',
     get:i=>D.pc[i]==null?null:100*D.pc[i], fmt:v=>pct(v),
     breaks:[7,8.5,10,11.5,13,15], ramp:SEQ,
