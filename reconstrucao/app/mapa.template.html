@@ -1,6 +1,15 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Quantas familias tem direito a Tarifa Social de Energia Eletrica e nao recebem, nos 5.570 municipios brasileiros. Dados abertos da ANEEL, do MDS e do IBGE.">
+<meta name="color-scheme" content="light dark">
 <title>Mapa da Pobreza Energética</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&display=swap">
 <style>
+/* Leaflet 1.9.4, BSD-2-Clause, embutido: ver app/vendor/PROVENIENCIA.txt */
+__LEAFLETCSS__
 :root{
   --plane:#f6faf9; --surface:#ffffff; --surface-2:#f1f6f5; --sunken:#eaf2f0;
   --ink:#16241f; --ink-2:#4a5a55; --muted:#66766f; --line:#e3ecea; --line-2:#cfdedb;
@@ -54,6 +63,10 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+/* O atributo hidden vale display:none pela folha do navegador, e qualquer regra
+   mantem o mapa visivel quando o codigo pede para escondê-lo, e a tabela aparece
+   embaixo dele em vez de no lugar dele. */
+[hidden]{display:none!important}
 body{margin:0;color:var(--ink);
   background:
     radial-gradient(1100px 620px at 6% -8%, color-mix(in srgb,var(--brand) 11%,transparent), transparent 62%),
@@ -189,16 +202,18 @@ main{min-width:0;display:flex;flex-direction:column}
 .maplayout{display:grid;grid-template-columns:minmax(0,1fr) 272px;gap:16px}
 .mapbox{position:relative;background:var(--surface);border:1px solid var(--line);
   border-radius:var(--r-card);overflow:hidden;box-shadow:var(--shadow)}
-.mapsvg{display:block;width:100%;height:auto;touch-action:none;cursor:grab;padding:10px}
-.mapsvg.drag{cursor:grabbing}
-.mapsvg path.m{stroke:none;shape-rendering:geometricPrecision;transition:fill .28s ease}
-.mapsvg.zoomed path.m{stroke:color-mix(in srgb,var(--surface) 55%,transparent);
-  stroke-width:.4;vector-effect:non-scaling-stroke}
-.mapsvg path.m.hi{stroke:var(--ink);stroke-width:1.7;vector-effect:non-scaling-stroke}
-.mapsvg path.uf{fill:none;stroke:var(--surface);stroke-width:1.5;stroke-linejoin:round;
-  stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none;opacity:.85}
-.mapsvg path.sel{fill:none;stroke:var(--accent);stroke-width:2.4;vector-effect:non-scaling-stroke;pointer-events:none}
-.mapctl{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:6px}
+/* ---- container do mapa (Leaflet) ----
+   O Leaflet exige altura explicita no container; sem ela o mapa nasce com zero
+   pixel e nada aparece. Nenhum tile externo e carregado: o fundo e a propria
+   superficie da pagina, e so a malha embutida e desenhada. */
+.mapleaf{width:100%;height:clamp(430px,72vh,820px);border-radius:calc(var(--r-card) - 1px);
+  background:var(--surface);outline:none;z-index:0}
+.mapleaf:focus-visible{outline:2.5px solid var(--accent);outline-offset:-3px}
+.mapleaf:focus-visible ~ .ajuda-mapa{border-color:var(--accent);color:var(--ink-2)}
+.mapleaf .leaflet-container{background:var(--surface);font:inherit}
+.mapleaf canvas{outline:none}
+.leaflet-container{background:var(--surface)!important}
+.mapctl{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:6px;z-index:500}
 .mapctl button{width:32px;height:32px;border:1px solid var(--line);
   background:color-mix(in srgb,var(--surface) 86%,transparent);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
@@ -220,17 +235,125 @@ main{min-width:0;display:flex;flex-direction:column}
 .metricbtns button:hover{background:var(--surface-2);color:var(--ink)}
 .metricbtns button.on{background:var(--accent-wash);color:var(--accent-ink);font-weight:600}
 
-.mapsvg:focus-visible{outline:2.5px solid var(--accent);outline-offset:-3px}
 .ajuda-mapa{position:absolute;left:14px;bottom:12px;margin:0;font-size:11px;color:var(--muted);
   background:color-mix(in srgb,var(--surface) 82%,transparent);backdrop-filter:blur(8px);
   padding:5px 9px;border-radius:8px;border:1px solid var(--line)}
 .ajuda-mapa kbd{font-family:"IBM Plex Mono",monospace;font-size:10px;border:1px solid var(--line-2);
   border-radius:4px;padding:0 4px;background:var(--surface-2);color:var(--ink-2)}
-.mapsvg:focus-visible ~ .ajuda-mapa{border-color:var(--accent);color:var(--ink-2)}
 .vertab{background:var(--surface-2);border:1px solid transparent;border-radius:8px;padding:5px 10px;
   font:inherit;font-size:11.5px;color:var(--ink-2);cursor:pointer}
 .vertab:hover{background:var(--accent-wash);color:var(--accent-ink)}
 .vertab[aria-pressed="true"]{background:var(--accent-wash);color:var(--accent-ink);font-weight:600}
+/* ---- barra de acoes da ficha municipal ---- */
+.acoesbar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.btn-ac{font:inherit;font-size:12.5px;font-weight:500;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-ctl);
+  padding:8px 14px;cursor:pointer;transition:background .16s,color .16s,border-color .16s}
+.btn-ac:hover{background:var(--accent-wash);color:var(--accent-ink);border-color:var(--accent)}
+.btn-ac:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+
+/* ---- procedencia do indicador de continuidade ---- */
+.proc{margin:12px 0 0;padding:10px 13px;background:var(--surface-2);border-left:2.5px solid var(--warning);
+  border-radius:8px;font-size:12.5px;color:var(--ink-2);line-height:1.55}
+.proc-ok{border-left-color:var(--good)}
+.proc strong{color:var(--ink)}
+.emp{display:block;font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:10.5px;
+  font-weight:400;color:var(--muted);margin-top:1px;white-space:nowrap}
+
+/* ---- chamada de destaque da home ---- */
+.chamada{display:flex;align-items:center;gap:18px;width:100%;text-align:left;cursor:pointer;
+  margin:6px 0 26px;padding:20px 22px;border-radius:var(--r-card);
+  background:linear-gradient(135deg,var(--accent-wash),var(--surface) 70%);
+  border:1px solid var(--accent);box-shadow:var(--shadow);
+  font:inherit;color:var(--ink);transition:box-shadow .18s,transform .18s}
+.chamada:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+.chamada:focus-visible{outline:2.5px solid var(--accent);outline-offset:3px}
+.ch-txt{display:flex;flex-direction:column;gap:5px;flex:1}
+.ch-tit{font-family:"IBM Plex Serif","Iowan Old Style",Georgia,serif;font-size:19px;
+  font-weight:600;letter-spacing:-.015em;color:var(--accent-ink)}
+.ch-sub{font-size:13.5px;color:var(--ink-2);line-height:1.55;max-width:62ch}
+.ch-seta{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  background:var(--accent);color:#fff}
+.ch-seta svg{width:19px;height:19px}
+@media (max-width:560px){.chamada{padding:16px}.ch-tit{font-size:17px}}
+
+/* ---- filtros da pagina de municipios ---- */
+.filtros{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end}
+.filtros label{display:flex;flex-direction:column;gap:5px;font-family:"IBM Plex Mono",monospace;
+  font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.filtros input,.filtros select{font:inherit;font-family:"IBM Plex Sans",system-ui,sans-serif;
+  font-size:13px;letter-spacing:0;text-transform:none;color:var(--ink);
+  background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r-ctl);
+  padding:8px 10px;min-width:170px}
+.filtros input:focus,.filtros select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.btn-ac.on{background:var(--accent-wash);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+table caption{text-align:left;padding:12px 16px 8px;font-size:12px;color:var(--muted)}
+
+/* ---- caixa de grafico ---- */
+/* O Chart.js mede e redimensiona o proprio canvas quando responsive:true e
+   maintainAspectRatio:false. Forcar width/height aqui faz a medida do eixo sair
+   errada e corta os rotulos, entao a caixa manda no tamanho e o canvas obedece. */
+.chartbox{position:relative;width:100%}
+.chartbox canvas{display:block}
+
+/* ---- apoios de tabela ---- */
+td .sub{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.35}
+.de{color:var(--muted);font-weight:400}
+tr.forte td{background:var(--surface-2);font-weight:600;color:var(--ink)}
+
+/* ---- impressao: a ficha vira relatorio ----
+   Sem biblioteca. O navegador gera PDF com texto vetorial e selecionavel, que e
+   melhor do que rasterizar a tela. O que some e o que so serve na tela.       */
+@media print{
+  @page{size:A4;margin:14mm 12mm}
+  html,body{background:#fff!important;color:#111!important}
+  .rail,.munbar,.picker,.results,.acoesbar,.mapctl,.ajuda-mapa,.vertab,.metricbtns,
+  .navgroup,.nav-btn,#tt,.qarrow,.junto{display:none!important}
+  main,.wrap{margin:0!important;padding:0!important;max-width:none!important;
+    width:auto!important;display:block!important}
+  body{display:block!important}
+  .card{border:1px solid #ccc!important;box-shadow:none!important;
+    break-inside:avoid;page-break-inside:avoid;margin-bottom:10mm}
+  .persona,.acao,.off-linha,.junto{break-inside:avoid;page-break-inside:avoid}
+  h2{font-size:17pt;margin-bottom:3mm}
+  h3{font-size:12pt}
+  .cap,.persona-c{color:#555!important}
+  table{font-size:8.5pt}
+  .chartbox{break-inside:avoid;page-break-inside:avoid}
+  .efeito{background:#f4f6f8!important;border:1px solid #ddd!important}
+  a[href]::after{content:" (" attr(href) ")";font-size:8pt;color:#666}
+  .phead::after{content:"Mapa da Pobreza Energética · mapa-pobreza-energetica.netlify.app";
+    display:block;font-size:8pt;color:#666;margin-top:2mm}
+}
+/* ---- quem pode agir: blocos por persona ---- */
+.personas .card-h{border-bottom:1px solid var(--line)}
+.persona{border-bottom:1px solid var(--line);padding:16px 20px 6px}
+.persona:last-child{border-bottom:none}
+.persona-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.persona-n{font-family:"IBM Plex Serif","Iowan Old Style",Georgia,serif;font-size:15.5px;
+  font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.persona-q{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--accent-ink);background:var(--accent-wash);
+  border-radius:6px;padding:3px 8px;flex:none;white-space:nowrap}
+.persona-c{font-size:12.5px;color:var(--muted);margin:3px 0 13px;max-width:62ch}
+.persona .acao{border-left:2.5px solid var(--line-2);padding-left:14px;margin-bottom:15px}
+.persona .acao:last-child{margin-bottom:17px}
+.persona .acao.t-crit{border-left-color:var(--critical)}
+.persona .acao.t-warn{border-left-color:var(--warning)}
+.persona .acao.t-ok{border-left-color:var(--good)}
+.junto{margin:2px 0 16px;padding:10px 12px;background:var(--surface-2);border-radius:8px}
+.junto-lab{display:block;font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.junto-l{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:3px 0}
+.junto-v{font-size:12.5px;color:var(--ink-2);font-weight:500}
+.junto-d{font-size:11.5px;color:var(--muted)}
+.persona-off{background:var(--surface-2);padding-bottom:14px}
+.persona-off .persona-n{font-size:13px;font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--ink-2)}
+.off-linha{display:grid;grid-template-columns:minmax(150px,215px) 1fr;gap:14px;
+  padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.off-n{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.off-r{font-size:12.5px;color:var(--muted);max-width:70ch}
+@media (max-width:640px){.off-linha{grid-template-columns:1fr;gap:3px}}
 .tabelawrap{max-height:560px;overflow:auto}
 .tabelawrap table{font-size:12.5px}
 .tabelawrap caption{text-align:left;padding:12px 14px 8px;font-size:12px;color:var(--muted)}
@@ -325,6 +448,9 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 </style>
+</head>
+<body>
+
 
 <div class="shell">
 <aside class="rail">
@@ -352,7 +478,7 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
     <nav id="nav3"></nav>
   </div>
   <div class="rail-foot">
-    Ano-base 2024 para os dados da ANEEL; CadÚnico de agosto de 2026; Censo 2022 para o IBGE.<br><br>
+    CDE da ANEEL e CadÚnico do MDS, ambos de março de 2026; Censo 2022 para o IBGE.<br><br>
     Não identifica famílias. Não estabelece causalidade.
   </div>
 </aside>
@@ -384,6 +510,10 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 
 <script type="application/json" id="DATA">__DATA__</script>
 <script type="application/json" id="GEO">__GEO__</script>
+<!-- Chart.js 4.5.1 (MIT) e Leaflet 1.9.4 (BSD-2) embutidos de proposito:
+     a pagina e um arquivo unico que abre do disco. Ver app/vendor/PROVENIENCIA.txt -->
+<script>__CHARTJS__</script>
+<script>__LEAFLETJS__</script>
 <script>
 "use strict";
 const D = JSON.parse(document.getElementById('DATA').textContent);
@@ -416,15 +546,23 @@ const COB = (()=>{
 })();
 
 const NAT = (()=>{
-  /* contingente a alcancar em cada data: soma das diferencas positivas por municipio,
-     porque excesso em um municipio nao supre falta em outro. */
-  let ele=0, b24=0, b26=0, na24=0, na26=0;
+  /* Contingente a alcancar em cada data: soma das diferencas positivas por municipio,
+     porque excesso num municipio nao supre falta em outro.
+
+     A cobertura de cada data usa o CadUnico DAQUELA data, e nao um denominador unico.
+     Dividir as duas pontas pelo mesmo denominador faria a variacao carregar o
+     movimento do proprio universo elegivel, e o app afirma o contrario na pagina de
+     comparacao. As duas bases ficam expostas: `parDat` casa CadUnico e CDE no mesmo
+     mes, `cecad` usa o CadUnico mais recente contra a CDE de cada data.          */
+  let e24=0, e26=0, b24=0, b26=0, na24=0, na26=0;
   for(let i=0;i<N;i++){
-    ele+=D.ele[i]; b24+=D.ben[i]; b26+=D.ben26[i]??0;
-    na24+=Math.max(0,D.ele[i]-D.ben[i]);
-    na26+=Math.max(0,D.ele[i]-(D.ben26[i]??0));
+    const E24=D.ele24[i]??0, E26=D.ele26[i]??0;
+    const B24=D.ben24?.[i]??D.benDez24?.[i]??0, B26=D.ben26[i]??0;
+    e24+=E24; e26+=E26; b24+=B24; b26+=B26;
+    na24+=Math.max(0,E24-B24); na26+=Math.max(0,E26-B26);
   }
-  return {ele,b24,b26,na24,na26, cob24:100*b24/ele, cob26:100*b26/ele};
+  return {e24,e26,b24,b26,na24,na26, ele:e26,
+          cob24:100*b24/e24, cob26:100*b26/e26};
 })();
 
 const AGG = (()=>{
@@ -529,7 +667,7 @@ const METRICS = {
     get:i=>D.cob[i]==null?null:100-D.cob[i], fmt:v=>pct(v),
     breaks:[10,20,30,40,50,65], ramp:SEQ,
     labels:['menos de 10%','10 a 20%','20 a 30%','30 a 40%','40 a 50%','50 a 65%','65% ou mais'],
-    caption:'Quanto maior e mais escuro, maior a parcela de famílias elegíveis do CadÚnico que não constava como beneficiária da Tarifa Social em dezembro de 2024.'},
+    caption:'Quanto maior e mais escuro, maior a parcela de famílias elegíveis do CadÚnico que não constava como beneficiária da Tarifa Social em março de 2026.'},
   lac:{name:'Famílias não atendidas pela Tarifa Social',unit:'famílias',
     get:i=>D.lac[i], fmt:v=>nf(v)+' famílias',
     breaks:[100,500,2000,10000,50000,150000], ramp:SEQ,
@@ -549,7 +687,7 @@ const METRICS = {
     get:i=>D.tar[i], fmt:v=>brl2(v)+'/kWh',
     breaks:[0.60,0.68,0.74,0.80,0.88,0.96], ramp:SEQ,
     labels:['até R$ 0,60','R$ 0,60 a 0,68','R$ 0,68 a 0,74','R$ 0,74 a 0,80','R$ 0,80 a 0,88','R$ 0,88 a 0,96','mais de R$ 0,96'],
-    caption:'Tarifa B1 residencial convencional homologada, vigente em dezembro de 2024, da distribuidora que atende o município. Sem ICMS e sem PIS/COFINS.'},
+    caption:'Tarifa B1 residencial convencional homologada, vigente em março de 2026, da distribuidora que atende o município. Sem ICMS e sem PIS/COFINS.'},
   pc:{name:'Peso da conta na faixa de pobreza',unit:'%',
     get:i=>D.pc[i]==null?null:100*D.pc[i], fmt:v=>pct(v),
     breaks:[7,8.5,10,11.5,13,15], ramp:SEQ,
@@ -602,7 +740,7 @@ const ICON = {
 const svgIcon = (k,cls='qi') => `<svg class="${cls}" viewBox="0 0 17 17" fill="none" aria-hidden="true">${ICON[k]}</svg>`;
 
 const NAVS = [
-  ['nav1',[['inicio','O que este mapa responde','home'],['municipio','Meu município','pin']]],
+  ['nav1',[['inicio','O que este mapa responde','home'],['municipios','Todos os municípios','grid'],['municipio','Meu município','pin']]],
   ['nav2',[['mudou','O que mudou desde 2024?','wave'],
            ['tarifasocial','Quem não recebe a Tarifa Social?','coin'],
            ['qualidade','A energia falta mais do que o permitido?','bolt'],
@@ -640,6 +778,101 @@ const GRAU = {
   verif:{rot:'verificação',exp:'A ação resolve uma ambiguidade do dado. Deve preceder qualquer decisão baseada neste número.'}
 };
 
+/* ---------- escopos de comparacao: estado, regiao e pais ----------
+   As macrorregioes sao as cinco do IBGE. O ranking de um municipio so tem
+   sentido contra um conjunto declarado: 41o entre 5.570 e 3o entre os 92 do
+   Rio de Janeiro sao a mesma medida lida em escalas diferentes, e a segunda
+   e a que um gestor estadual usa.                                        */
+const REGIAO = {
+  N:['AC','AM','AP','PA','RO','RR','TO'],
+  NE:['AL','BA','CE','MA','PB','PE','PI','RN','SE'],
+  CO:['DF','GO','MS','MT'],
+  SE:['ES','MG','RJ','SP'],
+  S:['PR','RS','SC']
+};
+const REGNOME = {N:'Norte',NE:'Nordeste',CO:'Centro-Oeste',SE:'Sudeste',S:'Sul'};
+const UF2REG = (()=>{ const m={}; for(const r in REGIAO) REGIAO[r].forEach(u=>m[u]=r); return m; })();
+
+const IDX = (()=>{
+  const uf=new Map(), reg=new Map(), todos=[];
+  for(let i=0;i<N;i++){
+    todos.push(i);
+    const u=D.uf[i], r=UF2REG[u];
+    if(!uf.has(u)) uf.set(u,[]); uf.get(u).push(i);
+    if(r){ if(!reg.has(r)) reg.set(r,[]); reg.get(r).push(i); }
+  }
+  return {uf,reg,todos};
+})();
+
+/* Posicao do municipio dentro de um conjunto, contando so quem tem o dado.
+   `pior` diz qual ponta e a ruim, para que 1o signifique sempre "o mais grave".
+   `empate` conta quantos OUTROS municipios têm exatamente o mesmo valor: sem isso,
+   catorze municipios do Amazonas apareceriam como "1o" cada um, como se cada um
+   fosse o pior do estado. */
+function posicao(vals, i, conj, piorEhMaior=true){
+  if(vals[i]==null) return null;
+  let pos=1, de=0, empate=0;
+  for(const k of conj){
+    const v=vals[k]; if(v==null) continue;
+    de++;
+    if(k===i) continue;
+    if(piorEhMaior ? v>vals[i] : v<vals[i]) pos++;
+    else if(v===vals[i]) empate++;
+  }
+  return {pos, de, empate, pct: de>1 ? 100*(de-pos)/(de-1) : 100};
+}
+
+const MEDIDAS = [
+  {k:'lac', rot:'Famílias sem a Tarifa Social', curto:'Famílias sem o benefício', vals:()=>D.lac, maior:true,
+   fmt:v=>nf(v), nota:'quanto maior, maior o contingente a alcançar'},
+  {k:'cob', rot:'Cobertura da Tarifa Social', curto:'Cobertura', vals:()=>D.cob, maior:false,
+   fmt:v=>pct(v), nota:'quanto menor, pior'},
+  {k:'d3',  rot:'Falta de energia sobre o limite', curto:'Falta de energia', vals:()=>D.d3, maior:true,
+   fmt:v=>nf2(v)+'×', nota:'acima de 1,00× é descumprimento', procedencia:true},
+  {k:'pc',  rot:'Peso da conta na faixa de pobreza', curto:'Peso da conta', vals:()=>D.pc, maior:true,
+   fmt:v=>pct(100*v), nota:'limiar de referência em 10%'},
+  {k:'tar', rot:'Tarifa residencial', curto:'Tarifa', vals:()=>D.tar, maior:true,
+   fmt:v=>brl2(v)+'/kWh', nota:'sem tributos', tarifaria:true},
+];
+
+function rankings(i){
+  const uf=D.uf[i], reg=UF2REG[uf];
+  const conjuntos=[
+    ['estado', uf, IDX.uf.get(uf)||[]],
+    ['região', reg?REGNOME[reg]:'—', reg?(IDX.reg.get(reg)||[]):[]],
+    ['país', 'Brasil', IDX.todos],
+  ];
+  return MEDIDAS.map(m=>{
+    const v=m.vals();
+    return {...m, valor:v[i],
+      escopos: conjuntos.map(([tipo,nome,conj])=>({tipo,nome,r:posicao(v,i,conj,m.maior)}))};
+  }).filter(x=>x.valor!=null);
+}
+
+/* ---------- personas: quem pode agir, e com que competencia ----------
+   Cada encaminhamento ja nascia com um responsavel no rodape. A lista abaixo
+   torna esse responsavel uma chave, para que a pagina possa ser lida por quem
+   age e nao so por tema. A competencia declarada e o que limita o que cabe
+   pedir a cada um: o municipio nao fixa tarifa, a distribuidora nao cadastra
+   familia, o Procon nao opera busca ativa.                                */
+const PERSONAS = [
+  ['social',   'Secretaria de assistência social e CRAS',
+               'Gestora do CadÚnico no município. É quem cadastra, atualiza e faz busca ativa.'],
+  ['dist',     'Distribuidora',
+               'Aplica o desconto na conta e mantém o cadastro de unidades consumidoras com Tarifa Social.'],
+  ['estado',   'Coordenação estadual do CadÚnico',
+               'Articula a operação entre municípios e dimensiona força-tarefa estadual.'],
+  ['fisc',     'Procon e Ministério Público',
+               'Instauram procedimento com prazo e resposta obrigatória da concessionária.'],
+  ['agencia',  'Agência estadual conveniada com a ANEEL',
+               'Fiscaliza a concessionária no estado, por delegação da ANEEL.'],
+  ['aneel',    'ANEEL',
+               'Mantém as bases de continuidade e o vínculo entre conjunto consumidor e município.'],
+  ['conselho', 'Conselho de consumidores da distribuidora',
+               'Tem assento no processo de revisão tarifária.'],
+];
+const PNOME = Object.fromEntries(PERSONAS.map(([k,n])=>[k,n]));
+
 function leitura(i){
   const it=[], uf=D.uf[i];
   const add=o=>it.push(o);
@@ -649,14 +882,14 @@ function leitura(i){
   if(lac>0){
     const banda = D.cob[i]<QCOB[0] ? 'crit' : D.cob[i]<QCOB[1] ? 'warn' : D.cob[i]<QCOB[2] ? 'na' : 'ok';
     add({pac:'A',grau:'arit',tom:banda,
-      ator:'Gestão municipal do CadÚnico',
+      quem:['social'],ator:'Gestão municipal do CadÚnico',
       ver:`Cadastrar as ${nf(lac)} famílias elegíveis que estão fora`,
       dado:`cobertura de ${pct(D.cob[i])} — ${D.cob[i]<QCOB[1]?'abaixo':'acima'} da mediana nacional de ${pct(QCOB[1])}`,
       acao:`Solicitar à ${esc(D.dist[D.di[i]])} a relação de unidades consumidoras com Tarifa Social no município e cruzá-la com o CadÚnico, do qual o município já é gestor. É a via direta para nomear quem falta.`,
       efeito:`A cobertura vai de ${pct(D.cob[i])} para 100% — o número de não atendidas é, por definição, elegíveis menos beneficiários. A conta de cada família cai de ${brl2(D.cc[i])} para ${brl2(D.cs[i])} por mês num consumo de 80 kWh, economia de <strong>${brl2(D.ec[i])} por mês</strong>, ou ${brl2(anual)} ao ano. Somadas, as ${nf(lac)} famílias deixam de pagar <strong>${brl(lac*D.ec[i])} por mês</strong>.`});
   } else {
     add({pac:'A',grau:'verif',tom:'ok',
-      ator:'Gestão municipal do CadÚnico',
+      quem:['social'],ator:'Gestão municipal do CadÚnico',
       ver:'Não há famílias a alcançar pelo dado disponível',
       dado:`${nf(D.ben[i])} benefícios ativos para ${nf(D.ele[i])} famílias elegíveis`,
       acao:'Nenhuma busca ativa se justifica por este levantamento. Reavaliar quando a CDE for atualizada.',
@@ -667,45 +900,75 @@ function leitura(i){
   if(CONC.has(i)){
     const k=UFCONC[uf].k;
     add({pac:'A',grau:'proc',tom:'crit',
-      ator:'Coordenação estadual do CadÚnico',
+      quem:['estado','social'],ator:'Coordenação estadual do CadÚnico',
       ver:`Pleitear inclusão na força-tarefa estadual de ${uf}`,
       dado:`entre os ${k} de ${UFCONC[uf].mun} municípios que concentram metade das famílias não atendidas de ${uf}`,
       acao:`Metade das famílias não atendidas do estado está em ${k} municípios. Uma operação estadual dimensionada para esse conjunto alcança ${nf(UFCONC[uf].tot)} famílias sem percorrer os ${UFCONC[uf].mun} municípios do estado.`,
       efeito:null});
   } else if(lac>=1000){
     add({pac:'A',grau:'proc',tom:'warn',
-      ator:'Secretaria de assistência social',
+      quem:['social','dist'],ator:'Secretaria de assistência social',
       ver:'Montar mutirão com data e meta declaradas',
       dado:`${nf(lac)} famílias, volume acima do atendimento de rotina`,
       acao:'Mutirão articulado com a distribuidora para cadastro no ato, evitando que a família precise de segunda ida. A meta é verificável: a cobertura do mês seguinte na CDE.',
       efeito:null});
   } else if(lac>=100){
     add({pac:'A',grau:'proc',tom:'na',
-      ator:'CRAS',
+      quem:['social'],ator:'CRAS',
       ver:'Incorporar a verificação da Tarifa Social ao atendimento corrente',
       dado:`${nf(lac)} famílias, escala compatível com a rotina`,
       acao:'Sem operação dedicada. Conferência do benefício em cada atendimento de atualização cadastral.',
       efeito:null});
   } else if(lac>0){
     add({pac:'A',grau:'proc',tom:'ok',
-      ator:'CRAS',
+      quem:['social'],ator:'CRAS',
       ver:'Tratar caso a caso',
       dado:`${nf(lac)} famílias`,
       acao:'Contingente residual. Não há escala que justifique operação dedicada.',
       efeito:null});
   }
 
+  /* ===== 2b. o que cabe a distribuidora, que e quem opera o beneficio =====
+     A distribuidora aparecia so como contraparte ("solicitar a ela a relacao").
+     Ela tem acao propria: e dela o cadastro de quem recebe o desconto, e o
+     desconto lhe e reembolsado pela CDE, de modo que alcancar quem falta nao
+     corre contra a sua receita.                                             */
+  const sigCDE = D.cdei[i]!=null ? D.cdeag[D.cdei[i]] : null;
+  const agCDE  = sigCDE ? D.agvar.find(a=>a.n===sigCDE) : null;
+  if(lac>0){
+    add({pac:'A',grau:'arit',tom: D.cob[i]<QCOB[1] ? 'crit' : 'warn',
+      quem:['dist','social'],
+      ator:`${esc(D.dist[D.di[i]])} · cadastro de unidades consumidoras`,
+      ver:'Cruzar o próprio cadastro de Tarifa Social com o CadÚnico do município',
+      dado:`${nf(D.ben[i])} unidades com o benefício aqui, para ${nf(D.ele[i])} famílias elegíveis`,
+      acao:`A distribuidora tem um lado da conta, que é quem recebe o desconto. O município tem o outro, que é quem tem direito. A interseção nunca foi calculada por nenhum dos dois, e é ela que transforma ${nf(lac)} em nomes e endereços.`,
+      efeito:`Cada família alcançada deixa de pagar ${brl2(D.cc[i])} e passa a pagar ${brl2(D.cs[i])} num consumo de 80 kWh. O desconto é reembolsado pela CDE, então a operação não corre contra a receita da concessionária.`});
+  }
+  if(agCDE && D.cdev[i]!=null){
+    const acima = D.cdev[i] > agCDE.v;
+    add({pac:'A',grau:'arit',tom: acima?'ok':'warn',
+      quem:['dist'],
+      ator:`${esc(sigCDE)} · desempenho comparado ao da própria empresa`,
+      ver: acima ? 'Sustentar aqui o ritmo que superou a média da própria concessionária'
+                 : 'Explicar por que este município ficou atrás da própria concessionária',
+      dado:`${nf1(D.cdev[i])}% de variação de famílias atendidas aqui · ${nf1(agCDE.v)}% em toda a área de concessão`,
+      acao: acima
+        ? `Entre dezembro de 2024 e março de 2026 a ${esc(sigCDE)} variou ${nf1(agCDE.v)}% no total de famílias atendidas, e ${nf1(D.cdev[i])}% neste município. O que funcionou aqui é replicável no resto da área de concessão, porque a política é a mesma nas duas pontas.`
+        : `Entre dezembro de 2024 e março de 2026 a ${esc(sigCDE)} variou ${nf1(agCDE.v)}% no total de famílias atendidas, e ${nf1(D.cdev[i])}% neste município. A diferença não se explica pela regra do benefício, que é idêntica nos dois casos.`,
+      efeito:null});
+  }
+
   /* ===== 3. o benefício resolve o peso da conta aqui? ===== */
   if(D.pc[i]>0.10 && D.ps[i]<=0.10){
     add({pac:'B',grau:'arit',tom:'warn',
-      ator:'Gestão municipal do CadÚnico',
+      quem:['social'],ator:'Gestão municipal do CadÚnico',
       ver:'Aqui o benefício resolve o peso da conta: o problema é o cadastro',
       dado:`${pct(100*D.pc[i])} da renda sem o benefício · ${pct(100*D.ps[i])} com ele`,
       acao:'Não é caso de discutir tarifa. A família elegível que está fora paga acima do limiar de 10%; a mesma família dentro do benefício paga abaixo. O instrumento que resolve é o cadastro.',
       efeito:`Sem o benefício, a conta de 80 kWh consome ${pct(100*D.pc[i])} da renda de um domicílio no teto da faixa de pobreza. Com o desconto escalonado da Tarifa Social, ${pct(100*D.ps[i])}. O limiar de 10% é cruzado numa situação e não na outra.`});
   } else if(D.pc[i]<=0.10){
     add({pac:'B',grau:'arit',tom:'ok',
-      ator:'—',
+      quem:[],ator:'—',
       ver:'O peso da conta não é o vetor aqui',
       dado:`${pct(100*D.pc[i])} da renda mesmo sem o benefício · ${pct(100*D.ps[i])} com ele`,
       acao:'Abaixo do limiar de 10% nos dois cenários, na hipótese de 80 kWh. O argumento de pobreza energética neste município não se sustenta pelo peso da conta; se houver problema, ele está na cobertura ou na qualidade.',
@@ -715,28 +978,28 @@ function leitura(i){
   /* ===== 4. continuidade ===== */
   if(D.vio[i]==null){
     add({pac:'B',grau:'verif',tom:'na',
-      ator:'ANEEL',
+      quem:['aneel','agencia'],ator:'ANEEL',
       ver:'Solicitar a vinculação do município no IndQual',
       dado:'nenhum conjunto consumidor associado na base de 2024',
       acao:'Sem esse vínculo o município não aparece em nenhuma estatística de qualidade do fornecimento, e nenhuma fiscalização o alcança pelos indicadores coletivos.',
       efeito:null});
   } else if(D.vio[i]===1){
     add({pac:'B',grau:'proc',tom:'crit',
-      ator:'Agência estadual conveniada · Procon · Ministério Público',
+      quem:['fisc','agencia'],ator:'Agência estadual conveniada · Procon · Ministério Público',
       ver:'Representar sobre o descumprimento do limite de continuidade',
       dado:`${nf2(D.d3[i])}× o limite anual · ${nf1(D.dec[i])} h sem energia em 2024`,
       acao:`O descumprimento consta da base da própria ANEEL, em ${nf(D.nc[i])} conjunto${D.nc[i]>1?'s':''} que atende${D.nc[i]>1?'m':''} o município. A representação instaura procedimento com prazo e resposta obrigatória da distribuidora.`,
       efeito:null});
   } else if(D.d3x[i]>=1 && D.nc[i]>1){
     add({pac:'B',grau:'proc',tom:'warn',
-      ator:'Agência estadual conveniada · Procon',
+      quem:['agencia','fisc','dist'],ator:'Agência estadual conveniada · Procon',
       ver:'Pedir a abertura por conjunto consumidor',
       dado:`média ${nf2(D.d3[i])}× · pior dos ${nf(D.nc[i])} conjuntos em ${nf2(D.d3x[i])}×`,
       acao:'A média municipal esconde o problema: ao menos um conjunto está acima do limite. A abertura identifica qual, e o problema passa a ter endereço de bairro.',
       efeito:null});
   } else {
     add({pac:'B',grau:'proc',tom:'ok',
-      ator:'Agência estadual conveniada',
+      quem:['agencia'],ator:'Agência estadual conveniada',
       ver:'Não alocar esforço de fiscalização aqui',
       dado:`${nf2(D.d3[i])}× o limite · ${nf1(D.dec[i])} h no ano`,
       acao:'Todos os conjuntos que atendem o município ficaram dentro do limite em 2024. Saber onde não agir também é resultado.',
@@ -746,7 +1009,7 @@ function leitura(i){
   /* ===== 5. tarifa no decil caro ===== */
   if(D.tar[i]>=TARQ10){
     add({pac:'B',grau:'proc',tom:'warn',
-      ator:'Conselho de consumidores da distribuidora',
+      quem:['conselho'],ator:'Conselho de consumidores da distribuidora',
       ver:'Levar o dado à revisão tarifária',
       dado:`${brl2(D.tar[i])}/kWh — ${nf(D.rkt[i])}ª mais cara de ${nf(N)}`,
       acao:`O município não tem competência tarifária. O canal previsto é o conselho de consumidores de ${esc(D.dist[D.di[i]])}, que tem assento no processo de revisão. O dado municipalizado dá base à manifestação.`,
@@ -756,21 +1019,21 @@ function leitura(i){
   /* ===== 6. antes de usar o dado ===== */
   if(D.sob[i]===1)
     add({pac:'C',grau:'verif',tom:'warn',
-      ator:'Gestão municipal do CadÚnico',
+      quem:['social'],ator:'Gestão municipal do CadÚnico',
       ver:'Conferir a base antes de concluir que não há famílias a alcançar',
       dado:`${nf(D.ben[i])} benefícios ativos contra ${nf(D.ele[i])} famílias elegíveis`,
       acao:'Ou há mais de uma unidade consumidora por família, ou há beneficiários que deixaram de ser elegíveis. O número de não atendidas deste município não deve ser lido como zero sem essa checagem.',
       efeito:null});
   if(D.sind[i]===1)
     add({pac:'C',grau:'verif',tom:'warn',
-      ator:'Gestão municipal',
+      quem:['social','dist'],ator:'Gestão municipal',
       ver:'Não citar cifra de subsídio deste município',
       dado:'a CDE ficou líquida negativa no mês de referência',
-      acao:'Solicitar à distribuidora ou à ANEEL a abertura dos lançamentos de dezembro de 2024 antes de usar o valor em qualquer peça orçamentária.',
+      acao:'Solicitar à distribuidora ou à ANEEL a abertura dos lançamentos de março de 2026 antes de usar o valor em qualquer peça orçamentária.',
       efeito:null});
   if(D.fm[i]===1 && D.fav[i]>2000 && lac>=1000)
     add({pac:'C',grau:'verif',tom:'na',
-      ator:'Planejamento de campo',
+      quem:['social'],ator:'Planejamento de campo',
       ver:'Dimensionar a logística da busca ativa',
       dado:`${nf(D.fav[i])} domicílios em favela, ${pct(100*D.pf[i])} do município`,
       acao:'Insumo de endereçamento e de vínculo entre domicílio e unidade consumidora. Não é indicador de pobreza energética: na escala municipal as duas coisas não se correlacionam.',
@@ -809,6 +1072,346 @@ function boxLeitura(i){
             <div class="ator">${x.ator}</div>
           </div>`).join('')}
         </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ---------- quem pode agir: a mesma leitura, organizada por persona ----------
+   O motor e o mesmo; muda a chave de agrupamento. Quando uma persona nao tem
+   encaminhamento, a razao e dita, porque saber onde nao agir tambem e resultado
+   e porque silencio seria lido como omissao.                                */
+function semAcao(i,p){
+  const d3x=D.d3x[i], nc=D.nc[i];
+  if(p==='fisc'||p==='agencia'){
+    if(D.vio[i]==null) return null;
+    if(D.vio[i]===0 && !(d3x>=1&&nc>1))
+      return `Os ${nf(nc)} conjuntos que atendem o município ficaram dentro do limite da ANEEL em 2024, com ${nf2(D.d3[i])}× o limite na média ponderada. Não há descumprimento a representar.`;
+    return null;
+  }
+  if(p==='conselho')
+    return D.tar[i]<TARQ10
+      ? `A tarifa de ${brl2(D.tar[i])}/kWh é a ${nf(D.rkt[i])}ª mais cara entre os 5.570 municípios, fora do decil mais caro. O argumento tarifário não se sustenta aqui.`
+      : null;
+  if(p==='aneel')
+    return D.vio[i]!=null
+      ? 'O município está vinculado a conjunto consumidor no IndQual, então aparece nas estatísticas de qualidade e é alcançável por fiscalização.'
+      : null;
+  if(p==='estado')
+    return !CONC.has(i)
+      ? `Não está entre os ${UFCONC[D.uf[i]].k} de ${UFCONC[D.uf[i]].mun} municípios que concentram metade das famílias não atendidas de ${D.uf[i]}. Uma força-tarefa estadual não se dimensiona por ele.`
+      : null;
+  return null;
+}
+
+/* ---------- graficos: Chart.js embutido, tema lido do CSS ---------- */
+const CHARTS = {};
+const cssvar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function destruirCharts(){ for(const k in CHARTS){ try{CHARTS[k].destroy();}catch(_){} delete CHARTS[k]; } }
+function baseChart(){
+  const ink=cssvar('--ink-2')||'#4a5a55', linha=cssvar('--line')||'#e3ecea', mut=cssvar('--muted')||'#66766f';
+  return {responsive:true, maintainAspectRatio:false, animation:{duration:260},
+    plugins:{
+      legend:{labels:{color:ink,font:{family:'IBM Plex Sans',size:11},boxWidth:10,boxHeight:10,padding:14,usePointStyle:true}},
+      tooltip:{backgroundColor:cssvar('--ink')||'#16241f',padding:10,cornerRadius:8,displayColors:false,
+               titleFont:{family:'IBM Plex Sans',size:12},bodyFont:{family:'IBM Plex Mono',size:11.5}}},
+    scales:{
+      x:{grid:{color:linha,drawTicks:false},border:{display:false},
+         ticks:{color:mut,font:{family:'IBM Plex Mono',size:10}}},
+      y:{grid:{color:linha,drawTicks:false},border:{display:false},
+         ticks:{color:mut,font:{family:'IBM Plex Mono',size:10}}}}};
+}
+
+/* ---------- ranking do municipio contra estado, regiao e pais ---------- */
+/* ---------- procedencia do indicador de continuidade ----------
+   A ANEEL apura DEC e FEC por conjunto consumidor, e um conjunto atravessa varios
+   municipios. Onde o municipio e servido por um unico conjunto compartilhado, o
+   numero municipal e o valor daquele conjunto replicado. Exibi-lo sem dizer isso
+   seria apresentar como medicao do lugar algo que e medicao da rede.
+   No pais, apenas 47 municipios (0,8%) tem conjuntos exclusivos seus.          */
+function procedenciaCurta(i){
+  const nv=D.nviz?D.nviz[i]:null, nj=D.ncj?D.ncj[i]:null;
+  if(nv==null||nj==null) return '';
+  if(nv===0) return ' · medido só neste município';
+  return ` · valor da rede, dividido com ${nf(nv)} ${nv===1?'outro município':'outros municípios'}`;
+}
+function procedenciaLonga(i){
+  const nv=D.nviz?D.nviz[i]:null, nj=D.ncj?D.ncj[i]:null;
+  if(nv==null||nj==null) return '';
+  if(nv===0)
+    return `<div class="proc proc-ok">O${nj===1?' único conjunto':'s '+nf(nj)+' conjuntos'} consumidor${nj===1?'':'es'} que atende${nj===1?'':'m'} ${esc(D.nome[i])} não alcança${nj===1?'':'m'} nenhum outro município. Este número é medição deste lugar.</div>`;
+  if(nj===1)
+    return `<div class="proc">Atendido por <strong>um único conjunto consumidor</strong>, que também serve <strong>${nf(nv)} ${nv===1?'outro município':'outros municípios'}</strong>. A ANEEL apura continuidade por conjunto, não por município: este número é o da rede que passa aqui, e é idêntico nesses outros lugares. Ele diz que a energia falta, não que falta <em>neste</em> município mais que no vizinho.</div>`;
+  return `<div class="proc">Atendido por <strong>${nf(nj)} conjuntos consumidores</strong>, que juntos servem também <strong>${nf(nv)} ${nv===1?'outro município':'outros municípios'}</strong>. O valor municipal é a média dos conjuntos ponderada por consumidores, então parte dele é compartilhada com esses vizinhos.</div>`;
+}
+
+/* A tarifa e homologada por distribuidora, nao por municipio: todo municipio
+   atendido pela mesma concessionaria tem a mesma tarifa. A ficha diz isso em vez
+   de deixar o leitor supor que o valor foi apurado ali.                       */
+function procedenciaTarifa(i){
+  let n=0; for(let k=0;k<N;k++) if(k!==i && D.di[k]===D.di[i]) n++;
+  return n ? ` · tarifa da concessionária, a mesma em ${nf(n)} ${n===1?'outro município':'outros municípios'}` : '';
+}
+
+function blocoRanking(i){
+  const R=rankings(i), uf=D.uf[i], reg=UF2REG[uf];
+  const nUf=(IDX.uf.get(uf)||[]).length, nReg=reg?(IDX.reg.get(reg)||[]).length:0;
+  return `<div class="card">
+    <div class="card-h">
+      <h3>Onde ${esc(D.nome[i])} está em cada problema</h3>
+      <div class="cap">A mesma medida lida em três escalas. A posição <strong>1ª</strong> é sempre a mais grave do conjunto, e só entram municípios que têm o dado. São ${nf(nUf)} municípios no ${esc(uf)}${reg?` e ${nf(nReg)} no ${REGNOME[reg]}`:''}.</div>
+    </div>
+    <div class="card-b">
+      <div class="tablewrap"><table><thead><tr>
+        <th scope="col">Medida</th><th scope="col" class="n">Valor</th>
+        <th scope="col" class="n">No ${esc(uf)}</th>
+        <th scope="col" class="n">No ${esc(reg?REGNOME[reg]:'—')}</th>
+        <th scope="col" class="n">No Brasil</th></tr></thead><tbody>
+        ${R.map(m=>`<tr>
+          <td>${esc(m.rot)}<div class="sub">${esc(m.nota)}${m.procedencia?procedenciaCurta(i):''}${m.tarifaria?procedenciaTarifa(i):''}</div></td>
+          <td class="n num">${m.fmt(m.valor)}</td>
+          ${m.escopos.map(e=>`<td class="n num">${e.r?`${nf(e.r.pos)}ª<span class="de"> de ${nf(e.r.de)}</span>${e.r.empate?`<span class="emp" title="${nf(e.r.empate)} outros municípios têm exatamente o mesmo valor">empatado com ${nf(e.r.empate)}</span>`:''}`:'—'}</td>`).join('')}
+        </tr>`).join('')}
+      </tbody></table></div>
+      <div class="cap" style="margin:16px 0 8px">Posição relativa dentro de cada conjunto: 100 é o caso mais grave, 0 é o menos.</div>
+      <div class="chartbox" style="height:${Math.max(170, 44*R.length)}px"><canvas id="ch-rank"></canvas></div>
+    </div>
+  </div>`;
+}
+
+/* ---------- composicao das familias ---------- */
+function blocoFamilias(i){
+  const ele=D.ele[i], ben=D.ben[i], lac=D.lac[i], pob=D.pob[i], bxr=D.bxr[i], cad=D.cad[i];
+  return `<div class="card">
+    <div class="card-h">
+      <h3>As famílias de ${esc(D.nome[i])}</h3>
+      <div class="cap">O CadÚnico inteiro, quem tem direito à Tarifa Social por renda, e quanto desse direito está exercido. Pobreza e baixa renda somam o universo elegível: as duas faixas ficam abaixo de meio salário mínimo por pessoa.</div>
+    </div>
+    <div class="card-b">
+      <div class="chartbox" style="height:190px"><canvas id="ch-fam"></canvas></div>
+      <div class="tablewrap" style="margin-top:16px"><table><tbody>
+        <tr><td>Famílias no CadÚnico</td><td class="n num">${nf(cad)}</td><td class="n de">todas as faixas</td></tr>
+        <tr><td>Em situação de pobreza</td><td class="n num">${nf(pob)}</td><td class="n de">${pct(100*pob/cad)} do CadÚnico</td></tr>
+        <tr><td>Em baixa renda</td><td class="n num">${nf(bxr)}</td><td class="n de">${pct(100*bxr/cad)} do CadÚnico</td></tr>
+        <tr class="forte"><td>Com direito à Tarifa Social</td><td class="n num">${nf(ele)}</td><td class="n de">pobreza mais baixa renda</td></tr>
+        <tr><td>Recebendo o benefício</td><td class="n num">${nf(ben)}</td><td class="n de">cobertura de ${pct(D.cob[i])}</td></tr>
+        <tr class="forte"><td>Com direito e sem receber</td><td class="n num">${nf(lac)}</td><td class="n de">${pct(100*lac/ele)} do universo elegível</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>`;
+}
+
+/* ---------- serie mensal do CadUnico ---------- */
+const SERIE_OK = !!(D.serie && Array.isArray(D.serie.comp));
+function serieMun(i, campo){
+  if(!SERIE_OK || !D.serie[campo]) return null;
+  const d=D.serie[campo][i]; if(!d) return null;
+  let ac=null;
+  return d.map(x => x==null ? null : (ac = (ac==null ? x : ac + x)));
+}
+function rotuloComp(c){
+  const M=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return `${M[(c%100)-1]}/${String(Math.floor(c/100)).slice(2)}`;
+}
+function blocoSerie(i){
+  if(!SERIE_OK) return '';
+  const comp=D.serie.comp, pob=serieMun(i,'pob'), ele=serieMun(i,'eleg');
+  if(!pob||!ele) return '';
+  const lim=a=>a.filter(x=>x!=null);
+  const P=lim(pob), E=lim(ele);
+  if(!P.length||!E.length) return '';
+  const dp=P[P.length-1]-P[0], de=E[E.length-1]-E[0];
+  const falhas=(D.serie.falhas||[]).map(rotuloComp).join(' e ');
+  return `<div class="card">
+    <div class="card-h">
+      <h3>Mês a mês em ${esc(D.nome[i])}</h3>
+      <div class="cap">${nf(comp.length)} competências do CadÚnico, de ${rotuloComp(comp[0])} a ${rotuloComp(comp[comp.length-1])}. Os benefícios da Tarifa Social entram como dois pontos, e não como linha, porque a ANEEL publicou apenas duas competências comparáveis: o arquivo de março de 2026 é o único de 2026 com as 103 distribuidoras.${falhas?` As competências de ${falhas} vêm sem valor no SAGI, e a linha é interrompida nelas em vez de desenhar queda a zero.`:''}</div>
+    </div>
+    <div class="card-b">
+      <div class="chartbox" style="height:300px"><canvas id="ch-serie"></canvas></div>
+      <p style="margin-top:16px;font-size:13px;color:var(--ink-2);line-height:1.6">
+        No período, as famílias em situação de pobreza foram de <span class="num">${nf(P[0])}</span> a <span class="num">${nf(P[P.length-1])}</span>, variação de <strong>${dp>=0?'+':'−'}${nf(Math.abs(dp))}</strong>. O universo com direito à Tarifa Social foi de <span class="num">${nf(E[0])}</span> a <span class="num">${nf(E[E.length-1])}</span>, <strong>${de>=0?'+':'−'}${nf(Math.abs(de))}</strong>. Sair da faixa de pobreza para a de baixa renda <strong>não retira o direito</strong>, porque as duas ficam abaixo de meio salário mínimo por pessoa.
+      </p>
+    </div>
+  </div>`;
+}
+
+/* ---------- montagem dos graficos, depois que o HTML esta no DOM ---------- */
+/* O Chart.js mede o container no instante da criacao. Chamado logo apos o
+   innerHTML, e com as fontes ainda carregando, ele reserva menos espaco do que
+   o rotulo do eixo precisa e o texto sai cortado. Por isso a criacao acontece no
+   quadro seguinte, e ha um redimensionamento quando as fontes ficam prontas. */
+function montarCharts(i){
+  requestAnimationFrame(()=>montarChartsAgora(i));
+}
+let fontesProntas=false;
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(()=>{ fontesProntas=true;
+    for(const k in CHARTS){ try{CHARTS[k].resize();}catch(_){} } });
+}
+function montarChartsAgora(i){
+  if(typeof Chart==='undefined') return;
+  destruirCharts();
+  const az=cssvar('--s500')||'#256abf', az2=cssvar('--s300')||'#6da7ec', az3=cssvar('--s150')||'#b7d3f6';
+  const verm=cssvar('--critical')||'#d03b3b', bom=cssvar('--good')||'#0ca30c', mut=cssvar('--muted')||'#66766f';
+
+  const cr=document.getElementById('ch-rank');
+  if(cr){
+    const R=rankings(i);
+    CHARTS.rank=new Chart(cr,{type:'bar',data:{
+      labels:R.map(m=>m.curto||m.rot),
+      datasets:R[0].escopos.map((e,k)=>({
+        label:k===0?`no ${D.uf[i]}`:(k===1?`no ${REGNOME[UF2REG[D.uf[i]]]||'—'}`:'no Brasil'),
+        data:R.map(m=>m.escopos[k].r?Math.round(m.escopos[k].r.pct):null),
+        backgroundColor:[az,az2,az3][k], borderRadius:4, borderSkipped:false}))},
+      options:{...baseChart(), indexAxis:'y',
+        layout:{padding:{right:8}},
+        scales:{x:{...baseChart().scales.x,min:0,max:100,
+                   ticks:{...baseChart().scales.x.ticks,callback:v=>v}},
+                y:{...baseChart().scales.y,grid:{display:false},afterFit:sc=>{sc.width=Math.max(sc.width,150);},
+                   ticks:{...baseChart().scales.y.ticks,font:{family:'IBM Plex Sans',size:11},padding:6}}},
+        plugins:{...baseChart().plugins,
+          tooltip:{...baseChart().plugins.tooltip,callbacks:{
+            title:c=>R[c[0].dataIndex].rot,
+            label:c=>{const m=R[c.dataIndex],e=m.escopos[c.datasetIndex];
+                      return e.r?`${c.dataset.label}: ${e.r.pos}ª de ${e.r.de}`:'sem dado';}}}}}});
+  }
+
+  const cf=document.getElementById('ch-fam');
+  if(cf){
+    const ben=D.ben[i], lac=D.lac[i], pob=D.pob[i], bxr=D.bxr[i];
+    CHARTS.fam=new Chart(cf,{type:'bar',data:{
+      labels:['Por faixa de renda','Direito exercido'],
+      datasets:[
+        {label:'Em pobreza',data:[pob,null],backgroundColor:az,borderRadius:4,borderSkipped:false},
+        {label:'Em baixa renda',data:[bxr,null],backgroundColor:az2,borderRadius:4,borderSkipped:false},
+        {label:'Recebendo',data:[null,ben],backgroundColor:bom,borderRadius:4,borderSkipped:false},
+        {label:'Sem receber',data:[null,lac],backgroundColor:verm,borderRadius:4,borderSkipped:false}]},
+      options:{...baseChart(), indexAxis:'y',
+        layout:{padding:{right:8}},
+        scales:{x:{...baseChart().scales.x,stacked:true,
+                   ticks:{...baseChart().scales.x.ticks,callback:v=>nf(v)}},
+                y:{...baseChart().scales.y,stacked:true,grid:{display:false},afterFit:sc=>{sc.width=Math.max(sc.width,150);},
+                   ticks:{...baseChart().scales.y.ticks,font:{family:'IBM Plex Sans',size:11},padding:6}}},
+        plugins:{...baseChart().plugins,
+          tooltip:{...baseChart().plugins.tooltip,callbacks:{label:c=>`${c.dataset.label}: ${nf(c.parsed.x)}`}}}}});
+  }
+
+  const cs=document.getElementById('ch-serie');
+  if(cs && SERIE_OK){
+    const comp=D.serie.comp;
+    const linha=(campo,cor,rot)=>({label:rot,data:serieMun(i,campo),borderColor:cor,backgroundColor:cor,
+      borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.25,spanGaps:false});
+    const kd=comp.indexOf(202412), km=comp.indexOf(202603);
+    const pontos=comp.map((c,k)=> k===kd ? D.ben[i] : (k===km ? (D.ben26[i]??null) : null));
+    CHARTS.serie=new Chart(cs,{type:'line',data:{
+      labels:comp.map(rotuloComp),
+      datasets:[
+        linha('eleg',az,'Com direito à Tarifa Social'),
+        linha('pob',az2,'Em situação de pobreza'),
+        linha('bxr',az3,'Em baixa renda'),
+        {label:'Recebendo o benefício',data:pontos,borderColor:verm,backgroundColor:verm,
+         showLine:false,pointRadius:6,pointHoverRadius:8,pointStyle:'rectRot'}]},
+      options:{...baseChart(),
+        interaction:{mode:'index',intersect:false},
+        scales:{x:{...baseChart().scales.x,grid:{display:false},
+                   ticks:{...baseChart().scales.x.ticks,maxRotation:0,autoSkipPadding:18}},
+                y:{...baseChart().scales.y,beginAtZero:false,
+                   ticks:{...baseChart().scales.y.ticks,callback:v=>nf(v)}}},
+        plugins:{...baseChart().plugins,
+          tooltip:{...baseChart().plugins.tooltip,displayColors:true,
+            callbacks:{label:c=>c.parsed.y==null?null:`${c.dataset.label}: ${nf(c.parsed.y)}`}}}}});
+  }
+}
+
+/* ---------- imprimir, email, whatsapp ---------- */
+function resumoTexto(i){
+  const url=location.origin+location.pathname;
+  return `${D.nome[i]} (${D.uf[i]}) · Mapa da Pobreza Energética\n\n`
+    + `${nf(D.lac[i])} famílias têm direito à Tarifa Social de Energia Elétrica e não recebem. `
+    + `A cobertura do município é de ${pct(D.cob[i])}.\n\n`
+    + `Com o benefício, a conta de 80 kWh cai de ${brl2(D.cc[i])} para ${brl2(D.cs[i])} por mês, `
+    + `economia de ${brl2(D.ec[i])} por família.\n\n`
+    + `Ficha completa e fontes: ${url}`;
+}
+function barraAcoes(i){
+  return `<div class="acoesbar" role="group" aria-label="Exportar esta ficha municipal">
+    <button class="btn-ac" data-ac="print" type="button">Imprimir ou salvar em PDF</button>
+    <button class="btn-ac" data-ac="mail" type="button">Enviar por email</button>
+    <button class="btn-ac" data-ac="zap" type="button">Enviar por WhatsApp</button>
+  </div>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.btn-ac'); if(!b) return;
+  const i=SEL, ac=b.dataset.ac;
+  if(ac==='print'){ window.print(); return; }
+  const txt=resumoTexto(i);
+  if(ac==='mail'){
+    location.href='mailto:?subject='+encodeURIComponent(`Pobreza energética em ${D.nome[i]} (${D.uf[i]})`)
+                 +'&body='+encodeURIComponent(txt);
+    return;
+  }
+  if(ac==='zap'){
+    if(navigator.share) navigator.share({title:`${D.nome[i]} · Mapa da Pobreza Energética`,text:txt}).catch(()=>{});
+    else window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank','noopener');
+  }
+});
+
+function boxPersonas(i){
+  const items=leitura(i);
+  /* Ordem dentro da persona: primeiro o que tem efeito calculado, depois por gravidade.
+     O item de maior consequencia lidera em vez de ficar atras de um item de processo. */
+  const ord=(a,b)=>(b.efeito?1:0)-(a.efeito?1:0) || TOMORD[a.tom]-TOMORD[b.tom];
+  const nomeP=k=>k==='dist'?esc(D.dist[D.di[i]]):PNOME[k];
+
+  const porP=PERSONAS.map(([k,nome,comp])=>{
+    const q=x=>x.quem||[];
+    /* o primeiro da lista `quem` e o dono: e sob ele que o item aparece por inteiro.
+       Para os demais o item vira uma linha curta, porque repetir o mesmo paragrafo
+       sob tres responsaveis nao acrescenta informacao e cansa quem le.          */
+    const dono=items.filter(x=>q(x)[0]===k).sort(ord);
+    const junto=items.filter(x=>q(x)[0]!==k && q(x).includes(k)).sort(ord);
+    return {k,nome:nomeP(k),comp,dono,junto,vazio:semAcao(i,k)};
+  });
+  const ativas=porP.filter(p=>p.dono.length||p.junto.length);
+  const vazias=porP.filter(p=>!p.dono.length && !p.junto.length && p.vazio);
+  const total=items.length;
+
+  const cartao=x=>`<div class="acao t-${x.tom}">
+    <div class="acao-top">
+      <span class="ver">${esc(x.ver)}</span>
+      <span class="grau g-${x.grau}" title="${GRAU[x.grau].exp}">${GRAU[x.grau].rot}</span>
+    </div>
+    <div class="dado mono num">${x.dado}</div>
+    <p class="acao-p">${x.acao}</p>
+    ${x.efeito?`<div class="efeito"><span class="ef-lab">Efeito</span>${x.efeito}</div>`:''}
+  </div>`;
+
+  return `<div class="card personas">
+    <div class="card-h">
+      <div class="leitura-h">
+        <h3>Quem pode agir em ${esc(D.nome[i])}</h3>
+        <span class="eyebrow">${ativas.length} ${ativas.length===1?'responsável':'responsáveis'} · ${total} ${total===1?'encaminhamento':'encaminhamentos'}</span>
+      </div>
+      <div class="cap">O mesmo levantamento, lido por quem executa. Cada item traz o número deste município que o selecionou. A competência declarada de cada parte é o que limita o que cabe pedir a ela.</div>
+    </div>
+    <div class="card-b" style="padding:0">
+      ${ativas.map(p=>`
+        <div class="persona">
+          <div class="persona-h">
+            <span class="persona-n">${p.nome}</span>
+            <span class="persona-q">${p.dono.length?`${p.dono.length} ${p.dono.length===1?'ação própria':'ações próprias'}`:'participa'}</span>
+          </div>
+          <div class="persona-c">${p.comp}</div>
+          ${p.dono.map(cartao).join('')}
+          ${p.junto.length?`<div class="junto">
+            <span class="junto-lab">Entra junto com outro responsável</span>
+            ${p.junto.map(x=>`<div class="junto-l"><span class="junto-v">${esc(x.ver)}</span><span class="junto-d">com ${nomeP((x.quem||[])[0])}</span></div>`).join('')}
+          </div>`:''}
+        </div>`).join('')}
+      ${vazias.length?`<div class="persona persona-off">
+        <div class="persona-h"><span class="persona-n">Sem encaminhamento aqui, e por quê</span></div>
+        ${vazias.map(p=>`<div class="off-linha"><span class="off-n">${p.nome}</span><span class="off-r">${p.vazio}</span></div>`).join('')}
+      </div>`:''}
     </div>
   </div>`;
 }
@@ -885,6 +1488,7 @@ function blocoEnergia(i){
        : sit===2 ? `<div class="callout" style="margin-top:13px">Estava dentro do limite em 2024 e passou a ficar acima em 2025. É caso de acompanhamento antes que vire reincidência.</div>`
        : sit===1 ? `<div class="callout" style="margin-top:13px">Estava acima do limite em 2024 e voltou para dentro em 2025.</div>`
        : sit===0 ? `<div class="callout" style="margin-top:13px">Dentro do limite nos dois anos. Esforço de fiscalização rende mais em outro município. Saber onde não agir também é resultado.</div>` : ''}
+      ${procedenciaLonga(i)}
       <div style="font-size:11.5px;color:var(--muted);margin-top:9px">A comparação de semestres usa a mesma janela de janeiro a junho nos três anos, para não misturar estações do ano. Julho e agosto de 2026 ainda não foram reportados por todos os trechos de rede.</div>
     </div></div>`;
 }
@@ -911,8 +1515,18 @@ function pageInicio(){
   <section class="hero">
     <div class="eyebrow">Dados abertos da ANEEL, do MDS e do IBGE · 5.570 municípios</div>
     <h2>${nf(NAT.na26)} famílias têm direito à Tarifa Social de Energia Elétrica e não recebem.</h2>
-    <p class="lede">Este mapa diz onde elas estão, município a município, e responde mais três perguntas que quem decide política de energia e assistência social precisa fazer. Escolha um município na busca acima e todas as páginas respondem para ele.</p>
+    <p class="lede">Este mapa diz onde elas estão, município a município, e responde mais três perguntas que quem decide política de energia e assistência social precisa fazer.</p>
   </section>
+
+  <button class="chamada" data-p="municipios" type="button">
+    <span class="ch-txt">
+      <span class="ch-tit">Comece pelo seu município</span>
+      <span class="ch-sub">Os 5.570, filtráveis por estado, cobertura, continuidade e peso da conta. Abra o seu e a ficha traz o que fazer ali, quem pode fazer, e o número que sustenta cada passo.</span>
+    </span>
+    <span class="ch-seta" aria-hidden="true">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+  </button>
 
   <div class="eyebrow secrot">As quatro perguntas</div>
   <div class="qlist">
@@ -949,9 +1563,22 @@ function pageMunicipio(){
     <p class="lede">Atendido por <strong>${esc(D.dist[D.di[i]])}</strong>. As quatro medidas abaixo vêm de fontes independentes entre si; cada uma traz a posição nacional entre os 5.570 municípios.</p>
   </div>
 
+  ${barraAcoes(i)}
+
+  <div class="eyebrow" style="margin:20px 0 9px">Onde este município está</div>
+  ${blocoRanking(i)}
+
+  <div class="eyebrow" style="margin:22px 0 9px">Quem tem direito, quem recebe, quem falta</div>
+  ${blocoFamilias(i)}
+
+  <div class="eyebrow" style="margin:22px 0 9px">Quem pode agir</div>
+  ${boxPersonas(i)}
+
+  <div class="eyebrow" style="margin:22px 0 9px">Os mesmos encaminhamentos, por tema</div>
   ${boxLeitura(i)}
 
   <div class="eyebrow" style="margin:22px 0 9px">O que mudou</div>
+  ${blocoSerie(i)}
   ${blocoMudanca(i)}
   ${blocoEnergia(i)}
 
@@ -1076,14 +1703,20 @@ function ufTable(uf,me){
 }
 
 /* ---------- MAP PAGES ---------- */
+/* A metrica que o mapa pinta ao abrir e a que o botao deve marcar. Enquanto o
+   marcado era sempre o primeiro da lista, a pagina de qualidade destacava
+   "Ficou acima do limite" e desenhava a razao sobre o limite: destaque e
+   conteudo discordavam na tela.                                            */
+const METRICA_INICIAL={ts:'descob',q:'d3',c:'pc',t:'pf'};
+
 function mapPage(key,title,lede,metrics,extra){
   return `<div class="wrap">
     <div class="phead"><div class="eyebrow">Pergunta</div><h2>${title}</h2><p class="lede">${lede}</p></div>
     <div class="maplayout" style="margin-bottom:18px">
       <div class="mapbox">
-        <svg class="mapsvg" id="svg-${key}" viewBox="0 0 ${G.vb[0]} ${G.vb[1]}" tabindex="0"
-          role="img" aria-describedby="ajuda-${key}"
-          aria-label="Mapa do Brasil com os 5.570 municípios. Use as setas para mover, mais e menos para aproximar, zero para voltar ao país inteiro. Os mesmos valores estão na tabela ao lado, pelo botão Ver como tabela."></svg>
+        <div class="mapleaf" id="map-${key}" tabindex="0"
+          role="application" aria-describedby="ajuda-${key}"
+          aria-label="Mapa do Brasil com os 5.570 municípios. Use as setas para mover, mais e menos para aproximar. Os mesmos valores estão na tabela ao lado, pelo botão Ver como tabela."></div>
         <div class="mapctl">
           <button data-z="in" aria-label="Aproximar">+</button>
           <button data-z="out" aria-label="Afastar">−</button>
@@ -1097,7 +1730,7 @@ function mapPage(key,title,lede,metrics,extra){
             <div class="leitura-h"><h3>O que mostrar</h3>
               <button class="vertab" id="vt-${key}" aria-pressed="false">Ver como tabela</button></div></div>
           <div class="card-b" style="padding:8px"><div class="metricbtns" id="mb-${key}">
-            ${metrics.map((m,k)=>`<button data-m="${m}" class="${k===0?'on':''}">${METRICS[m].name}</button>`).join('')}
+            ${metrics.map(m=>`<button data-m="${m}" class="${m===METRICA_INICIAL[key]?'on':''}">${METRICS[m].name}</button>`).join('')}
           </div></div></div>
         <div class="card"><div class="card-h"><h3 id="lt-${key}">Legenda</h3>
           <div class="cap" id="lc-${key}"></div></div>
@@ -1125,7 +1758,7 @@ function pageTarifaSocial(){
           ${cut.map(([k,v,p])=>`<tr><td class="num">${nf(k)} municípios</td><td class="n">${nf(v)}</td>
             <td class="n">${pct(p)}</td><td style="width:96px"><span class="barbg"><span class="bar" style="width:${p}%"></span></span></td></tr>`).join('')}
           </tbody></table>
-          <div class="callout" style="margin-top:13px">Uma busca ativa nacional não precisa alcançar 5.570 municípios. Os 100 maiores respondem por ${pct(cut.find(x=>x[0]===100)[2])} do total.</div>
+          <div class="callout" style="margin-top:13px">Uma busca ativa nacional não precisa alcançar 5.570 municípios. <button class="ilink" data-p="lista:cem">Os 100 maiores</button> respondem por ${pct(cut.find(x=>x[0]===100)[2])} do total.</div>
         </div></div>
       <div class="card"><div class="card-h"><h3>Cobertura por estado</h3>
         <div class="cap">Benefícios ativos sobre famílias elegíveis, e quantos municípios reúnem metade das famílias não atendidas do estado.</div></div>
@@ -1141,7 +1774,7 @@ function pageTarifaSocial(){
 function pageQualidade(){
   const worst=R.d3.sorted.slice(0,15);
   return mapPage('q','A distribuidora que me atende cumpre o limite de continuidade?',
-    `Cada conjunto consumidor tem um limite anual de interrupção fixado pela ANEEL. Somando os doze meses de 2024 e ponderando pelos consumidores de cada conjunto, <strong>${nf(AGG.viol)} municípios</strong> ficaram acima do limite — ${pct(100*AGG.viol/AGG.withD3)} dos que têm apuração.`,
+    `Cada conjunto consumidor tem um limite anual de interrupção fixado pela ANEEL. Somando os doze meses de 2024 e ponderando pelos consumidores de cada conjunto, <strong>${nf(AGG.viol)} municípios</strong> ficaram acima do limite — ${pct(100*AGG.viol/AGG.withD3)} dos que têm apuração. <button class="ilink" data-p="lista:reinc">Ver os ${nf(D.cont.reinc)} que ficaram acima nos dois anos</button>.`,
     ['sit','d3','dec','tend'],
     `<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(330px,1fr))">
       <div class="card"><div class="card-h"><h3>Onde a violação é sistêmica</h3>
@@ -1344,29 +1977,39 @@ function barrasDistribuidora(){
 function dumbbellPares(){
   const P = (D.pares||[]).filter(x=>x.d.length>=2).slice(0,14);
   if(!P.length) return '';
-  const H = 26, PAD = 10, W = 560, X0 = 210, XW = 300;
+  /* Antes o nome do municipio terminava em x=198 e o rotulo do valor crescia para a
+     esquerda a partir de x=201: com nome longo e ponto proximo do eixo os dois se
+     escreviam por cima ("EstanIatiaR322,6%"). Agora o nome tem coluna propria, com
+     corte declarado, e os rotulos ficam embaixo de cada ponto, centrados.        */
+  const H = 36, PAD = 12, W = 620, X0 = 196, XW = 396, TOPO = 26;
+  const corta = (t,n)=> t.length>n ? t.slice(0,n-1)+'…' : t;
   const todos = P.flatMap(x=>x.d.map(y=>y.v));
   const lo = Math.min(...todos, -30), hi = Math.max(...todos, 30);
   const px = v => X0 + XW*(v-lo)/(hi-lo);
-  const alt = P.length*H + PAD*2 + 26;
+  const alt = P.length*H + PAD*2 + TOPO;
   const linhas = P.map((m,k)=>{
-    const y = PAD + 22 + k*H;
+    const y = PAD + TOPO + k*H;
     const a = m.d[0], b = m.d[m.d.length-1];
+    const xa = px(a.v), xb = px(b.v);
+    /* se os dois pontos ficarem perto, um rotulo desce mais que o outro */
+    const perto = Math.abs(xb-xa) < 104;
+    const ya = y+14, yb = perto ? y+25 : y+14;
     return `<g>
-      <text x="${X0-12}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--ink)">${esc(m.nome)} <tspan fill="var(--muted)">${m.uf}</tspan></text>
-      <line x1="${px(a.v)}" y1="${y}" x2="${px(b.v)}" y2="${y}" stroke="var(--line-2)" stroke-width="1.5"/>
-      <circle cx="${px(a.v)}" cy="${y}" r="5" fill="var(--r3)" stroke="var(--surface)" stroke-width="1.5"/>
-      <circle cx="${px(b.v)}" cy="${y}" r="5" fill="var(--ser1)" stroke="var(--surface)" stroke-width="1.5"/>
-      <text x="${px(a.v)-9}" y="${y+3.5}" text-anchor="end" font-size="9.5"
-        font-family="IBM Plex Mono, monospace" fill="var(--ink-2)">${esc(a.a)} ${nf1(a.v)}%</text>
-      <text x="${px(b.v)+9}" y="${y+3.5}" font-size="9.5"
-        font-family="IBM Plex Mono, monospace" fill="var(--ink-2)">${esc(b.a)} +${nf1(b.v)}%</text>
+      <title>${esc(m.nome)} (${m.uf}): ${esc(a.a)} ${nf1(a.v)}% e ${esc(b.a)} ${nf1(b.v)}%</title>
+      <text x="${X0-16}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--ink)">${esc(corta(m.nome,22))} <tspan fill="var(--muted)">${m.uf}</tspan></text>
+      <line x1="${xa}" y1="${y}" x2="${xb}" y2="${y}" stroke="var(--line-2)" stroke-width="1.5"/>
+      <circle cx="${xa}" cy="${y}" r="5" fill="var(--r3)" stroke="var(--surface)" stroke-width="1.5"/>
+      <circle cx="${xb}" cy="${y}" r="5" fill="var(--ser1)" stroke="var(--surface)" stroke-width="1.5"/>
+      <text x="${xa}" y="${ya}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace"
+        fill="var(--ink-2)">${esc(corta(a.a,14))} ${nf1(a.v)}%</text>
+      <text x="${xb}" y="${yb}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace"
+        fill="var(--ink-2)">${esc(corta(b.a,14))} +${nf1(b.v)}%</text>
     </g>`;
   }).join('');
   return `<svg class="chart" viewBox="0 0 ${W} ${alt}" role="img"
-      aria-label="Municípios atendidos por duas distribuidoras, com variações opostas dentro do mesmo município">
-    <line x1="${px(0)}" y1="${PAD+12}" x2="${px(0)}" y2="${alt-PAD}" stroke="var(--line-2)" stroke-width="1" stroke-dasharray="3 3"/>
-    <text x="${px(0)}" y="${PAD+6}" text-anchor="middle" font-size="9.5"
+      aria-label="Municipios atendidos por duas distribuidoras, com variacoes opostas dentro do mesmo municipio">
+    <line x1="${px(0)}" y1="${PAD+14}" x2="${px(0)}" y2="${alt-PAD}" stroke="var(--line-2)" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="${px(0)}" y="${PAD+7}" text-anchor="middle" font-size="9.5"
       font-family="IBM Plex Mono, monospace" fill="var(--muted)">sem mudança</text>
     ${linhas}
   </svg>`;
@@ -1436,7 +2079,7 @@ function pageMudou(){
       <h3>No mesmo município, duas empresas em direções opostas</h3>
       <div class="cap">Municípios atendidos por duas distribuidoras. Mesma prefeitura, mesmo cadastro, mesma equipe de assistência social; só muda quem entrega a energia.</div></div>
     <div class="card-b">${dumbbellPares()}
-      <div class="callout" style="margin-top:12px">São ${nf(n.mun2dist)} municípios nessa situação, e em <strong>${nf(n.mun2dist_opostos)} deles uma empresa ganha famílias enquanto a outra perde</strong>. É o que separa as explicações: se o gargalo fosse a gestão municipal do cadastro, as duas andariam juntas.</div>
+      <div class="callout" style="margin-top:12px">São <button class="ilink" data-p="lista:duas">${nf(n.mun2dist)} municípios nessa situação</button>, e em <strong>${nf(n.mun2dist_opostos)} deles uma empresa ganha famílias enquanto a outra perde</strong>. É o que separa as explicações: se o gargalo fosse a gestão municipal do cadastro, as duas andariam juntas.</div>
       <div style="font-size:11.5px;color:var(--muted);margin-top:9px">Mostrados os 14 casos de maior divergência. A amostra é pequena e composta de municípios de fronteira entre concessões, então indica a direção, sem medir a magnitude para o país.</div>
     </div></div>
 
@@ -1518,7 +2161,7 @@ function pageLimites(){
     <div class="tile"><div class="lab">Sobrecobertura</div><div class="val num">${nf(sobre)}</div>
       <div class="note">municípios com mais benefícios ativos que famílias elegíveis, prova de que unidade consumidora não é família.</div></div>
     <div class="tile"><div class="lab">Defasagem entre bases</div><div class="val num">20<small> meses</small></div>
-      <div class="note">o CadÚnico é de agosto de 2026; a CDE, de dezembro de 2024. A contagem de não atendidas compara dois estoques em datas diferentes.</div></div>
+      <div class="note">o CadÚnico e a CDE são ambos de março de 2026, e a contagem de não atendidas compara dois estoques da mesma data. Unidade consumidora ainda não é família.</div></div>
   </div>
 
   <div class="card" style="margin-bottom:18px"><div class="card-h"><h3>Limites que atravessam todas as medidas</h3></div>
@@ -1543,39 +2186,257 @@ function pageLimites(){
   </div>`;
 }
 
-const PAGEFN={inicio:pageInicio,municipio:pageMunicipio,mudou:pageMudou,tarifasocial:pageTarifaSocial,
-  qualidade:pageQualidade,conta:pageConta,territorio:pageTerritorio,metodo:pageMetodo,limites:pageLimites};
+/* ---------- recortes clicaveis: um numero agregado vira uma lista nomeada ----------
+   Uma frase como "2 de 92 municipios concentram metade das nao atendidas do RJ" nao
+   opera nada enquanto os dois municipios nao tiverem nome. Cada recorte abaixo e um
+   criterio declarado sobre o payload, e a pagina que ele abre nomeia quem entrou,
+   com o numero que o selecionou.                                                  */
+const RECORTES = {
+  cem: {
+    titulo: () => `Os ${nf(100)} municípios com maior contingente`,
+    sub: () => {
+      const s = R.lac.sorted.slice(0, 100).reduce((t, i) => t + D.lac[i], 0);
+      return `Juntos reúnem <strong>${nf(s)}</strong> famílias sem a Tarifa Social, ${pct(100*s/AGG.lac)} do total do país. Uma busca ativa nacional não precisa alcançar os 5.570 municípios.`;
+    },
+    idx: () => R.lac.sorted.slice(0, 100),
+    cols: ['lac', 'cob', 'ele', 'dist'],
+  },
+  reinc: {
+    titulo: () => `Os ${nf(D.cont.reinc)} municípios acima do limite em 2024 e de novo em 2025`,
+    sub: () => `Dois anos seguidos afastam a hipótese de evento isolado. É a lista que uma agência estadual conveniada, um Procon ou o Ministério Público usam para priorizar. O valor é a razão entre a interrupção apurada e o limite da própria ANEEL.`,
+    idx: () => [...Array(N).keys()].filter(i => D.rel24[i] >= 1 && D.rel25[i] >= 1)
+                 .sort((a, b) => D.d3[b] - D.d3[a]),
+    cols: ['d3', 'd3x', 'dec', 'nc', 'dist'],
+  },
+  duas: {
+    titulo: () => `Os ${nf((D.pares || []).length)} municípios atendidos por duas concessionárias`,
+    sub: () => `Mesma prefeitura, mesmo CadÚnico, mesma equipe de assistência social; só muda quem entrega a energia. Em <strong>${nf(D.nac.mun2dist_opostos)}</strong> deles uma empresa ganhou famílias enquanto a outra perdeu, entre dezembro de 2024 e março de 2026.`,
+    idx: () => (D.pares || []).map(p => byNome.get(p.nome + '|' + p.uf)).filter(i => i != null),
+    cols: ['lac', 'cob', 'dist'],
+  },
+  uf: {
+    titulo: () => `Metade das famílias não atendidas de ${UFSEL} está nestes municípios`,
+    sub: () => {
+      const c = UFCONC[UFSEL];
+      return c ? `São <strong>${nf(c.k)}</strong> de ${nf(c.mun)} municípios, e juntos somam metade das ${nf(c.tot)} famílias sem a Tarifa Social no estado. Uma operação estadual dimensionada para esse conjunto não precisa percorrer o estado inteiro.` : '';
+    },
+    idx: () => {
+      const arr = (IDX.uf.get(UFSEL) || []).slice().sort((a, b) => D.lac[b] - D.lac[a]);
+      const tot = arr.reduce((t, i) => t + D.lac[i], 0);
+      const out = []; let c = 0;
+      for (const i of arr) { out.push(i); c += D.lac[i]; if (c >= tot / 2) break; }
+      return out;
+    },
+    cols: ['lac', 'cob', 'ele', 'dist'],
+  },
+};
+let UFSEL = 'RJ';
+const byNome = new Map(); for (let i = 0; i < N; i++) byNome.set(D.nome[i] + '|' + D.uf[i], i);
 
-/* ================= MAP ENGINE ================= */
-const mapState={};
-function buildMap(key,metric){
-  const svg=document.getElementById('svg-'+key); if(!svg||svg.dataset.built)return;
-  const NS='http://www.w3.org/2000/svg';
-  const g=document.createElementNS(NS,'g'); g.setAttribute('id','gz-'+key);
-  const gm=document.createElementNS(NS,'g');
-  const frag=document.createDocumentFragment();
-  for(let i=0;i<N;i++){
-    const p=document.createElementNS(NS,'path');
-    p.setAttribute('d',G.paths[i]); p.setAttribute('class','m'); p.dataset.i=i;
-    frag.appendChild(p);
-  }
-  gm.appendChild(frag); g.appendChild(gm);
-  const gu=document.createElementNS(NS,'g');
-  for(const uf in G.uf_paths){const p=document.createElementNS(NS,'path');
-    p.setAttribute('d',G.uf_paths[uf]); p.setAttribute('class','uf'); gu.appendChild(p);}
-  g.appendChild(gu);
-  const sp=document.createElementNS(NS,'path'); sp.setAttribute('class','sel'); sp.setAttribute('d','');
-  g.appendChild(sp);
-  svg.appendChild(g);
-  svg.dataset.built='1';
-  mapState[key]={svg,g,sp,paths:gm.children,metric,k:1,x:0,y:0};
-  wireMap(key);
-  paintMap(key,metric);
+const COLDEF = {
+  lac:  { rot: 'Sem a Tarifa Social', fmt: i => nf(D.lac[i]), n: true },
+  cob:  { rot: 'Cobertura',           fmt: i => D.cob[i] == null ? '—' : pct(D.cob[i]), n: true },
+  ele:  { rot: 'Com direito',         fmt: i => nf(D.ele[i]), n: true },
+  d3:   { rot: 'Sobre o limite',      fmt: i => D.d3[i] == null ? '—' : nf2(D.d3[i]) + '×', n: true },
+  d3x:  { rot: 'Pior conjunto',       fmt: i => D.d3x[i] == null ? '—' : nf2(D.d3x[i]) + '×', n: true },
+  dec:  { rot: 'Horas sem energia',   fmt: i => D.dec[i] == null ? '—' : nf1(D.dec[i]) + ' h', n: true },
+  nc:   { rot: 'Conjuntos',           fmt: i => D.nc[i] == null ? '—' : nf(D.nc[i]), n: true },
+  pc:   { rot: 'Peso da conta',       fmt: i => D.pc[i] == null ? '—' : pct(100*D.pc[i]), n: true },
+  tar:  { rot: 'Tarifa',              fmt: i => brl2(D.tar[i]), n: true },
+  /* nome de razao social e longo e estourava a borda da tabela; corta com o inteiro no title */
+  dist: { rot: 'Distribuidora', n: false,
+          fmt: i => { const t=D.dist[D.di[i]]||'';
+                      return `<span title="${esc(t)}">${esc(t.length>30?t.slice(0,29)+'…':t)}</span>`; } },
+};
+
+function tabelaMun(idx, cols, legenda) {
+  return `<div class="tablewrap"><table><caption>${legenda}</caption>
+    <thead><tr><th scope="col" class="n">#</th><th scope="col">Município</th><th scope="col">UF</th>
+      ${cols.map(c => `<th scope="col"${COLDEF[c].n ? ' class="n"' : ''}>${esc(COLDEF[c].rot)}</th>`).join('')}
+    </tr></thead><tbody>
+      ${idx.map((i, k) => `<tr data-go="${D.cod[i]}" style="cursor:pointer">
+        <td class="n de">${k + 1}</td><td>${esc(D.nome[i])}</td><td class="de">${D.uf[i]}</td>
+        ${cols.map(c => `<td${COLDEF[c].n ? ' class="n num"' : ''}>${COLDEF[c].fmt(i)}</td>`).join('')}
+      </tr>`).join('')}
+    </tbody></table></div>`;
 }
+
+function pageLista(chave) {
+  const r = RECORTES[chave];
+  if (!r) return `<div class="wrap"><p>Recorte desconhecido.</p></div>`;
+  const idx = r.idx();
+  return `<div class="wrap">
+    <div class="phead">
+      <div class="eyebrow">Recorte · ${nf(idx.length)} ${idx.length === 1 ? 'município' : 'municípios'}</div>
+      <h2>${r.titulo()}</h2>
+      <p class="lede">${r.sub()}</p>
+    </div>
+    ${chave === 'uf' ? `<div class="acoesbar">${['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'].map(u => `<button class="btn-ac${u === UFSEL ? ' on' : ''}" data-uf="${u}" type="button">${u}</button>`).join('')}</div>` : ''}
+    <div class="card"><div class="card-b" style="padding:0">
+      ${tabelaMun(idx, r.cols, 'Clique numa linha para abrir a ficha do município.')}
+    </div></div>
+  </div>`;
+}
+
+/* ---------- todos os municipios, com filtro ---------- */
+const FILTRO = { uf: '', busca: '', sit: '', ordem: 'lac' };
+function pageMunicipios() {
+  let idx = [...Array(N).keys()];
+  if (FILTRO.uf) idx = idx.filter(i => D.uf[i] === FILTRO.uf);
+  if (FILTRO.busca) {
+    const v = FILTRO.busca.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    idx = idx.filter(i => NORM[i].includes(v));
+  }
+  if (FILTRO.sit === 'viol') idx = idx.filter(i => D.vio[i] === 1);
+  else if (FILTRO.sit === 'reinc') idx = idx.filter(i => D.rel24[i] >= 1 && D.rel25[i] >= 1);
+  else if (FILTRO.sit === 'baixa') idx = idx.filter(i => D.cob[i] != null && D.cob[i] < QCOB[0]);
+  else if (FILTRO.sit === 'peso') idx = idx.filter(i => D.pc[i] > 0.10);
+  const ord = FILTRO.ordem;
+  idx.sort((a, b) => ord === 'nome' ? D.nome[a].localeCompare(D.nome[b], 'pt-BR')
+                   : ord === 'cob'  ? (D.cob[a] ?? 999) - (D.cob[b] ?? 999)
+                   : (D[ord][b] ?? -1) - (D[ord][a] ?? -1));
+  const mostra = idx.slice(0, 300);
+  const soma = idx.reduce((t, i) => t + D.lac[i], 0);
+  const ufs = [...IDX.uf.keys()].sort();
+  return `<div class="wrap">
+    <div class="phead">
+      <div class="eyebrow">Todos os municípios</div>
+      <h2>Encontre o seu</h2>
+      <p class="lede">Os 5.570 municípios, filtráveis pelo que importa para decidir. A lista responde à seleção; clique numa linha para abrir a ficha completa.</p>
+    </div>
+    <div class="card"><div class="card-b">
+      <div class="filtros">
+        <label>Busca<input id="f-busca" type="search" value="${esc(FILTRO.busca)}" placeholder="nome do município" autocomplete="off"></label>
+        <label>Estado<select id="f-uf"><option value="">todos</option>${ufs.map(u => `<option value="${u}"${u === FILTRO.uf ? ' selected' : ''}>${u}</option>`).join('')}</select></label>
+        <label>Situação<select id="f-sit">
+          <option value="">qualquer</option>
+          <option value="baixa"${FILTRO.sit === 'baixa' ? ' selected' : ''}>cobertura no quartil mais baixo</option>
+          <option value="viol"${FILTRO.sit === 'viol' ? ' selected' : ''}>acima do limite de energia em 2024</option>
+          <option value="reinc"${FILTRO.sit === 'reinc' ? ' selected' : ''}>acima do limite em 2024 e 2025</option>
+          <option value="peso"${FILTRO.sit === 'peso' ? ' selected' : ''}>conta acima de 10% da renda</option>
+        </select></label>
+        <label>Ordem<select id="f-ord">
+          <option value="lac"${ord === 'lac' ? ' selected' : ''}>mais famílias sem o benefício</option>
+          <option value="cob"${ord === 'cob' ? ' selected' : ''}>menor cobertura</option>
+          <option value="d3"${ord === 'd3' ? ' selected' : ''}>pior continuidade</option>
+          <option value="pc"${ord === 'pc' ? ' selected' : ''}>maior peso da conta</option>
+          <option value="tar"${ord === 'tar' ? ' selected' : ''}>maior tarifa</option>
+          <option value="nome"${ord === 'nome' ? ' selected' : ''}>nome</option>
+        </select></label>
+      </div>
+      <div class="cap" style="margin-top:12px"><strong>${nf(idx.length)}</strong> ${idx.length === 1 ? 'município atende' : 'municípios atendem'} ao filtro, somando <strong>${nf(soma)}</strong> famílias sem a Tarifa Social.${idx.length > 300 ? ` A tabela mostra os 300 primeiros pela ordem escolhida.` : ''}</div>
+    </div>
+    <div class="card-b" style="padding:0;border-top:1px solid var(--line)">
+      ${tabelaMun(mostra, ['lac', 'cob', 'd3', 'pc', 'dist'], 'Clique numa linha para abrir a ficha do município.')}
+    </div></div>
+  </div>`;
+}
+
+const PAGEFN={inicio:pageInicio,municipio:pageMunicipio,mudou:pageMudou,tarifasocial:pageTarifaSocial,
+  qualidade:pageQualidade,conta:pageConta,territorio:pageTerritorio,metodo:pageMetodo,limites:pageLimites,
+  municipios:pageMunicipios};
+
+/* ================= MAP ENGINE (Leaflet) =================
+   Ate aqui o mapa era um SVG desenhado a mao sobre coordenadas ja projetadas e
+   arredondadas para inteiro. Aquilo nao era um mapa, era um desenho: sem zoom
+   continuo, sem pinca no toque, com deslocamento improvisado e um enquadramento
+   sequestrado pelo arquipelago de Trindade, que deixava 11% da tela em oceano.
+
+   Agora a geometria vai em coordenada geografica e quem projeta e o Leaflet,
+   conforme o nivel de zoom. Nenhum tile externo e carregado: o mapa desenha
+   apenas a malha embutida no proprio arquivo, entao a pagina continua abrindo do
+   disco e funcionando sem internet.
+
+   O renderizador e canvas, e nao SVG: com 5.570 poligonos o SVG cria 5.570 nos
+   no DOM e o navegador engasga ao repintar a cada troca de metrica.           */
+const mapState={};
+
+function buildMap(key,metric){
+  const el=document.getElementById('map-'+key);
+  if(!el || el.dataset.built || typeof L==='undefined') return;
+
+  const map=L.map(el,{
+    preferCanvas:true, zoomControl:false, attributionControl:false,
+    zoomSnap:0.25, wheelPxPerZoomLevel:140, minZoom:3, maxZoom:12,
+    keyboard:true, keyboardPanDelta:90
+  });
+  const renderer=L.canvas({padding:0.35});
+
+  /* estados por baixo, so como contorno de separacao */
+  const camUF=L.geoJSON(G.uf,{renderer,interactive:false,
+    style:{color:cssvar('--surface')||'#fff',weight:1.4,opacity:.9,fill:false}});
+
+  const porIdx=new Map();
+  const camMun=L.geoJSON(G.mun,{
+    renderer,
+    style:()=>({weight:0,fillOpacity:1,color:'transparent'}),
+    onEachFeature:(f,layer)=>{
+      const i=byCode.get(f.id);
+      if(i==null) return;
+      layer._i=i; porIdx.set(i,layer);
+      layer.on('mouseover',()=>mostraTip(key,i));
+      layer.on('mousemove',ev=>moveTip(ev.originalEvent));
+      layer.on('mouseout',()=>escondeTip());
+      layer.on('click',()=>{ select(i); go('municipio'); });
+    }
+  });
+
+  /* contorno do municipio selecionado, por cima de tudo */
+  const camSel=L.geoJSON(null,{renderer,interactive:false,
+    style:{color:cssvar('--accent')||'#0c826e',weight:2.4,fill:false}});
+
+  camMun.addTo(map); camUF.addTo(map); camSel.addTo(map);
+  map.fitBounds(G.foco,{padding:[8,8]});
+  map.setMinZoom(map.getZoom()-0.5);
+  /* impede que o deslocamento leve a tela para o vazio; a folga deixa alcancar
+     Trindade e Martim Vaz, que ficam fora do enquadramento de abertura */
+  map.setMaxBounds(L.latLngBounds(G.foco).pad(0.45));
+
+  el.dataset.built='1';
+  mapState[key]={map,camMun,camUF,camSel,porIdx,metric,el};
+  ligaControles(key);
+  paintMap(key,metric);
+
+  /* O container so tem largura e altura depois que o layout assenta. Se o
+     fitBounds correr antes disso, o Leaflet acha que a tela tem zero pixel e
+     cai no zoom maximo, mostrando um punhado de quarteiroes em vez do pais.
+     Um quadro de espera nao basta: a pagina pode nem estar visivel ainda. O
+     observador dispara no primeiro instante em que existe tamanho de verdade,
+     e se desliga em seguida para nao reenquadrar o que o usuario ja moveu.  */
+  const enquadra=()=>{ map.invalidateSize(); map.fitBounds(G.foco,{padding:[8,8]}); };
+  if(el.offsetHeight>0 && el.offsetWidth>0){ requestAnimationFrame(enquadra); }
+  else if(typeof ResizeObserver!=='undefined'){
+    const ro=new ResizeObserver(()=>{
+      if(el.offsetHeight>0 && el.offsetWidth>0){ ro.disconnect(); enquadra(); }
+    });
+    ro.observe(el);
+  } else {
+    setTimeout(enquadra,120);
+  }
+}
+
+/* As rampas guardam a cor como "var(--s400)", que o SVG resolvia sozinho porque
+   a cascata chega ate o atributo fill. O canvas nao resolve: fillStyle recebe uma
+   string e, se ela nao for uma cor valida, o navegador pinta preto, em silencio.
+   Daqui em diante a cor e convertida para literal antes de ir para o Leaflet. O
+   cache e limpo na troca de tema, porque as variaveis mudam junto.            */
+const _corCache=new Map();
+function corLiteral(c){
+  if(!c || c[0]!=='v') return c;
+  if(_corCache.has(c)) return _corCache.get(c);
+  const nome=c.slice(4,-1).trim();
+  const v=cssvar(nome)||'#888';
+  _corCache.set(c,v); return v;
+}
+function limpaCorCache(){ _corCache.clear(); }
+
 function paintMap(key,mk){
-  const st=mapState[key]; if(!st)return; st.metric=mk;
-  const m=METRICS[mk];
-  for(let i=0;i<N;i++) st.paths[i].setAttribute('fill',m.color(m.get(i)));
+  const st=mapState[key]; if(!st) return; st.metric=mk;
+  const m=METRICS[mk], sem=cssvar('--nodata')||'#e6ecea';
+  st.porIdx.forEach((layer,i)=>{
+    const v=m.get(i);
+    layer.setStyle({fillColor: v==null ? sem : corLiteral(m.color(v)), fillOpacity:1, weight:0});
+  });
   const lg=document.getElementById('lg-'+key);
   lg.innerHTML=m.labels.map((l,k)=>`<div class="row"><span class="sw" style="background:${m.ramp[k]}"></span><span>${l}</span></div>`).join('')
     +`<div class="row" style="margin-top:5px"><span class="sw" style="background:var(--nodata)"></span><span>sem dado</span></div>`;
@@ -1583,138 +2444,74 @@ function paintMap(key,mk){
   document.getElementById('lc-'+key).textContent=m.caption;
   markSel(key);
 }
-function markSel(key){
-  const st=mapState[key]; if(!st)return;
-  st.sp.setAttribute('d',G.paths[SEL]||'');
-}
-function clampT(st){
-  /* impede que o mapa saia da moldura: no zoom 1 fica centrado; acima disso,
-     a translacao fica entre o limite direito/inferior e zero. */
-  const [W,H] = G.vb, k = st.k;
-  const lx = W - W*k, ly = H - H*k;
-  st.x = k<=1 ? 0 : Math.min(0, Math.max(lx, st.x));
-  st.y = k<=1 ? 0 : Math.min(0, Math.max(ly, st.y));
-}
-function applyT(key){
-  const st=mapState[key];
-  clampT(st);
-  st.g.setAttribute('transform',`translate(${st.x} ${st.y}) scale(${st.k})`);
-  st.svg.classList.toggle('zoomed', st.k > 2.2);
-  const b = st.svg.closest('.mapbox').querySelector('[data-z="reset"]');
-  if(b) b.disabled = (st.k<=1.001);
-}
-function zoomEm(st, cx, cy, fator){
-  const nk = Math.min(28, Math.max(1, st.k*fator)), rf = nk/st.k;
-  st.x = cx-(cx-st.x)*rf; st.y = cy-(cy-st.y)*rf; st.k = nk;
-}
-function wireMap(key){
-  const st=mapState[key], svg=st.svg, tip=document.getElementById('tip');
-  svg.addEventListener('pointermove',e=>{
-    const t=e.target;
-    if(t.classList&&t.classList.contains('m')){
-      const i=+t.dataset.i, m=METRICS[st.metric], v=m.get(i);
-      tip.style.display='block';
-      tip.innerHTML=`<div class="tn">${esc(D.nome[i])} <span style="color:var(--muted);font-weight:400">${D.uf[i]}</span></div>
-        <div class="tv num">${v==null?'sem dado':m.fmt(v)}</div>
-        <div class="tm">${esc(D.dist[D.di[i]])}</div>`;
-      const pad=14, w=tip.offsetWidth, h=tip.offsetHeight;
-      let x=e.clientX+pad, y=e.clientY+pad;
-      if(x+w>innerWidth-8) x=e.clientX-w-pad;
-      if(y+h>innerHeight-8) y=e.clientY-h-pad;
-      tip.style.left=x+'px'; tip.style.top=y+'px';
-    } else tip.style.display='none';
-  });
-  svg.addEventListener('pointerleave',()=>{tip.style.display='none';});
-  svg.addEventListener('click',e=>{
-    const t=e.target;
-    if(t.classList&&t.classList.contains('m')) select(+t.dataset.i);
-  });
-  /* arraste e pinca: ate dois ponteiros simultaneos */
-  const pts = new Map(); let drag=null, pinch=null;
-  const esc2svg = e => { const r=svg.getBoundingClientRect(), s=G.vb[0]/r.width;
-    return {x:(e.clientX-r.left)*s, y:(e.clientY-r.top)*s, s}; };
-  svg.addEventListener('pointerdown',e=>{
-    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    try{svg.setPointerCapture(e.pointerId);}catch(_){}
-    if(pts.size===1){ drag={x:e.clientX,y:e.clientY,ox:st.x,oy:st.y}; svg.classList.add('drag'); }
-    else if(pts.size===2){
-      drag=null; svg.classList.remove('drag');
-      const [a,b]=[...pts.values()];
-      const r=svg.getBoundingClientRect(), sc=G.vb[0]/r.width;
-      pinch={d:Math.hypot(a.x-b.x,a.y-b.y), k:st.k,
-             cx:((a.x+b.x)/2-r.left)*sc, cy:((a.y+b.y)/2-r.top)*sc, x:st.x, y:st.y};
-    }
-  });
-  const soltar = e => {
-    pts.delete(e.pointerId);
-    if(pts.size<2) pinch=null;
-    if(pts.size===0){ drag=null; svg.classList.remove('drag'); }
-    try{svg.releasePointerCapture(e.pointerId);}catch(_){}
-  };
-  svg.addEventListener('pointerup',soltar);
-  svg.addEventListener('pointercancel',soltar);
-  svg.addEventListener('pointermove',e=>{
-    if(pts.has(e.pointerId)) pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(pinch && pts.size===2){
-      const [a,b]=[...pts.values()];
-      const d=Math.hypot(a.x-b.x,a.y-b.y); if(!pinch.d) return;
-      const nk=Math.min(28,Math.max(1,pinch.k*(d/pinch.d))), rf=nk/pinch.k;
-      st.k=nk; st.x=pinch.cx-(pinch.cx-pinch.x)*rf; st.y=pinch.cy-(pinch.cy-pinch.y)*rf;
-      applyT(key); return;
-    }
-    if(!drag)return;
-    const s=G.vb[0]/svg.getBoundingClientRect().width;
-    st.x=drag.ox+(e.clientX-drag.x)*s; st.y=drag.oy+(e.clientY-drag.y)*s; applyT(key);
-  });
-  svg.addEventListener('wheel',e=>{
-    e.preventDefault();
-    const {x,y}=esc2svg(e);
-    zoomEm(st, x, y, e.deltaY<0?1.18:1/1.18); applyT(key);
-  },{passive:false});
 
-  /* teclado: setas movem, + e - aproximam, 0 ou Home volta ao Brasil */
-  svg.addEventListener('keydown',e=>{
-    const passo = 90/st.k, cx=G.vb[0]/2, cy=G.vb[1]/2;
-    let usou = true;
-    switch(e.key){
-      case 'ArrowLeft':  st.x += passo; break;
-      case 'ArrowRight': st.x -= passo; break;
-      case 'ArrowUp':    st.y += passo; break;
-      case 'ArrowDown':  st.y -= passo; break;
-      case '+': case '=': zoomEm(st,cx,cy,1.4); break;
-      case '-': case '_': zoomEm(st,cx,cy,1/1.4); break;
-      case '0': case 'Home': st.k=1; st.x=0; st.y=0; break;
-      default: usou=false;
-    }
-    if(usou){ e.preventDefault(); applyT(key); }
-  });
-  svg.closest('.mapbox').querySelectorAll('.mapctl button').forEach(b=>{
+function markSel(key){
+  const st=mapState[key]; if(!st) return;
+  st.camSel.clearLayers();
+  const f=(G.mun.features||[]).find(x=>x.id===D.cod[SEL]);
+  if(f && f.geometry) st.camSel.addData(f);
+}
+
+function zoomToSel(key){
+  const st=mapState[key]; if(!st) return;
+  const l=st.porIdx.get(SEL); if(!l) return;
+  try{ st.map.fitBounds(l.getBounds(),{padding:[70,70],maxZoom:10}); }catch(_){}
+}
+
+/* ---- dica flutuante ---- */
+function mostraTip(key,i){
+  const st=mapState[key], m=METRICS[st.metric], v=m.get(i), tip=document.getElementById('tip');
+  tip.style.display='block';
+  tip.innerHTML=`<div class="tn">${esc(D.nome[i])} <span style="color:var(--muted);font-weight:400">${D.uf[i]}</span></div>
+    <div class="tv num">${v==null?'sem dado':m.fmt(v)}</div>
+    <div class="tm">${esc(D.dist[D.di[i]])}</div>`;
+}
+function moveTip(e){
+  const tip=document.getElementById('tip');
+  const w=tip.offsetWidth||190, h=tip.offsetHeight||70;
+  let x=e.clientX+14, y=e.clientY+14;
+  if(x+w>innerWidth-8) x=e.clientX-w-14;
+  if(y+h>innerHeight-8) y=e.clientY-h-14;
+  tip.style.left=x+'px'; tip.style.top=y+'px';
+}
+function escondeTip(){ const t=document.getElementById('tip'); if(t) t.style.display='none'; }
+
+/* ---- controles: zoom, metrica e a troca para tabela ---- */
+function ligaControles(key){
+  const st=mapState[key], caixa=st.el.closest('.mapbox');
+
+  caixa.querySelectorAll('.mapctl button').forEach(b=>{
     b.addEventListener('click',()=>{
-      const cx=G.vb[0]/2, cy=G.vb[1]/2;
-      if(b.dataset.z==='reset'){st.k=1;st.x=0;st.y=0;}
-      else zoomEm(st,cx,cy,b.dataset.z==='in'?1.5:1/1.5);
-      applyT(key);
+      if(b.dataset.z==='in') st.map.zoomIn(1);
+      else if(b.dataset.z==='out') st.map.zoomOut(1);
+      else st.map.fitBounds(G.foco,{padding:[8,8]});
     });
   });
+  const rst=caixa.querySelector('[data-z="reset"]');
+  const atualizaReset=()=>{ if(rst) rst.disabled = st.map.getZoom() <= st.map.getMinZoom()+0.26; };
+  st.map.on('zoomend moveend',atualizaReset); atualizaReset();
+
   document.getElementById('mb-'+key).addEventListener('click',e=>{
-    const b=e.target.closest('button[data-m]'); if(!b)return;
+    const b=e.target.closest('button[data-m]'); if(!b) return;
     b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
     b.classList.add('on'); paintMap(key,b.dataset.m);
     if(!document.getElementById('tw-'+key).hidden) montarTabela(key);
   });
+
   const vt=document.getElementById('vt-'+key);
   vt.addEventListener('click',()=>{
     const tw=document.getElementById('tw-'+key), mostrar=tw.hidden;
     tw.hidden=!mostrar;
-    /* SVGElement nao herda a propriedade .hidden de HTMLElement: mexer no atributo */
-    if(mostrar) svg.setAttribute('hidden',''); else svg.removeAttribute('hidden');
-    st.svg.closest('.mapbox').querySelector('.mapctl').hidden=mostrar;
-    st.svg.closest('.mapbox').querySelector('.ajuda-mapa').hidden=mostrar;
-    vt.setAttribute('aria-pressed', String(mostrar));
-    vt.textContent = mostrar ? 'Ver como mapa' : 'Ver como tabela';
+    st.el.hidden=mostrar;
+    caixa.querySelector('.mapctl').hidden=mostrar;
+    caixa.querySelector('.ajuda-mapa').hidden=mostrar;
+    vt.setAttribute('aria-pressed',String(mostrar));
+    vt.textContent=mostrar?'Ver como mapa':'Ver como tabela';
     if(mostrar) montarTabela(key);
+    else requestAnimationFrame(()=>st.map.invalidateSize());
   });
 }
+
 function montarTabela(key){
   const st=mapState[key], m=METRICS[st.metric], tw=document.getElementById('tw-'+key);
   const idx=[...Array(N).keys()].filter(i=>m.get(i)!=null)
@@ -1729,14 +2526,6 @@ function montarTabela(key){
       <td class="n">${k+1}</td><td>${esc(D.nome[i])}</td><td>${D.uf[i]}</td>
       <td class="n">${m.fmt(m.get(i))}</td></tr>`).join('')}</tbody></table>`;
 }
-function zoomToSel(key){
-  const st=mapState[key]; if(!st)return;
-  const el=st.paths[SEL]; if(!el)return;
-  const bb=el.getBBox();
-  const k=Math.min(14,Math.max(3,G.vb[0]/Math.max(bb.width*7,40)));
-  st.k=k; st.x=G.vb[0]/2-(bb.x+bb.width/2)*k; st.y=G.vb[1]/2-(bb.y+bb.height/2)*k;
-  applyT(key);
-}
 
 /* ================= SHELL ================= */
 function renderNav(){
@@ -1748,9 +2537,14 @@ function renderNav(){
 function render(){
   renderNav();
   const host=document.getElementById('pages');
-  host.innerHTML=`<section class="page on">${PAGEFN[PAGE]()}</section>`;
-  const mk={tarifasocial:['ts','descob'],qualidade:['q','d3'],conta:['c','pc'],territorio:['t','pf']}[PAGE];
-  if(mk){ buildMap(mk[0],mk[1]); }
+  /* pagina pode vir parametrizada, como "lista:cem" */
+  const [base,arg]=String(PAGE).split(':');
+  const fn = base==='lista' ? ()=>pageLista(arg) : PAGEFN[base];
+  host.innerHTML=`<section class="page on">${fn?fn():'<div class="wrap"><p>Página não encontrada.</p></div>'}</section>`;
+  const mk={tarifasocial:'ts',qualidade:'q',conta:'c',territorio:'t'}[base];
+  if(mk){ buildMap(mk, METRICA_INICIAL[mk]); }
+  /* os canvas so existem depois do innerHTML acima */
+  if(base==='municipio') montarCharts(SEL); else destruirCharts();
   const i=SEL;
   document.getElementById('selname').textContent=D.nome[i];
   document.getElementById('selmeta').textContent=`${D.uf[i]} · ${nf(D.cad[i])} famílias no CadÚnico`;
@@ -1764,7 +2558,24 @@ function select(i){
   for(const k in mapState){markSel(k);}
   if(PAGE==='municipio') render();
 }
+/* filtros da pagina de municipios e seletor de UF do recorte estadual */
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='f-busca'){ FILTRO.busca=t.value; redesenhaLista(t); }
+});
+document.addEventListener('change',e=>{
+  const t=e.target, m={'f-uf':'uf','f-sit':'sit','f-ord':'ordem'}[t.id];
+  if(m){ FILTRO[m]=t.value; redesenhaLista(); }
+});
+function redesenhaLista(focoEl){
+  const pos = focoEl ? focoEl.selectionStart : null;
+  render();
+  if(focoEl){ const n=document.getElementById(focoEl.id);
+    if(n){ n.focus(); try{ n.setSelectionRange(pos,pos); }catch(_){} } }
+}
 document.addEventListener('click',e=>{
+  const bu=e.target.closest('button[data-uf]');
+  if(bu){ UFSEL=bu.dataset.uf; render(); return; }
   const nb=e.target.closest('.nav-btn, .qrow, .ilink');
   if(nb && nb.dataset.p){go(nb.dataset.p);return;}
   const tr=e.target.closest('tr[data-go]');
@@ -1806,7 +2617,7 @@ qEl.addEventListener('keydown',e=>{
 resEl.addEventListener('click',e=>{
   const b=e.target.closest('button[data-i]'); if(!b)return;
   select(+b.dataset.i); resEl.hidden=true; qEl.value='';
-  const mk={tarifasocial:'ts',qualidade:'q',conta:'c',territorio:'t'}[PAGE];
+  const mk={tarifasocial:'ts',qualidade:'q',conta:'c',territorio:'t'}[String(PAGE).split(':')[0]];
   if(mk) zoomToSel(mk); else if(PAGE!=='municipio') go('municipio');
 });
 
@@ -1818,8 +2629,21 @@ tt.addEventListener('click',()=>{
   const next=cur ? (cur==='dark'?'light':'dark') : (sysDark?'light':'dark');
   document.documentElement.setAttribute('data-theme',next);
   try{localStorage.setItem('mpe-theme',next);}catch(_){}
+  /* as variaveis de cor mudaram: o canvas precisa ser repintado com as novas */
+  limpaCorCache();
+  for(const k in mapState){
+    const st=mapState[k];
+    st.camUF.setStyle({color:cssvar('--surface')});
+    st.camSel.setStyle({color:cssvar('--accent')});
+    paintMap(k,st.metric);
+  }
+  for(const k in CHARTS){ try{CHARTS[k].destroy();}catch(_){} delete CHARTS[k]; }
+  if(String(PAGE).split(':')[0]==='municipio') montarCharts(SEL);
 });
 try{const t=localStorage.getItem('mpe-theme'); if(t) document.documentElement.setAttribute('data-theme',t);}catch(_){}
 
 render();
 </script>
+
+</body>
+</html>

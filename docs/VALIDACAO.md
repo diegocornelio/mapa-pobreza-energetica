@@ -18,19 +18,32 @@ do payload publicado, e nenhum está escrito à mão no código.
 
 | medida | valor |
 |---|---|
-| Famílias elegíveis (CadÚnico, ago/2026) | 27.821.012 |
-| Benefícios ativos, CDE de dez/2024 | 17.882.926 |
-| Benefícios ativos, CDE de mar/2026 | 17.403.015 |
-| Não atendidas com a CDE de dez/2024 | 9.968.144 |
-| **Não atendidas com a CDE de mar/2026** | **10.433.225** |
-| Cobertura nacional, dez/2024 | 64,3% |
-| Cobertura nacional, mar/2026 | 62,6% |
-| Municípios com sobrecobertura, dez/2024 | 80 |
-| Municípios com sobrecobertura, mar/2026 | 44 |
+A leitura do presente casa CadÚnico e CDE na **mesma data**, março de 2026. Os valores de
+dezembro de 2024 existem para a comparação temporal, e não para o presente.
 
-A contagem de não atendidas soma as diferenças positivas por município. Pelo saldo líquido
-nacional o valor de dez/2024 seria 9.938.086; a diferença de 30.058 é o excesso dos 80
-municípios com mais benefícios que famílias elegíveis. Ver `docs/METODO.md`, item 01b.
+| medida | mar/2026 | dez/2024 |
+|---|---|---|
+| Famílias elegíveis (CadÚnico do próprio mês) | **27.829.478** | 27.883.284 |
+| Benefícios ativos (CDE do próprio mês) | **17.403.015** | 17.882.926 |
+| **Não atendidas** | **10.440.849** | 10.028.764 |
+| Cobertura nacional | **62,53%** | 64,13% |
+| Municípios com sobrecobertura | **35** | — |
+
+A contagem de não atendidas soma as diferenças positivas por município; pelo saldo líquido
+o valor de mar/2026 seria 10.426.463, e a diferença é o excesso dos 35 municípios com mais
+benefícios que famílias elegíveis. Ver `docs/METODO.md`, item 01b.
+
+**Por que a base mudou.** Até uma versão anterior, a leitura do presente cruzava o CadÚnico
+de agosto de 2026 com a CDE de dezembro de 2024, vinte meses de defasagem, enquanto a página
+de comparação afirmava que cada data usa o CadÚnico do seu próprio mês. As duas coisas não
+podiam ser verdade ao mesmo tempo, e a contradição aparecia na tela: o mesmo município exibia
+64,9% numa tabela e 81,8% no cartão ao lado. Casar as datas também reduziu a sobrecobertura de
+80 para 35 municípios, o que mostra que mais da metade daquela anomalia era artefato da
+defasagem, e não a diferença entre unidade consumidora e família.
+
+O CadÚnico nacional do SAGI em março de 2026 soma 27.829.708, que excede a soma municipal em
+**230**: o SAGI cobre 5.571 municípios, um a mais que a malha do Censo 2022. O excedente é
+Boa Esperança do Norte (MT, IBGE 5101837), instalado depois do Censo.
 
 ### Conta de energia
 

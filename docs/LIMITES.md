@@ -13,6 +13,7 @@ zero.
 | | municípios | o que significa |
 |---|---|---|
 | Sem apuração de DEC/FEC | **14** | não há conjunto consumidor vinculado ao município na base de continuidade de 2024 |
+| Com conjunto consumidor exclusivo | **47** | nos outros 5.509, o indicador de continuidade é da rede e se repete em outros municípios: mediana de 15 coirmãos, máximo 110 |
 | Subsídio indisponível | **32** | a CDE ficou líquida negativa no mês de referência; nenhuma cifra em reais é exibida |
 | Sobrecobertura | **80** | há mais benefícios ativos que famílias elegíveis |
 | Sem favela identificada | **4.915** | o Censo 2022 percorreu o território e não identificou nenhuma — este zero é medição, não ausência |
@@ -34,8 +35,15 @@ pessoa ou sobre furto de energia.
 beneficiários pode ser defasagem de cadastro, e não privação. Os dados não separam as
 duas coisas. A primeira ação que eles sustentam é verificação local, não campanha.
 
-**As bases têm 20 meses de defasagem entre si.** O CECAD é de agosto de 2026; a CDE, de
-dezembro de 2024. A contagem de não atendidas compara dois estoques em datas diferentes.
+**A leitura do presente casa as datas; a comparação temporal não pode casar tudo.** O
+CadÚnico e a CDE do presente são ambos de março de 2026. A série do CadÚnico é mensal, mas a
+da CDE não é utilizável mês a mês: dos cinco meses de 2026 publicados, só março traz as 103
+distribuidoras. Por isso o benefício entra na série como pontos, e não como linha.
+
+**Um município do país fica fora do mapa.** A malha do Censo 2022 tem 5.570 municípios e o
+CadÚnico atual cobre 5.571. O excedente é Boa Esperança do Norte (MT, IBGE 5101837),
+instalado depois do Censo, com 297 famílias elegíveis em agosto de 2026. Ele não aparece em
+nenhuma tela.
 
 **Unidade consumidora não é família.** Os 80 municípios com sobrecobertura são a prova
 empírica disso. Onde uma família tem mais de uma unidade consumidora, ou onde um

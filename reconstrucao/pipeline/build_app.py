@@ -15,9 +15,26 @@ for nome, payload in (("dados.json", dados), ("geo.json", geo)):
     if "</script" in payload.lower():
         raise SystemExit(f"{nome} contém '</script' e quebraria o HTML")
 
-html = tpl.replace("__DATA__", dados).replace("__GEO__", geo)
-if "__DATA__" in html or "__GEO__" in html:
-    raise SystemExit("placeholder não substituído")
+# Chart.js vai embutido, e nao carregado de CDN: a pagina e um arquivo unico que
+# abre do disco e funciona sem internet. A procedencia e o hash do arquivo estao
+# em reconstrucao/app/vendor/PROVENIENCIA.txt.
+chart = io.open(BASE / "app" / "vendor" / "chart.umd.min.js", encoding="utf-8").read()
+leafjs = io.open(BASE / "app" / "vendor" / "leaflet.js", encoding="utf-8").read()
+leafcss = io.open(BASE / "app" / "vendor" / "leaflet.css", encoding="utf-8").read()
+for nome, txt in (("chart.umd.min.js", chart), ("leaflet.js", leafjs)):
+    if "</script" in txt.lower():
+        raise SystemExit(f"{nome} contém '</script' e quebraria o HTML")
+if "</style" in leafcss.lower():
+    raise SystemExit("leaflet.css contém '</style' e quebraria o HTML")
+
+html = (tpl.replace("__DATA__", dados)
+           .replace("__GEO__", geo)
+           .replace("__CHARTJS__", chart)
+           .replace("__LEAFLETJS__", leafjs)
+           .replace("__LEAFLETCSS__", leafcss))
+for ph in ("__DATA__", "__GEO__", "__CHARTJS__", "__LEAFLETJS__", "__LEAFLETCSS__"):
+    if ph in html:
+        raise SystemExit(f"placeholder {ph} não substituído")
 
 destino = BASE.parent / "site" / "index.html"
 destino.parent.mkdir(parents=True, exist_ok=True)

@@ -9,9 +9,12 @@ def col(s,dec=None):
 out={"n":len(d),"dist":dist,
   "cod":d.cod_ibge.tolist(),"nome":d.nome.tolist(),"uf":d.uf.tolist(),"di":[di[x] for x in d.distribuidora],
   "cad":col(d.familias_cadastradas),"pob":col(d.familias_pobreza),"bxr":col(d.familias_baixa_renda),
-  "ele":col(d.familias_elegiveis),"ben":col(d.beneficiarios_tsee),
+  # A leitura do presente e casada em marco de 2026 nas duas pontas; as colunas de
+  # dezembro de 2024 seguem no payload por 10a, para a pagina de comparacao.
+  "ele":col(d.familias_elegiveis_mar26),"ben":col(d.beneficiarios_mar26),
+  "eleCecad":col(d.familias_elegiveis),"benDez24":col(d.beneficiarios_tsee),
   "cob":col(d.cobertura,1),"lac":col(d.lacuna_pos),"sob":col(d.sobrecobertura),
-  "rs":col(d.rs_nao_acessado,0),"spf":col(d.subsidio_familia_liq,2),"sind":col(d.subsidio_indisponivel),
+  "rs":col(d.rs_nao_acessado,0),"spf":col(d.subsidio_familia_mar26,2),"sind":col(d.subsidio_indisponivel),
   "tar":col(d.tarifa_municipal,4),"tas":col(d.tarifa_baixa_renda,4),"rkt":col(d.rank_tarifa),
   "hh":col(d.moradores_por_domicilio,2),
   "pc":col(d.peso_pob80_cheia,4),"ps":col(d.peso_social_ef,4),

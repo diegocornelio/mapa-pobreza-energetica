@@ -16,10 +16,15 @@ df["peso_pob80_cheia"]=(df.tarifa_municipal*80)/df.renda_dom_teto_pob
 df["peso_pob80_social"]=(df.tarifa_baixa_renda*80)/df.renda_dom_teto_pob
 df["rank_tarifa"]=df.tarifa_municipal.rank(ascending=False,method="min").astype(int)
 df["violacao"]=np.where(df.d3_corr.isna(),np.nan,(df.d3_corr>=1).astype(float))
-df["sobrecobertura"]=(df.lacuna_bruta<0).astype(int)
-df["subsidio_indisponivel"]=(df.subs_liquido<=0).astype(int)
+# Sobrecobertura na MESMA base que produz a lacuna. Usar lacuna_bruta (dez/2024)
+# aqui e lacuna_pos (mar/2026) ali faria a bandeira contradizer o contingente no
+# mesmo municipio, sem erro nenhum na execucao.
+df["sobrecobertura"]=(df.lacuna_bruta_casada<0).astype(int)
+df["subsidio_indisponivel"]=(df.subs_mar26<=0).astype(int)
 cols=["cod_ibge","nome","uf","distribuidora","familias_cadastradas","familias_pobreza","familias_baixa_renda",
-  "familias_elegiveis","beneficiarios_tsee","cobertura","lacuna_pos","sobrecobertura","subs_liquido",
+  "familias_elegiveis","beneficiarios_tsee",
+  "familias_elegiveis_mar26","beneficiarios_mar26","subsidio_familia_mar26","lacuna_bruta_casada",
+  "cobertura","lacuna_pos","sobrecobertura","subs_liquido",
   "subsidio_familia_liq","rs_nao_acessado","subsidio_indisponivel","tarifa_municipal","tarifa_baixa_renda",
   "rank_tarifa","moradores_por_domicilio","peso_pob80_cheia","peso_pob80_social","dec_h_ano","d3_corr","d3_max",
   "n_conj","violacao","dom_favela","dom_total_mun","d4_corr","favela_mapeada","renda_referencia"]

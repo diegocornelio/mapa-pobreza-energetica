@@ -19,7 +19,7 @@ build. Para regerar a página a partir dos dados, ver `docs/REPRODUCAO.md`.
 
 | pergunta | medida |
 |---|---|
-| Quantas famílias elegíveis não recebem a Tarifa Social? | **10.433.225** no país em março de 2026, cobertura de 62,6% |
+| Quantas famílias elegíveis não recebem a Tarifa Social? | **10.440.849** no país em março de 2026, cobertura de 62,5% |
 | A energia falta mais do que a ANEEL permite? | **1.412 municípios** acima do limite em 2024 e de novo em 2025 |
 | Quanto pesa a conta para quem é pobre aqui? | mediana de 9,75% da renda a 80 kWh, sem o benefício |
 | O que mudou depois da Lei 15.235/2025? | o benefício passou a cobrir de 58% para 88% da conta, sem ampliar alcance |

@@ -12,16 +12,34 @@ def cmp(rot, calc, app, tol=0.51):
     ok = "ok " if abs(calc-app) <= tol else "DIVERGE"
     print(f"  {ok}  {rot:52s} recalculado {calc:>14,.2f}   app {app:>14,.2f}")
 
-print("=== 1. FAMILIAS NAO ATENDIDAS ===")
-ele26 = S[S.anomes==202603].cadun_qtd_familias_cadastradas_rfpc_ate_meio_sm_i.sum()
+print("=== 1. FAMILIAS NAO ATENDIDAS (base casada em marco de 2026) ===")
+# A leitura do presente casa CadUnico e CDE na MESMA data. O caminho independente
+# aqui e painel_municipal.csv, escrito por 09a, contra o payload, escrito por 06d
+# e 09: dois codigos distintos lendo as mesmas fontes.
 ele_cecad = P.familias_elegiveis.sum()
-b24, b26 = P.beneficiarios_tsee.sum(), P.ben26.sum()
-print(f"  elegiveis CECAD ago/2026 : {ele_cecad:>12,.0f}")
-print(f"  elegiveis SAGI  mar/2026 : {ele26:>12,.0f}")
-cmp("nao atendidas com CDE dez/2024", ele_cecad-b24, sum(D['lac']))
-cmp("nao atendidas com CDE mar/2026", ele_cecad-b26, sum(x for x in D['na26'] if x))
-cmp("cobertura dez/2024 (%)", 100*b24/ele_cecad, 100*b24/ele_cecad, 0.01)
-print(f"  -> o app exibe na home: {sum(D['lac']):,.0f} (base dez/2024)")
+ele26_nac = S[S.anomes==202603].cadun_qtd_familias_cadastradas_rfpc_ate_meio_sm_i.sum()
+e26, b26 = P.eleg_2603.sum(), P.ben26.sum()
+e24, b24 = P.eleg_2412.sum(), P.beneficiarios_tsee.sum()
+pos26 = int(sum(max(0, e-b) for e, b in zip(P.eleg_2603, P.ben26)))
+app_lac = sum(D['lac'])
+app_ele = sum(x or 0 for x in D['ele'])
+app_ben = sum(x or 0 for x in D['ben'])
+cmp("elegiveis, marco de 2026", e26, app_ele)
+cmp("beneficios, marco de 2026", b26, app_ben)
+cmp("nao atendidas, soma das positivas", pos26, app_lac)
+cmp("cobertura (%)", 100*b26/e26, 100*app_ben/app_ele, 0.01)
+print(f"  saldo liquido nacional {e26-b26:,.0f}; a diferenca para a soma das positivas")
+print(f"  e o excesso dos municipios com mais beneficios que elegiveis")
+print()
+print(f"  data anterior, dez/2024: {e24:,.0f} elegiveis, {b24:,.0f} beneficios,")
+print(f"  cobertura {100*b24/e24:.2f}%, nao atendidas "
+      f"{sum(max(0,e-b) for e,b in zip(P.eleg_2412,P.beneficiarios_tsee)):,.0f}")
+print()
+print("  bases preservadas no payload que NAO alimentam mais o presente:")
+print(f"    CECAD de agosto de 2026: {ele_cecad:,.0f} elegiveis")
+print(f"    agregado nacional do SAGI em mar/2026: {ele26_nac:,.0f}, que excede a soma")
+print(f"    municipal em {ele26_nac-e26:,.0f} porque o SAGI cobre 5.571 municipios, um a")
+print( "    mais que a malha do Censo 2022 (Boa Esperanca do Norte, MT, IBGE 5101837)")
 
 print("\n=== 2. CONTINUIDADE ===")
 cmp("municipios acima do limite 2024", (F.rel2024>=1).sum(), D['cont']['viol24'])
@@ -40,15 +58,18 @@ cmp("amplitude", max(t)/min(t), max(t)/min(t), 0.001)
 print(f"  -> {min(t):.4f} a {max(t):.4f} = {max(t)/min(t):.2f}x")
 
 print("\n=== 4. FRACAO DA CONTA COBERTA ===")
-f24 = [x for x in D['frac24'] if x is not None]
-f26 = [x for x in D['frac26'] if x is not None]
+# O app so usa o municipio com subsidio positivo nas DUAS datas: onde a CDE ficou
+# liquida negativa a fracao nao e utilizavel. O filtro precisa ser o mesmo aqui,
+# senao a mediana cai sobre outra populacao e a diferenca aparece como divergencia.
+pares = [(a,b) for a,b in zip(D['frac24'],D['frac26'])
+         if a is not None and b is not None and a > 0 and b > 0]
 med = lambda a: sorted(a)[len(a)//2]
-cmp("mediana 2024 (%)", 100*med(f24), 100*D['nac']['fr24'], 0.06)
-cmp("mediana 2026 (%)", 100*med(f26), 100*D['nac']['fr26'], 0.06)
-pares = [(a,b) for a,b in zip(D['frac24'],D['frac26']) if a is not None and b is not None]
+cmp("mediana 2024 (%)", 100*med([a for a,_ in pares]), 100*D['nac']['fr24'], 0.06)
+cmp("mediana 2026 (%)", 100*med([b for _,b in pares]), 100*D['nac']['fr26'], 0.06)
 ganho = sum(1 for a,b in pares if b>a)
 cmp("municipios com ganho (%)", 100*ganho/len(pares), D['nac']['ganho_pct'], 0.06)
-print(f"  -> {ganho} de {len(pares)} municipios")
+print(f"  -> {ganho} de {len(pares)} municipios com subsidio positivo nas duas datas")
+print(f"     {len(D['frac24'])-len(pares)} excluidos por CDE liquida negativa em ao menos uma")
 
 print("\n=== 5. DECOMPOSICAO POR DISTRIBUIDORA ===")
 A['d'] = A.mar26 - A.dez24

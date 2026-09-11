@@ -29,8 +29,10 @@ benefícios ativos que famílias elegíveis. Isso não é ruído: é a evidênci
 que unidade consumidora não equivale a família. Esses municípios recebem
 `sobrecobertura = 1` em vez de serem zerados.
 
-Também há defasagem de 20 meses entre as bases: o CECAD é de agosto de 2026 e a CDE de
-dezembro de 2024.
+A leitura do presente casa as duas pontas em março de 2026: o CadÚnico vem da competência
+202603 do SAGI e os benefícios do arquivo da CDE de 01mar2026, o único mês de 2026 que traz
+as 103 distribuidoras. Uma versão anterior cruzava CadÚnico de agosto de 2026 com CDE de
+dezembro de 2024, e a defasagem de vinte meses aparecia como contradição na própria tela.
 
 ## 2. Peso da conta na faixa de pobreza
 

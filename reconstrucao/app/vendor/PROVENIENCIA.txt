@@ -1,0 +1,24 @@
+chart.umd.min.js
+Chart.js 4.5.1 (chart.umd.min.js)
+origem: https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js
+baixado em 2026-09-11
+sha256: 48444a82d4edcb5bec0f1965faacdde18d9c17db3063d042abada2f705c9f54a
+licenca: MIT
+
+Vendorizado de proposito: a pagina e um arquivo unico, abre do disco e funciona
+sem internet. Carregar do CDN quebraria essa propriedade.
+
+Leaflet 1.9.4, licenca BSD-2-Clause
+baixado em 2026-09-11
+
+leaflet.js
+  origem: https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js
+  sha256: db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a
+
+leaflet.css
+  origem: https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css
+  sha256: a7837102824184820dfa198d1ebcd109ff6d0ff9a2672a074b9a1b4d147d04c6
+
+Vendorizado de proposito: a pagina e um arquivo unico que abre do disco e
+funciona sem internet. Nenhum tile externo e carregado; o mapa desenha apenas
+a geometria embutida, entao nao ha requisicao de rede em uso normal.

@@ -16,6 +16,7 @@ ETAPAS = ["01_cde.py","01b_cde_2026.py","02_tarifa.py","03a_decfec_conjunto.py",
           "06d_concentracao.py","06e_distribuidora.py","07_tarifa_social.py",
           "07b_municipio_agente.py","08_geometria.py","08b_nacional_2026.py","09_payload.py","09a_painel_municipal.py",
           "10a_payload_comparacao.py","10b_payload_continuidade.py","10c_payload_agente.py",
+          "05c_serie_mensal.py","10d_payload_serie.py","10e_payload_conjuntos.py",
           "build_app.py"]
 
 falta = subprocess.run(
