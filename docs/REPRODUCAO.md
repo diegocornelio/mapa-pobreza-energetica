@@ -13,13 +13,29 @@ referência: `pandas`, `numpy`, `pyarrow` e `geopandas`, em Python 3.11. A tabel
 O `requirements.txt` da raiz é outro arquivo: pertence à versão anterior do trabalho,
 preservada em `src/` e `tests/`, e lista pacotes que este pipeline não usa.
 
-Ajuste `reconstrucao/pipeline/_paths.py`. É o **único arquivo com caminho absoluto**;
-todo o resto deriva dele.
+Aponte o pipeline para a sua cópia dos brutos. Nenhum caminho de máquina acompanha o
+repositório: `_paths.py` procura em três lugares, nesta ordem, e para no primeiro que
+encontrar.
+
+**1. Um módulo local**, que o `.gitignore` mantém fora do repositório:
 
 ```python
-RAW = Path(r".../data/raw")            # onde estão os brutos
+# reconstrucao/pipeline/_paths_local.py
+from pathlib import Path
+RAW = Path(r".../data/raw")               # onde estão os brutos
 INTERIM_ORIG = Path(r".../data/interim")  # malha municipal (municipios.parquet)
 ```
+
+**2. Variáveis de ambiente**, úteis em execução automatizada:
+
+```bash
+IPEM_RAW=/caminho/data/raw IPEM_INTERIM=/caminho/data/interim python roda_tudo.py
+```
+
+**3. O padrão**, se nenhum dos dois existir: `data/raw` e `data/interim` dentro do
+próprio repositório. Basta colocar os brutos ali e nada precisa ser configurado.
+
+Todo o resto dos caminhos deriva desses dois.
 
 ## Execução
 

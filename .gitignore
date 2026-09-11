@@ -9,23 +9,15 @@ data/interim/
 *.gdb
 *.gpkg-journal
 
+# Trabalho de rascunho e material externo ao projeto.
 *.pdf
 notebooks/
-
-# Intermediarios do pipeline: regeraveis em seis minutos por roda_tudo.py.
-# Ficam versionados apenas dados.json, geo.json e as duas bases municipais
-# que o app consome diretamente.
-reconstrucao/dados/*.csv
-reconstrucao/dados/*.parquet
-!reconstrucao/dados/cde_municipal.csv
-!reconstrucao/dados/municipios_corrigido.csv
-
-# Rascunho e anotacoes de trabalho na raiz ficam fora do produto.
 /*.md
 !/README.md
 
-# Em docs/ a regra e inversa: o que e publicado esta nomeado abaixo,
-# e nada entra por acidente.
+# Em docs/ a regra e inversa: nada entra por acidente, e o que e publicado esta
+# nomeado abaixo. Assim o repositorio nao revela, pelo proprio .gitignore, quais
+# documentos de trabalho existem fora dele.
 docs/*
 !docs/CORRECOES.md
 !docs/DECISOES.md
@@ -36,3 +28,14 @@ docs/*
 !docs/METODO.md
 !docs/REPRODUCAO.md
 !docs/VALIDACAO.md
+
+# Caminhos da maquina local, especificos de cada instalacao.
+reconstrucao/pipeline/_paths_local.py
+
+# Intermediarios do pipeline: regeraveis em seis minutos por roda_tudo.py.
+# Ficam versionados apenas dados.json, geo.json e as duas bases municipais
+# que o app consome diretamente.
+reconstrucao/dados/*.csv
+reconstrucao/dados/*.parquet
+!reconstrucao/dados/cde_municipal.csv
+!reconstrucao/dados/municipios_corrigido.csv

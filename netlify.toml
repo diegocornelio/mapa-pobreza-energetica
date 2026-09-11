@@ -11,7 +11,11 @@
   publish = "."
   command = ""
 
+# A pagina e um arquivo unico que muda a cada correcao, e max-age=3600 fazia quem
+# ja tinha visitado continuar vendo a versao anterior por ate uma hora, sem saber.
+# Com must-revalidate o navegador pergunta ao servidor antes de reusar; quando nada
+# mudou a resposta e um 304 vazio, entao a checagem custa quase nada mesmo com 6 MB.
 [[headers]]
   for = "/*"
   [headers.values]
-    Cache-Control = "public, max-age=3600"
+    Cache-Control = "public, max-age=0, must-revalidate"

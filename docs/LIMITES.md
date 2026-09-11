@@ -57,7 +57,7 @@ beneficiário deixou de ser elegível sem sair da base, a contagem se desloca.
 varia entre estados, tipicamente de 17% a 30%. A tarifa serve para comparar municípios;
 não serve para dizer quanto alguém paga.
 
-**O peso da conta é cenário, e o cenário domina o resultado.** A faixa é larga:
+**O nível do peso da conta é cenário; a ordenação não é.** A faixa do nível é larga:
 
 | consumo | peso mediano na faixa de pobreza | municípios acima de 10% |
 |---|---|---|
@@ -65,8 +65,17 @@ não serve para dizer quanto alguém paga.
 | **80 kWh** | **10,50%** | **3.233** |
 | 100 kWh | 13,12% | 5.440 |
 
+A coluna da direita está aqui para mostrar por que ela **não é publicada**: uma contagem
+que vai de zero a quase todos conforme uma hipótese é função da hipótese, e não do dado.
+A coluna do meio, ao contrário, muda de escala mas não de ordem: a correlação de posto
+entre o peso a 30 kWh e o peso a 100 kWh é **1,0000**, e nenhum município troca de
+posição. O aplicativo publica a ordenação e a faixa; não afirma que um município cruza
+um limiar de renda.
+
 Os 80 kWh são o limiar da Lei 15.235/2025 e a única das três hipóteses com ancoragem
-externa. A 30 kWh o problema desaparece; a 100 kWh é quase universal.
+externa. A medida de manchete do projeto, a economia em reais, também usa os 80 kWh, mas
+não usa renda: não depende da linha de pobreza nem do tamanho do domicílio, e por isso
+escapa de dois dos três vieses listados acima.
 
 **O consumo de referência é conservador.** Invertendo o desconto legal contra o subsídio
 que a CDE efetivamente pagou, o consumo mediano de quem já recebe a Tarifa Social é de

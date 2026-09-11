@@ -34,16 +34,32 @@ A leitura do presente casa as duas pontas em março de 2026: o CadÚnico vem da 
 as 103 distribuidoras. Uma versão anterior cruzava CadÚnico de agosto de 2026 com CDE de
 dezembro de 2024, e a defasagem de vinte meses aparecia como contradição na própria tela.
 
-## 2. Peso da conta na faixa de pobreza
+## 2. O que a Tarifa Social devolve, em reais
+
+```
+economia = (tarifa cheia × 80 kWh) − (tarifa Baixa Renda × 80 kWh × 0,50625)
+```
+
+Esta é a medida de manchete do projeto, e é a mais simples de auditar: entram tarifa
+homologada da ANEEL e a regra de desconto da Lei 12.212/2010, e nada mais. **Não usa
+renda.** Na mediana dos municípios são R$ 37,46 por mês, R$ 449,52 por ano, variando de
+R$ 25,03 a R$ 51,45 conforme a tarifa da distribuidora local.
+
+O fator 0,50625 é o desconto escalonado da lei aplicado a 80 kWh, escrito como fator de
+pagamento: 35% do preço nos primeiros 30 kWh, 60% nos 50 seguintes.
+
+## 3. Peso da conta na faixa de pobreza
 
 ```
 peso = (tarifa × 80 kWh) ÷ (R$ 218 × moradores por domicílio)
 ```
 
-**Por que não a média municipal.** Testada, ela fica em torno de 2,3% e nenhum município
-cruza o limiar de 10%. Pobreza energética é fenômeno intradomiciliar e desaparece na
-agregação por município. O cálculo só diz algo quando feito sobre a faixa de renda
-elegível.
+Medida secundária, publicada como **ordenação entre municípios**, não como diagnóstico
+de quem cruza um limiar de renda. A razão está declarada abaixo.
+
+**Por que não a média municipal.** Testada, ela fica em torno de 2,3%. Pobreza energética
+é fenômeno intradomiciliar e desaparece na agregação por município. O cálculo só diz algo
+quando feito sobre a faixa de renda elegível.
 
 **Por que o teto da faixa.** R$ 218 por pessoa é o teto da faixa de pobreza do CadÚnico,
 valor fixado pelo Decreto 11.566/2023 e ainda vigente na data desta leitura. Usar o teto,
@@ -52,11 +68,26 @@ sente peso maior.
 
 **A linha não é indexada e a tarifa é.** Os R$ 218 são valor nominal que só muda por novo
 ato do Executivo, enquanto a tarifa é reajustada todo ano. O peso, portanto, sobe entre
-duas leituras sem que nenhuma família tenha empobrecido. Foi o que aconteceu aqui: com a
-tarifa de dezembro de 2024 a mediana nacional era 9,75% e 2.392 municípios passavam de
-10%; com a de março de 2026, sem que o denominador mudasse, a mediana é 10,50% e são
-3.233. A variação mede reajuste tarifário contra linha parada, e não mudança de condição
-de vida.
+duas leituras sem que nenhuma família tenha empobrecido: com a tarifa de dezembro de 2024
+a mediana nacional era 9,75%; com a de março de 2026, sem que o denominador mudasse, é
+10,50%. A variação mede reajuste tarifário contra linha parada, e não mudança de condição
+de vida. É mais uma razão para ler a ordenação, e não o nível.
+
+**Por que o projeto não afirma quantos municípios cruzam 10%.** O consumo suposto entra
+como multiplicador comum a todos os municípios: ele fixa o nível e não altera a
+ordenação. A consequência foi medida, e é categórica:
+
+| consumo suposto | peso mediano | municípios acima de 10% |
+|---|---|---|
+| 30 kWh | 3,94% | 0 |
+| 80 kWh | 10,50% | 3.233 |
+| 100 kWh | 13,12% | 5.440 |
+
+A correlação de ordem entre o peso a 30 kWh e o peso a 100 kWh é **1,0000**: nenhum
+município troca de posição. Mas a contagem acima de 10% vai de zero a quase todos. Uma
+afirmação inteiramente determinada por uma hipótese não é resultado, e por isso foi
+retirada do aplicativo e desta documentação. O que fica publicado é a posição relativa,
+que é robusta, e a faixa inteira dos cenários, que está à vista.
 
 **Por que multiplicar pelo tamanho do domicílio.** O teto é por pessoa, mas a conta é do
 domicílio. O tamanho médio vem de moradores (SIDRA 10296) ÷ domicílios (SIDRA 4712) e

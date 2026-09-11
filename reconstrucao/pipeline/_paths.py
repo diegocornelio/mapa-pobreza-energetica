@@ -4,12 +4,22 @@ RAW aponta para o diretório de dados brutos baixados em 2026-09-05.
 Ele NÃO acompanha o repositório: são cerca de 3 GB, com um CSV de 2,3 GB
 dentro do zip da CDE. As URLs de origem estão em data/sources/fontes.csv.
 
-Ajuste RAW e PROCESSED_ORIG para a sua máquina antes de rodar.
+Onde esses 3 GB ficam é específico de cada instalação, então o caminho não é
+escrito aqui. Ele é procurado em três lugares, nesta ordem: um módulo
+`_paths_local.py` ao lado deste, que não acompanha o repositório; as variáveis de
+ambiente IPEM_RAW e IPEM_INTERIM; e, por último, `data/raw` e `data/interim` dentro
+do próprio repositório. Quem clonar precisa apenas apontar para a sua cópia, por
+qualquer um dos três caminhos, e nenhum layout de disco alheio vem junto.
 """
+import os
 from pathlib import Path
 
-RAW = Path(r"C:/Users/diego/Desktop/IndiceMunicipalPobrezaEnergetica - IMPE/data/raw")
-INTERIM_ORIG = Path(r"C:/Users/diego/Desktop/IndiceMunicipalPobrezaEnergetica - IMPE/data/interim")
+_BASE = Path(__file__).resolve().parents[2]
+try:
+    from _paths_local import RAW, INTERIM_ORIG
+except ImportError:
+    RAW = Path(os.environ.get("IPEM_RAW", _BASE / "data" / "raw"))
+    INTERIM_ORIG = Path(os.environ.get("IPEM_INTERIM", _BASE / "data" / "interim"))
 PROCESSED_ORIG = Path(__file__).resolve().parents[2] / "data" / "processed" / "ipem_municipios.csv"
 OUT = Path(__file__).resolve().parents[1] / "dados"
 OUT.mkdir(parents=True, exist_ok=True)
