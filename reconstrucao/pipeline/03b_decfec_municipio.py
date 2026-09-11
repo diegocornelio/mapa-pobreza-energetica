@@ -7,7 +7,7 @@ d=pd.read_parquet(B+"/decfec/2026-09-05/indicadores-continuidade-coletivos-2020-
 d=d[d.AnoIndice==2024]
 con=d[d.SigIndicador=="NumCon"].groupby("IdeConjUndConsumidoras").VlrIndiceEnviado.mean().rename("consumidores")
 print("conjuntos com NumCon:",len(con),"| total consumidores:", f"{con.sum():,.0f}")
-m=pd.read_parquet("decfec_conj_2024.parquet")
+m=pd.read_parquet(str(OUT)+"/decfec_conj_2024.parquet")
 q=pd.read_csv(B+"/indqual/2026-09-05/indqual-municipio.csv",sep=";",encoding="latin-1",low_memory=False)
 q=q.rename(columns={"IdeConjUnidConsumidoras":"IdeConjUndConsumidoras","CodMunicipio":"cod_ibge"})[["IdeConjUndConsumidoras","cod_ibge"]].drop_duplicates()
 p=m.pivot_table(index="IdeConjUndConsumidoras",columns="SigIndicador",values=["soma12","VlrLimite"],aggfunc="first")
@@ -31,4 +31,4 @@ print("DEC anual ponderado: mediana %.2f h | p95 %.2f h | max %.2f h"%(mun.dec_h
 for c,nm in [(3304557,"Rio de Janeiro"),(3550308,"Sao Paulo"),(1302603,"Manaus"),(1501402,"Belem")]:
     r=mun[mun.cod_ibge==c]
     if len(r): r=r.iloc[0]; print(f"  {nm:16s} conj={int(r.n_conj):3d} d3_max={r.d3_max:.2f} d3_pond={r.d3_pond:.2f} DEC_pond={r.dec_h_pond:.1f}h")
-mun.to_csv("d3_pond.csv",index=False)
+mun.to_csv(str(OUT)+"/d3_pond.csv",index=False)

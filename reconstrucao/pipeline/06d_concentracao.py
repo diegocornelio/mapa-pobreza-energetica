@@ -1,6 +1,8 @@
 import pandas as pd, numpy as np
-df=pd.read_csv("ipem_v4.csv")
-cde=pd.read_csv("cde_municipal.csv")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+df=pd.read_csv(str(OUT)+"/ipem_v4.csv")
+cde=pd.read_csv(str(OUT)+"/cde_municipal.csv")
 df=df.merge(cde,on="cod_ibge",how="left")
 df["subsidio_familia_liq"]=df.subs_liquido/df.linhas_tsee.replace(0,np.nan)
 df["lacuna_pos"]=df.lacuna_bruta.clip(lower=0)
@@ -20,4 +22,4 @@ for uf,g in df.groupby("uf"):
     out.append({"uf":uf,"mun":len(g),"lacuna":int(tot),"mun_para_50pct":n50,"pct_dos_mun":round(100*n50/len(g),1)})
 o=pd.DataFrame(out).sort_values("mun_para_50pct")
 print(o.to_string(index=False))
-df.to_csv("ipem_v5.csv",index=False)
+df.to_csv(str(OUT)+"/ipem_v5.csv",index=False)

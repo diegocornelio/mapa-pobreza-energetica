@@ -12,6 +12,14 @@ data/interim/
 *.pdf
 notebooks/
 
+# Intermediarios do pipeline: regeraveis em seis minutos por roda_tudo.py.
+# Ficam versionados apenas dados.json, geo.json e as duas bases municipais
+# que o app consome diretamente.
+reconstrucao/dados/*.csv
+reconstrucao/dados/*.parquet
+!reconstrucao/dados/cde_municipal.csv
+!reconstrucao/dados/municipios_corrigido.csv
+
 # Rascunho e anotacoes de trabalho na raiz ficam fora do produto.
 /*.md
 !/README.md

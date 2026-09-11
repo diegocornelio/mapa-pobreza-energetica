@@ -1,6 +1,8 @@
 import pandas as pd, numpy as np
-df=pd.read_csv("ipem_v2.csv")
-hh=pd.read_csv("domicilio_tamanho.csv")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+df=pd.read_csv(str(OUT)+"/ipem_v2.csv")
+hh=pd.read_csv(str(OUT)+"/domicilio_tamanho.csv")
 df=df.merge(hh[["cod_ibge","moradores_por_domicilio"]],on="cod_ibge",how="left")
 df["renda_domiciliar"]=df.renda_referencia*df.moradores_por_domicilio
 df["conta"]=df.tarifa_municipal*100
@@ -21,4 +23,4 @@ print("\n  UFs mais penalizadas pelo denominador per capita (domicilio grande):"
 g=df.groupby("uf").moradores_por_domicilio.mean().sort_values(ascending=False)
 print("   maiores:", ", ".join(f"{k} {v:.2f}" for k,v in g.head(5).items()))
 print("   menores:", ", ".join(f"{k} {v:.2f}" for k,v in g.tail(5).items()))
-df.to_csv("ipem_v3.csv",index=False)
+df.to_csv(str(OUT)+"/ipem_v3.csv",index=False)

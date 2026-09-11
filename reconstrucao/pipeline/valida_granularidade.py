@@ -1,6 +1,8 @@
 import pandas as pd, numpy as np
 from collections import Counter
-d=pd.read_csv("app_dados.csv")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+d=pd.read_csv(str(OUT)+"/app_dados.csv")
 q=d.cobertura.quantile([.25,.5,.75]).values
 print("cobertura quartis:",np.round(q,1))
 conc=set()

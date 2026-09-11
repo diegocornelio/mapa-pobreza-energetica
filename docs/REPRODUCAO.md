@@ -6,8 +6,12 @@
 dentro do zip da CDE. As URLs de origem estão em `data/sources/fontes.csv` e resumidas em
 `docs/FONTES.md`.
 
-Dependências: `pandas`, `pyarrow`, `geopandas`. A tabela SIDRA 4712 é buscada por API
-durante a execução, então é preciso rede.
+Dependências em `reconstrucao/pipeline/requirements.txt`, com as versões da execução de
+referência: `pandas`, `numpy`, `pyarrow` e `geopandas`, em Python 3.11. A tabela SIDRA 4712
+é buscada por API durante a execução, então é preciso rede.
+
+O `requirements.txt` da raiz é outro arquivo: pertence à versão anterior do trabalho,
+preservada em `src/` e `tests/`, e lista pacotes que este pipeline não usa.
 
 Ajuste `reconstrucao/pipeline/_paths.py`. É o **único arquivo com caminho absoluto**;
 todo o resto deriva dele.
@@ -23,24 +27,28 @@ Na ordem. Cada script grava seus intermediários em `reconstrucao/dados/`.
 
 ```
 cd reconstrucao/pipeline
-
-python 01_cde.py                  # ~8 min, streaming de 2,3 GB
-python 02_tarifa.py               # tarifa municipal, ponte por CNPJ
-python 03a_decfec_conjunto.py     # DEC/FEC anual por conjunto
-python 03b_decfec_municipio.py    # agregação ponderada por consumidores
-python 04_territorio.py           # requisição à API do SIDRA 4712
-python 05_domicilio.py            # moradores por domicílio
-python 06a_indice_corrigido.py
-python 06b_renda_domiciliar.py
-python 06c_faixas_cadunico.py
-python 06d_concentracao.py
-python 06e_distribuidora.py
-python 07_tarifa_social.py        # desconto escalonado
-python 08_geometria.py            # projeção SIRGAS 2000 e paths SVG
-python 09_payload.py              # dados.json
-
-python build_app.py               # gera site/index.html
+python roda_tudo.py
 ```
+
+O script usa o interpretador que o invocou, ou o apontado por `PIPELINE_PYTHON`. Antes de
+começar ele confere as dependências e diz qual falta, porque o erro mais provável de quem
+reproduz é chamar o Python do sistema em vez do ambiente virtual:
+
+```
+PIPELINE_PYTHON=/caminho/para/.venv/bin/python python roda_tudo.py
+```
+
+As vinte e cinco etapas são executadas na ordem, com o tempo de cada uma. A primeira falha
+interrompe a execução e devolve código diferente de zero: as etapas são estritamente
+sequenciais, e seguir adiante montaria a página sobre arquivos de uma execução anterior,
+com aparência de sucesso. A execução completa leva cerca de seis minutos, dos quais dois e
+meio são as duas leituras da CDE, que somam 4,5 GB de CSV em streaming.
+
+Para executar etapa a etapa, a ordem é a numérica dos arquivos: `01` e `01b` leem a CDE nas
+duas datas; `02` monta a tarifa municipal; `03a` a `03d` tratam a continuidade, em anos
+fechados e no primeiro semestre; `04` e `05` vêm do IBGE; `05b` busca a série do CadÚnico no
+SAGI; `06` consolida; `07` aplica o desconto e abre a CDE por distribuidora; `08` projeta a
+geometria; `09` e `10` montam os payloads; `build_app.py` gera a página.
 
 Validações avulsas, fora do encadeamento:
 
@@ -66,6 +74,7 @@ divergiram.
 | nome | data | sistema | resultado |
 |---|---|---|---|
 | Diego H. C. de Rezende | 2026-09-10 | Windows 11, Python 3.11 | execução original, ad hoc, fora desta pasta |
+| Diego H. C. de Rezende | 2026-09-10 | Windows 11, Python 3.11 | primeira execução de ponta a ponta por `roda_tudo.py` |
 
 **Nenhuma reexecução a partir de `reconstrucao/pipeline/` foi feita ainda.** Os scripts
 são o código que efetivamente produziu o resultado, preservado como estava e

@@ -128,12 +128,51 @@ os 32 municípios com subsídio indisponível.
 
 ---
 
+---
+
+## Limites da comparação entre 2024 e 2026
+
+**O arquivo aberto da CDE tem cobertura variável de distribuidoras entre meses, e o dataset
+não avisa.** Dos cinco meses de 2026 publicados, apenas março traz as 103 concessionárias:
+janeiro tem 99, fevereiro 100, abril 99 e maio 94. Em maio faltam a distribuidora do Distrito
+Federal, as de Mato Grosso, Mato Grosso do Sul e Paraíba, e parte do Rio de Janeiro. Quem
+comparar dois meses sem conferir a lista de agentes conclui que houve queda de benefícios onde
+houve apenas ausência de reporte, e o erro tem direção previsível, porque ausência sempre
+parece queda. A comparação publicada usa março de 2026 por essa razão.
+
+**O mesmo vale para a continuidade.** Em 2026, agosto foi reportado por apenas três conjuntos
+consumidores e julho por 3.035 de 3.177. A janela comparável entre os três anos é de janeiro a
+junho, com 2.995 conjuntos. Uma comparação de janeiro a agosto daria o resultado de três
+conjuntos apresentado como nacional.
+
+**A conferência de base precisa preceder qualquer comparação temporal.** Não é acaso: ocorreu
+em duas fontes distintas, ANEEL e continuidade, e em mais de um mês.
+
+**A comparação de benefícios é sólida; a de cobertura depende do denominador.** A contagem de
+benefícios mede a mesma coisa nas duas pontas. A cobertura usa o CadÚnico de cada data, o que
+resolve a defasagem, mas continua sujeita à diferença entre unidade consumidora e família.
+
+**A atribuição de causa à Lei 15.235/2025 é inferência.** Está medido que a parcela da conta
+coberta subiu de 58% para 88% e que o número de famílias atendidas não subiu. A magnitude, a
+universalidade entre municípios e o patamar de 88% são compatíveis com a gratuidade instituída
+pela lei, e é assim que a página apresenta a leitura. Não foi testado contrafactual, nem
+descartada mudança de critério contábil da CDE.
+
+**A explicação por melhora de renda foi testada e não se sustenta, o que também tem limite.**
+O universo elegível variou −0,19% entre as duas datas, e as 940.860 famílias que saíram da
+faixa de pobreza entraram em baixa renda, que preserva o direito. Isso afasta a hipótese no
+agregado. Não afasta que ela opere em municípios específicos.
+
+**O teste dos 56 municípios com duas concessionárias indica direção, não magnitude.** São
+municípios de fronteira entre concessões, e em geral uma permissionária pequena divide
+território com uma grande. A amostra não é aleatória, e a decomposição de variância atribui
+96% à distribuidora e 39% ao município, somando mais de 100 porque os dois fatores são
+correlacionados: distribuidoras atendem regiões específicas.
+
+---
+
 ## O que os dados de 2024 ainda podem fazer
 
-A base da CDE é de dezembro de 2024, anterior à gratuidade instituída pela Lei
-15.235/2025. Isso costuma ser lido como desatualização; é o contrário.
-
-Todas as fontes permanecem públicas e o cálculo é reprodutível. Repetir o procedimento
-com a CDE de 2026 mede, município a município, quantas dessas famílias a lei efetivamente
-alcançou — e onde não alcançou. Não existe hoje nada público que faça essa avaliação na
-escala municipal.
+A comparação entre dezembro de 2024 e março de 2026 já foi feita, e está publicada na página
+"O que mudou desde 2024". O que permanece aberto é a continuação: a CDE é mensal, e cada nova
+competência completa permite estender a série sem trabalho adicional de método.

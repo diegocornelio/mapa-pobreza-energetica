@@ -1,5 +1,7 @@
 import pandas as pd, numpy as np
-d=pd.read_csv("app_dados2.csv"); u=d[d.subsidio_indisponivel==0]
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+d=pd.read_csv(str(OUT)+"/app_dados2.csv"); u=d[d.subsidio_indisponivel==0]
 F80=(30*0.35+50*0.60)/80
 tar=u.tarifa_municipal.median(); tas=u.tarifa_baixa_renda.median()
 print(f"tarifa residencial mediana R$ {tar:.4f} | subclasse Baixa Renda R$ {tas:.4f} (dif {100*(1-tas/tar):.1f}%)")

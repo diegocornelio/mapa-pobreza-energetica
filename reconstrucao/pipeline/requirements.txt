@@ -1,0 +1,8 @@
+# Dependencias do pipeline de reconstrucao (reconstrucao/pipeline).
+# Versoes da execucao de referencia de 2026-09-10, em Python 3.11.13.
+# O requirements.txt da raiz pertence a versao anterior do trabalho, preservada
+# em src/ e tests/, e lista pacotes que este pipeline nao usa.
+pandas==2.2.2
+numpy==2.4.6
+pyarrow==17.0.0
+geopandas==1.0.1

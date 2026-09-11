@@ -2,7 +2,7 @@ import pandas as pd, numpy as np
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
 B=str(RAW)+"/aneel"
-df=pd.read_csv("ipem_v5.csv")
+df=pd.read_csv(str(OUT)+"/ipem_v5.csv")
 g=pd.read_parquet(B+"/indger/2026-09-05/indger-dados-comerciais.parquet",columns=["SigAgente","NomAgente","CodMunicipioIBGE","DatReferenciaInformada","QtdUCAtiva"])
 g["dt"]=pd.to_datetime(g.DatReferenciaInformada,errors="coerce"); g=g[g.dt.dt.year==2024]
 g["uc"]=pd.to_numeric(g.QtdUCAtiva,errors="coerce").fillna(0)
@@ -26,5 +26,5 @@ cols=["cod_ibge","nome","uf","distribuidora","familias_cadastradas","familias_po
 out=df[cols].copy()
 print("linhas:",len(out))
 print(out.isna().sum()[out.isna().sum()>0].to_string())
-out.to_csv("app_dados.csv",index=False)
+out.to_csv(str(OUT)+"/app_dados.csv",index=False)
 print("\nOK app_dados.csv")

@@ -1,5 +1,7 @@
 import pandas as pd, numpy as np, json, os
-d=pd.read_csv("app_dados2.csv")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+d=pd.read_csv(str(OUT)+"/app_dados2.csv")
 dist=sorted(d.distribuidora.dropna().unique().tolist()); di={v:i for i,v in enumerate(dist)}
 def col(s,dec=None):
     if dec is None: return [None if pd.isna(x) else int(x) for x in s]
@@ -17,8 +19,8 @@ out={"n":len(d),"dist":dist,
   "dec":col(d.dec_h_ano,1),"d3":col(d.d3_corr,3),"d3x":col(d.d3_max,2),"nc":col(d.n_conj),
   "vio":col(d.violacao),"fav":col(d.dom_favela),"dt":col(d.dom_total_mun),"pf":col(d.d4_corr,4),
   "fm":[1 if x else 0 for x in d.favela_mapeada],"ren":col(d.renda_referencia,0)}
-open("dados.json","w",encoding="utf-8").write(json.dumps(out,separators=(",",":"),ensure_ascii=False))
-print("dados.json: %.2f MB"%(os.path.getsize("dados.json")/1e6))
+open(str(OUT)+"/dados.json","w",encoding="utf-8").write(json.dumps(out,separators=(",",":"),ensure_ascii=False))
+print("dados.json: %.2f MB"%(os.path.getsize(str(OUT)+"/dados.json")/1e6))
 print("checagem Nova Iguacu:")
 r=d[d.cod_ibge==3303500].iloc[0]
 print(f"  conta cheia R$ {r.conta_cheia80:.2f} -> social R$ {r.conta_social80:.2f} | economia R$ {r.econ_mes:.2f}/mes")

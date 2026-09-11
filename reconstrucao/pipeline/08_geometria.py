@@ -3,7 +3,7 @@ from shapely.geometry import MultiPolygon, Polygon
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
 gdf=gpd.read_parquet(str(INTERIM_ORIG)+"/municipios.parquet")[["cod_ibge","uf","geometry"]].to_crs(5880)
-d=pd.read_csv("app_dados.csv")
+d=pd.read_csv(str(OUT)+"/app_dados.csv")
 gdf=gdf.merge(d[["cod_ibge"]],on="cod_ibge")
 gdf=gdf.set_index("cod_ibge").loc[d.cod_ibge].reset_index()
 W=1400.0; xmin,ymin,xmax,ymax=gdf.total_bounds; sc=W/(xmax-xmin); H=(ymax-ymin)*sc
@@ -27,5 +27,5 @@ ufg["p"]=[topath(g,3000) for g in ufg.geometry]
 print("municipios sem path:",int((gdf.p.str.len()==0).sum()))
 js={"vb":[round(W),round(H)],"codes":d.cod_ibge.tolist(),"paths":gdf.p.tolist(),
     "uf_paths":{r.uf:r.p for r in ufg.itertuples()}}
-open("geo.json","w",encoding="utf-8").write(json.dumps(js,separators=(",",":")))
-import os; print("geo.json: %.2f MB"%(os.path.getsize("geo.json")/1e6))
+open(str(OUT)+"/geo.json","w",encoding="utf-8").write(json.dumps(js,separators=(",",":")))
+import os; print("geo.json: %.2f MB"%(os.path.getsize(str(OUT)+"/geo.json")/1e6))

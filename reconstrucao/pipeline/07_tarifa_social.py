@@ -1,5 +1,7 @@
 import pandas as pd, numpy as np
-d=pd.read_csv("app_dados.csv")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+d=pd.read_csv(str(OUT)+"/app_dados.csv")
 # desconto escalonado TSEE, Lei 12.212/2010 art.2 + REN ANEEL 1000/2021: cumulativo por faixa
 def fator(k):
     f1=min(k,30)*0.35
@@ -28,4 +30,4 @@ print("=== valor mecanico de fechar a lacuna (tarifa publicada, sem CDE) ===")
 tot=(d.lacuna_pos*d.econ_mes).sum()
 print(f"  alivio mensal as familias se a lacuna fosse fechada: R$ {tot:,.0f}/mes  =  R$ {12*tot:,.0f}/ano")
 print(f"  subsidio medio observado na CDE por familia: R$ {d.subsidio_familia_liq.median():.2f}/mes")
-d.to_csv("app_dados2.csv",index=False)
+d.to_csv(str(OUT)+"/app_dados2.csv",index=False)

@@ -1,15 +1,17 @@
 # Mapa da Pobreza Energética
 
 Quatro medidas de pobreza energética nos 5.570 municípios brasileiros, a partir de
-oito bases abertas da ANEEL, do MDS e do IBGE.
+nove bases abertas da ANEEL, do MDS e do IBGE, em duas datas: dezembro de 2024 e
+março de 2026.
 
-**Aplicativo:** `site/index.html` — página única de 1,9 MB, autocontida, sem servidor,
-sem framework e sem dependência externa. Escolha um município e ele responde para ele em
-todas as páginas.
+**Aplicativo publicado:** https://mapa-pobreza-energetica.netlify.app
 
-Publicação: o repositório traz `netlify.toml` com `publish = "site"`. Não há etapa de
-build — basta apontar o Netlify para este repositório. Para regerar a página a partir dos
-dados, ver `docs/REPRODUCAO.md`.
+É uma página única, autocontida, sem servidor, sem framework e sem dependência externa.
+Escolha um município e ele responde para ele em todas as páginas. O arquivo também abre
+direto do disco: `site/index.html`.
+
+Publicação: o repositório traz `netlify.toml` com `publish = "site"`, e não há etapa de
+build. Para regerar a página a partir dos dados, ver `docs/REPRODUCAO.md`.
 
 ---
 
@@ -17,10 +19,11 @@ dados, ver `docs/REPRODUCAO.md`.
 
 | pergunta | medida |
 |---|---|
-| Quantas famílias elegíveis não recebem a Tarifa Social? | **9.968.144** no país, cobertura de 64,3% |
-| A distribuidora cumpre o limite de continuidade? | **2.082 municípios** acima do limite da ANEEL em 2024 |
+| Quantas famílias elegíveis não recebem a Tarifa Social? | **10.433.225** no país em março de 2026, cobertura de 62,6% |
+| A energia falta mais do que a ANEEL permite? | **1.412 municípios** acima do limite em 2024 e de novo em 2025 |
 | Quanto pesa a conta para quem é pobre aqui? | mediana de 9,75% da renda a 80 kWh, sem o benefício |
-| O território explica pobreza energética? | não, na escala municipal — e o resultado nulo está publicado |
+| O que mudou depois da Lei 15.235/2025? | o benefício passou a cobrir de 58% para 88% da conta, sem ampliar alcance |
+| O território explica pobreza energética? | não, na escala municipal, e o resultado nulo está publicado |
 
 ## O que não responde
 
@@ -51,8 +54,8 @@ site/index.html        a página publicada, pronta para deploy
 netlify.toml           configuração de publicação
 reconstrucao/          o que produz essa página
   app/                 template do aplicativo
-  dados/               dataset municipal, payloads e agregado da CDE
-  pipeline/            19 scripts numerados na ordem de execução
+  dados/               dataset municipal, payloads e séries derivadas
+  pipeline/            30 scripts numerados na ordem de execução
 docs/                  método, correções, limites, dicionário, fontes
 data/sources/          registro das fontes com URL e data de referência
 data/processed/        saída da versão anterior, mantida para comparação
@@ -66,8 +69,8 @@ publicado.
 
 ## Como reproduzir
 
-Ver `docs/REPRODUCAO.md`. Em resumo: ajustar `reconstrucao/pipeline/_paths.py`, executar
-os 14 scripts na ordem e conferir contra os números de referência de `docs/VALIDACAO.md`.
+Ver `docs/REPRODUCAO.md`. Em resumo: ajustar `reconstrucao/pipeline/_paths.py`, rodar
+`python roda_tudo.py` e conferir contra os números de referência de `docs/VALIDACAO.md`.
 
 Os dados brutos são cerca de 3 GB e não acompanham o repositório. As URLs de origem
 estão em `data/sources/fontes.csv`.
@@ -85,6 +88,7 @@ estão em `data/sources/fontes.csv`.
 | `docs/REPRODUCAO.md` | como executar o pipeline |
 | `docs/VALIDACAO.md` | testes aplicados e números de referência |
 | `docs/DECISOES.md` | registro datado das decisões de leitura |
+| `docs/ROTEIRO_VIDEO.md` | material de divulgação, não exigido pelo edital |
 
 ## Licenças
 

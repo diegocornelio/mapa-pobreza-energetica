@@ -1,5 +1,7 @@
 import pandas as pd, numpy as np
-d=pd.read_csv("app_dados2.csv")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+d=pd.read_csv(str(OUT)+"/app_dados2.csv")
 d=d[d.subsidio_indisponivel==0].copy()
 print("municipios com subsidio observado utilizavel:",len(d))
 # desconto em R$ por kWh consumido, segundo a regra, para um consumo k

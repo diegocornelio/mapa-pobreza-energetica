@@ -16,7 +16,7 @@ g["cnpj"]=pd.to_numeric(g.NumCNPJ,errors="coerce"); g["uc"]=pd.to_numeric(g.QtdU
 g["cod_ibge"]=pd.to_numeric(g.CodMunicipioIBGE,errors="coerce"); g=g.dropna(subset=["cod_ibge","cnpj"]); g["cod_ibge"]=g.cod_ibge.astype(int)
 par=g.groupby(["cod_ibge","cnpj"],as_index=False).uc.sum().merge(tb,on="cnpj",how="left").dropna(subset=["tarifa_br"])
 mb=par.groupby("cod_ibge").apply(lambda x: np.average(x.tarifa_br,weights=x.uc) if x.uc.sum()>0 else x.tarifa_br.mean(),include_groups=False).rename("tarifa_baixa_renda").reset_index()
-df=pd.read_csv("ipem_v3.csv").merge(mb,on="cod_ibge",how="left")
+df=pd.read_csv(str(OUT)+"/ipem_v3.csv").merge(mb,on="cod_ibge",how="left")
 print("municipios com tarifa Baixa Renda:",df.tarifa_baixa_renda.notna().sum())
 SM=1412.0; TETO_BR=SM/2; TETO_POB=218.0
 df["renda_dom_teto_br"]=TETO_BR*df.moradores_por_domicilio
@@ -30,7 +30,7 @@ print("(teto da faixa CadUnico x tamanho medio do domicilio do municipio; tarifa
 for c,nm in [("peso_br_cheia","faixa BAIXA RENDA, tarifa cheia"),("peso_br_social","faixa BAIXA RENDA, tarifa social"),
              ("peso_pob_cheia","faixa POBREZA, tarifa cheia"),("peso_pob_social","faixa POBREZA, tarifa social")]:
     s=df[c].dropna(); print(f"  {nm:36s} MED={s.median()*100:6.2f}%  p90={s.quantile(.9)*100:6.2f}%  max={s.max()*100:6.2f}%  >10%%: {int((s>0.10).sum())}")
-df.to_csv("ipem_v4.csv",index=False)
+df.to_csv(str(OUT)+"/ipem_v4.csv",index=False)
 print("\n=== D1 x D3 CORRIGIDO: sao as mesmas cidades? ===")
 w=df.dropna(subset=["d3_corr"])
 q1=w.d1_lacuna_tsee.quantile(.75); q3=w.d3_corr.quantile(.75)

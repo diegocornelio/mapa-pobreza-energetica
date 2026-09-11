@@ -1,8 +1,14 @@
 # Publicacao do Mapa da Pobreza Energetica.
 # A pagina e autocontida: um unico HTML, sem build e sem dependencia externa.
+#
+# O "base" aponta para site/ de proposito. E no diretorio base que o Netlify procura
+# arquivos de dependencia; deixando-o na raiz, o requirements.txt da versao anterior
+# do trabalho faz o Netlify instalar pandas antes de publicar um HTML que nao usa
+# Python. Com base em site/, nao ha o que instalar. O publish e relativo ao base.
 
 [build]
-  publish = "site"
+  base = "site"
+  publish = "."
   command = ""
 
 [[headers]]

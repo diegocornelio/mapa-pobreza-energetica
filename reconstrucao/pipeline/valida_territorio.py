@@ -1,5 +1,7 @@
 import pandas as pd, numpy as np
-d=pd.read_csv("app_dados.csv")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _paths import RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT
+d=pd.read_csv(str(OUT)+"/app_dados.csv")
 def sp(a,b,m=None):
     x=d[a]; y=d[b]
     k=x.notna()&y.notna()
