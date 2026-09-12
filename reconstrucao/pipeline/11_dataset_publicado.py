@@ -29,7 +29,7 @@ COLUNAS = [
     "peso_pob80_cheia", "dec_h_ano", "d3_corr", "d3_max",
     "n_conj", "violacao", "dom_favela", "dom_total_mun",
     "d4_corr", "favela_mapeada", "renda_referencia", "conta_cheia80",
-    "conta_social80", "econ_mes", "peso_social_ef",
+    "conta_social80", "econ_mes", "peso_social_ef", "perda_familias_mes",
 ]
 
 

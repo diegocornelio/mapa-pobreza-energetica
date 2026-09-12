@@ -35,6 +35,12 @@ d["conta_cheia80"]=d.tarifa_municipal*80
 d["conta_social80"]=d.tarifa_baixa_renda*80*F80
 d["econ_mes"]=d.conta_cheia80-d.conta_social80
 d["peso_social_ef"]=d.conta_social80/(LINHA_POBREZA*d.moradores_por_domicilio)
+# O que as FAMILIAS do municipio deixam de receber por mes. Nao confundir com
+# rs_nao_acessado, que e o subsidio que a CDE deixa de desembolsar: aquele mede o
+# gasto do fundo, este mede o alivio que nao chega a mesa. Os dois sao verdadeiros
+# e diferentes, e o segundo e maior, porque a economia da familia inclui a conta
+# inteira ate 80 kWh e o fundo reembolsa pela tarifa da subclasse Baixa Renda.
+d["perda_familias_mes"]=d.lacuna_pos*d.econ_mes
 print()
 print("=== conta de 80 kWh (sem tributos) ===")
 print(f"  cheia   : mediana {d.conta_cheia80.median():6.2f}  min {d.conta_cheia80.min():6.2f}  max {d.conta_cheia80.max():6.2f}")

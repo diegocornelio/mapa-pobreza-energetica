@@ -1,6 +1,6 @@
 # Dicionário de dados
 
-`reconstrucao/dados/municipios_corrigido.csv` — 5.570 linhas, 35 colunas, uma por
+`reconstrucao/dados/municipios_corrigido.csv` — 5.570 linhas, 36 colunas, uma por
 município. Chave: `cod_ibge`. Codificação UTF-8, separador vírgula, decimal ponto.
 
 Campo vazio significa ausência de dado, nunca zero. Ver `docs/LIMITES.md`.
@@ -38,6 +38,7 @@ Valores mensais, referência dezembro de 2024. Ver `docs/CORRECOES.md` § C4.
 | `subs_liquido` | número | subsídio bruto menos estornos, em reais; pode ser negativo |
 | `subsidio_familia_liq` | número | `subs_liquido ÷ beneficiarios_tsee` |
 | `rs_nao_acessado` | número | cenário: `lacuna_pos × subsidio_familia_liq`. Projeção, não medição |
+| `perda_familias_mes` | número | `lacuna_pos × econ_mes`: o que as **famílias** do município deixam de receber por mês. Não confundir com `rs_nao_acessado`, que é o que a **CDE** deixa de desembolsar e é menor, porque o fundo reembolsa pela tarifa da subclasse Baixa Renda enquanto a economia da família é a conta inteira até 80 kWh |
 | `subsidio_indisponivel` | 0 ou 1 | 1 quando `subs_liquido` é negativo; 32 municípios. Nenhuma cifra em reais deve ser usada |
 
 ## Tarifa e conta

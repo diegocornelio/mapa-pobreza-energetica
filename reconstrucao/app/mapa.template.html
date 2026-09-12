@@ -699,6 +699,14 @@ const METRICS = {
     breaks:[0.60,0.68,0.74,0.80,0.88,0.96], ramp:SEQ,
     labels:['até R$ 0,60','R$ 0,60 a 0,68','R$ 0,68 a 0,74','R$ 0,74 a 0,80','R$ 0,80 a 0,88','R$ 0,88 a 0,96','mais de R$ 0,96'],
     caption:'Tarifa B1 residencial convencional homologada, vigente em março de 2026, da distribuidora que atende o município, na mesma data do CadÚnico e da CDE. Sem ICMS e sem PIS/COFINS.'},
+  perda:{name:'Quanto o município deixa de receber por mês',unit:'R$/mês',
+    get:i=>D.perda[i], fmt:v=>brl(v)+'/mês',
+    /* Corte quase-logaritmico: a distribuicao vai de alguns milhares a 29 milhoes, e
+       faixa linear poria quase tudo na primeira banda e uma capital sozinha na ultima.
+       E o mesmo formato do indicador de familias nao atendidas, que ja usa este desenho. */
+    breaks:[5000,15000,40000,100000,300000,1000000], ramp:SEQ,
+    labels:['até R$ 5 mil','R$ 5 a 15 mil','R$ 15 a 40 mil','R$ 40 a 100 mil','R$ 100 a 300 mil','R$ 300 mil a 1 mi','mais de R$ 1 milhão'],
+    caption:'Soma do que as famílias elegíveis sem o benefício deixam de deixar de gastar a cada mês: famílias não atendidas multiplicadas pela economia mensal de cada uma. Não confundir com o subsídio que a CDE deixa de desembolsar, que é menor: este mede o alívio que não chega à família, aquele mede o gasto que o fundo não faz.'},
   ec:{name:'Quanto o benefício devolve por mês',unit:'R$/mês',
     get:i=>D.ec[i], fmt:v=>brl2(v)+'/mês',
     /* Cortes escolhidos pela distribuicao observada, e nao por numeros redondos: com
@@ -856,6 +864,8 @@ const MEDIDAS = [
    fmt:v=>pct(v), nota:'quanto menor, pior'},
   {k:'d3',  rot:'Falta de energia sobre o limite', curto:'Falta de energia', vals:()=>D.d3, maior:true,
    fmt:v=>nf2(v)+'×', nota:'acima de 1,00× é descumprimento', procedencia:true},
+  {k:'perda', rot:'Quanto o município deixa de receber por mês', curto:'Deixa de receber', vals:()=>D.perda, maior:true,
+   fmt:v=>brl(v)+'/mês', nota:'famílias não atendidas × economia de cada uma'},
   {k:'ec',  rot:'Quanto o benefício devolve por mês', curto:'Economia', vals:()=>D.ec, maior:true,
    fmt:v=>brl2(v)+'/mês', nota:'tarifa publicada e regra legal, sem renda'},
   {k:'pc',  rot:'Peso da conta na faixa de pobreza', curto:'Peso da conta', vals:()=>D.pc, maior:true,
@@ -1616,6 +1626,10 @@ function pageMunicipio(){
   <div class="tiles" style="margin-bottom:18px">
     ${tile('Famílias não atendidas', nf(D.lac[i]),
       `famílias elegíveis que não recebem a Tarifa Social. Cobertura de ${pct(D.cob[i])}. ${R.lac.rank[i]}º maior contingente do país.`)}
+    ${D.perda[i]==null
+      ? tile('O que deixa de chegar por mês','—','depende da tarifa, que não foi apurada para este município nesta data.')
+      : tile('O que deixa de chegar por mês', brl(D.perda[i]),
+          `somando o que cada uma das ${nf(D.lac[i])} famílias deixa de economizar. São ${brl(12*D.perda[i])} por ano que não entram na economia local.`)}
     ${D.ec[i]==null
       /* Sem registro no INDGER da data nao ha tarifa, logo nao ha conta nem economia.
          12*null da zero em JavaScript, entao o ramo tem de ser explicito: o cartao
@@ -1779,7 +1793,7 @@ function pageTarifaSocial(){
   const conc=Object.entries(UFCONC).map(([u,o])=>({uf:u,...o})).sort((a,b)=>a.k-b.k);
   return mapPage('ts','Quem não recebe a Tarifa Social a que teria direito?',
     'A diferença entre as famílias do CadÚnico nas faixas elegíveis e os benefícios ativos da Tarifa Social. É a medida mais acionável do conjunto, e a que define o tamanho de uma busca ativa.',
-    ['descob','lac','dcob'],
+    ['descob','lac','perda','dcob'],
     `<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(330px,1fr))">
       <div class="card"><div class="card-h"><h3>Poucos municípios concentram quase tudo</h3>
         <div class="cap">Parcela do total nacional de famílias não atendidas acumulada pelos maiores casos.</div></div>

@@ -44,6 +44,7 @@ documento mude junto.
 | A energia falta mais do que a ANEEL permite? | **1.412 municípios** acima do limite em 2024 e de novo em 2025 |
 | Quanto vale o benefício que essa família não recebe? | **R$ 65,76 por mês**, R$ 789,12 por ano, na mediana dos municípios |
 | O que mudou depois da Lei 15.235/2025? | o benefício passou a cobrir de 58% para 88% da conta, sem ampliar alcance |
+| Quanto o meu município deixa de receber por mês? | de alguns milhares a **R$ 29,4 milhões**, somando **R$ 676,2 milhões/mês** no país |
 | O território explica pobreza energética? | não, na escala municipal, e o resultado nulo está publicado |
 
 ## O que não responde

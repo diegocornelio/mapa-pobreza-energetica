@@ -44,7 +44,7 @@ out={"n":len(d),"dist":dist,"lp":LINHA_POBREZA,"lpv":LINHA_POBREZA_VIGENCIA,
   "ele":col(d.familias_elegiveis_mar26),"ben":col(d.beneficiarios_mar26),
   "eleCecad":col(d.familias_elegiveis),"benDez24":col(d.beneficiarios_tsee),
   "cob":col(d.cobertura,1),"lac":col(d.lacuna_pos),"sob":col(d.sobrecobertura),
-  "rs":col(d.rs_nao_acessado,0),"spf":col(d.subsidio_familia_mar26,2),"sind":col(d.subsidio_indisponivel),
+  "rs":col(d.rs_nao_acessado,0),"perda":col(d.perda_familias_mes,0),"spf":col(d.subsidio_familia_mar26,2),"sind":col(d.subsidio_indisponivel),
   "tar":col(d.tarifa_municipal,4),"tas":col(d.tarifa_baixa_renda,4),"rkt":col(d.rank_tarifa),
   # hh, pc e ps saem com casas a mais do que a tela exibe: com duas casas em hh, o
   # recalculo ao vivo do peso cruzava o limiar de 10% em 6 municipios diferentes dos
