@@ -4,6 +4,7 @@ Uso:  python build_app.py
 Saída: site/index.html  (~1,9 MB, autocontido)
 """
 import io, os
+import json
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parents[1]
@@ -26,6 +27,19 @@ for nome, txt in (("chart.umd.min.js", chart), ("leaflet.js", leafjs)):
         raise SystemExit(f"{nome} contém '</script' e quebraria o HTML")
 if "</style" in leafcss.lower():
     raise SystemExit("leaflet.css contém '</style' e quebraria o HTML")
+
+# O 09_payload.py reescreve dados.json do zero e as etapas 10a a 10e acrescentam a
+# ele. Rodar o 09 isolado, para publicar uma constante nova, descarta em silencio a
+# comparacao entre datas, a serie mensal e os conjuntos, e o app e montado sobre um
+# payload mutilado sem que nada acuse. Aconteceu duas vezes. A guarda abaixo exige
+# as chaves que so existem depois da cadeia completa.
+_EXIGIDAS = ("nac", "cont", "frac26", "serie", "ncj", "agvar", "nar")
+_faltam = [k for k in _EXIGIDAS if k not in json.loads(dados)]
+if _faltam:
+    raise SystemExit(
+        "build_app: payload incompleto, faltam as chaves " + ", ".join(_faltam)
+        + ". O 09_payload.py foi rodado isolado? Ele reescreve dados.json do zero."
+        + " Rode 10a a 10e antes de montar a pagina.")
 
 html = (tpl.replace("__DATA__", dados)
            .replace("__GEO__", geo)

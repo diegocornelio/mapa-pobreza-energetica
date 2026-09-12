@@ -5,6 +5,18 @@ from _paths import (RAW, INTERIM_ORIG, PROCESSED_ORIG, OUT,
                     BANDEIRAS, BANDEIRAS_FONTE)
 d=pd.read_csv(str(OUT)+"/app_dados2.csv")
 dist=sorted(d.distribuidora.dropna().unique().tolist()); di={v:i for i,v in enumerate(dist)}
+
+def _narrativa(d):
+    """Agregados citados em texto na tela, calculados uma vez e publicados."""
+    den = LINHA_POBREZA * d.moradores_por_domicilio
+    peso = lambda k: float(100*(d.tarifa_municipal*k/den).median())
+    ki = (d.subsidio_familia_mar26/d.tarifa_baixa_renda).replace([np.inf,-np.inf],np.nan).dropna()
+    ki = ki[ki > 0]
+    return {"p30": round(peso(30),2), "p100": round(peso(100),2),
+            "kimp": round(float(ki.median()),1),
+            "kimpP10": round(float(ki.quantile(.10)),1),
+            "kimpP90": round(float(ki.quantile(.90)),1),
+            "kimpPct": round(float(100*(ki<=80).mean()),1)}
 def col(s,dec=None):
     if dec is None: return [None if pd.isna(x) else int(x) for x in s]
     return [None if pd.isna(x) else round(float(x),dec) for x in s]
@@ -16,6 +28,12 @@ out={"n":len(d),"dist":dist,"lp":LINHA_POBREZA,"lpv":LINHA_POBREZA_VIGENCIA,
   # nao entra em tar nem em cc: vai como constante para a tela montar o cenario
   # sem que o numero publicado da conta mude.
   "bnd":BANDEIRAS,"bndf":BANDEIRAS_FONTE,
+  # Numeros que a prosa do aplicativo cita e que sao resultado de calculo. Ficam
+  # aqui, e nao escritos a mao no template, porque frase envelhece em silencio: a
+  # pagina do metodo afirmou por semanas uma sobrecobertura de 80 municipios que
+  # ja era 35. valida_app.py recusa literal calculado no template justamente para
+  # forcar a passagem por aqui.
+  "nar":_narrativa(d),
   "cod":d.cod_ibge.tolist(),"nome":d.nome.tolist(),"uf":d.uf.tolist(),# Um municipio pode nao ter registro no INDGER da data de referencia (Acegua, RS,
   # em marco de 2026). O indice sai nulo, e a tela diz que nao sabe, em vez de o
   # pipeline quebrar ou de atribuir a distribuidora errada.
