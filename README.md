@@ -6,6 +6,23 @@ março de 2026.
 
 **Aplicativo publicado:** https://mapa-pobreza-energetica.netlify.app
 
+> **Estado desta versão — 11 de setembro de 2026.** Esta é a versão corrente e única do
+> trabalho; o endereço acima serve sempre o que está neste repositório. Duas correções
+> recentes alteram números que circularam antes, e ficam registradas aqui para que
+> qualquer divergência com material anterior seja resolvida a favor desta versão:
+>
+> - **O cálculo do benefício foi corrigido.** Ele aplicava o desconto escalonado da Lei
+>   12.212/2010, revogado em 4 de julho de 2025, a uma leitura de março de 2026. A regra
+>   vigente é a redução de 100% para a parcela do consumo até 80 kWh, da Lei 15.235/2025 e
+>   da REN ANEEL 1.147/2025, art. 179, §1º, I. O que a família deixa de receber passou de
+>   R$ 37,46 para **R$ 65,76 por mês**.
+> - **A contagem de municípios acima de um limiar de renda deixou de ser publicada.** Ela
+>   era inteiramente determinada pelo consumo suposto: zero municípios a 30 kWh, quase
+>   todos a 100 kWh. A ordenação entre municípios, que é robusta ao cenário, continua
+>   publicada.
+>
+> Ambas estão documentadas com a prova em `docs/CORRECOES.md`, como C7 e C8.
+
 É uma página única, autocontida, sem servidor, sem framework e sem dependência externa.
 Escolha um município e ele responde para ele em todas as páginas. O arquivo também abre
 direto do disco: `site/index.html`.
