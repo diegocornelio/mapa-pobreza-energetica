@@ -521,131 +521,133 @@ específica foi observada consumindo 80 kWh.
 
 ---
 
-# 7. A única regra normativa: o desconto escalonado
+# 7. A única regra normativa: a gratuidade até 80 kWh
 
 Este é o único ponto de todo o cálculo em que se aplica uma **regra jurídica** em vez
 de ler um dado. Se ela estiver errada, todos os valores em reais caem junto. Por isso
 tem os dois testes independentes ao final desta seção.
 
+**A regra mudou em 2025, e o projeto aplicava a antiga.** Até 4 de julho de 2025 valia
+o desconto escalonado da Lei 12.212/2010. Desde então, pela Medida Provisória
+1.300/2025, convertida na Lei 15.235/2025 e regulamentada pela Resolução Normativa
+ANEEL nº 1.147/2025, art. 179, § 1º, lido em fonte primária:
+
+> **I** — para a parcela do consumo de energia elétrica menor ou igual a 80 kWh/mês:
+> redução de 100%;
+> **II** — para a parcela do consumo maior que 80 kWh/mês: redução de 0%.
+
+A palavra *parcela* define a forma: a redução é por faixa, e quem ultrapassa os 80 kWh
+não perde o benefício, paga apenas o excedente, à tarifa da subclasse Baixa Renda. A
+resolução produz efeitos desde 09/12/2025, pelo art. 13, IV. O erro de aplicar a regra
+revogada a uma leitura de março de 2026 está registrado como C8 em `docs/CORRECOES.md`.
+
 ## A conta
 
-$$F(k)=\frac{0{,}35\min(k,30)+0{,}60\max(0,\min(k,100)-30)+0{,}90\max(0,\min(k,220)-100)+1{,}00\max(0,k-220)}{k}$$
+$$F(k)=rac{\max(0,\;k-80)}{k}$$
+
+onde $F(k)$ é a fração do consumo que o beneficiário paga. Para $k \le 80$, $F(k)=0$.
+
+A regra anterior, que vale para a leitura de dezembro de 2024 da comparação entre datas,
+era esta, e permanece implementada em `fator_ate_julho_2025`:
+
+$$F_{	ext{2010}}(k)=rac{0{,}35\min(k,30)+0{,}60\max(0,\min(k,100)-30)+0{,}90\max(0,\min(k,220)-100)+1{,}00\max(0,k-220)}{k}$$
 
 ## O código que a executa
 
-<!-- fonte: reconstrucao/pipeline/07_tarifa_social.py 6-11 -->
+<!-- fonte: reconstrucao/pipeline/07_tarifa_social.py 14-16 -->
 ```python
 def fator(k):
-    f1=min(k,30)*0.35
-    f2=max(0,min(k,100)-30)*0.60
-    f3=max(0,min(k,220)-100)*0.90
-    f4=max(0,k-220)*1.0
-    return (f1+f2+f3+f4)/k
+    """Fracao do consumo que o beneficiario paga, na regra vigente."""
+    return max(0.0, k-80)/k
 ```
 
-<!-- fonte: reconstrucao/pipeline/07_tarifa_social.py 13-17 -->
+<!-- fonte: reconstrucao/pipeline/07_tarifa_social.py 33-37 -->
 ```python
 F80=fator(80)
 d["conta_cheia80"]=d.tarifa_municipal*80
 d["conta_social80"]=d.tarifa_baixa_renda*80*F80
 d["econ_mes"]=d.conta_cheia80-d.conta_social80
-d["peso_social_ef"]=d.conta_social80/(218*d.moradores_por_domicilio)
+d["peso_social_ef"]=d.conta_social80/(LINHA_POBREZA*d.moradores_por_domicilio)
 ```
 
 ## Por que ela é válida
 
-A função é escrita como fator de **pagamento**, e não de desconto. Cada faixa de
-consumo tem o seu percentual, e o desconto é **cumulativo por faixa**, não aplicado
-de uma vez sobre o total:
+A redução incide sobre a **tarifa da subclasse Baixa Renda**, e não sobre a convencional.
+São duas coisas somadas quando a família entra no benefício: ela muda de subclasse, o que
+já baixa o preço do kWh, e sobre essa tarifa menor incide a redução de 100% até 80 kWh.
 
-| faixa de consumo | fator no código | desconto implicado |
+A estrutura é por **parcela de consumo**, e não por limiar que cancela o benefício inteiro.
+Quem consome 95 kWh recebe os primeiros 80 de graça e paga 15 à tarifa Baixa Renda.
+
+| parcela do consumo | redução | fator de pagamento |
 |---|---|---|
-| 0 a 30 kWh | 0,35 | 65% |
-| 31 a 100 kWh | 0,60 | 40% |
-| 101 a 220 kWh | 0,90 | 10% |
-| acima de 220 kWh | 1,00 | 0% |
-
-Os `min` e `max` encadeados são o que implementa o escalonamento: cada faixa recebe
-apenas a parte do consumo que cai dentro dela.
+| até 80 kWh/mês | 100% | 0,00 |
+| acima de 80 kWh/mês | 0% | 1,00 |
 
 ## A alternativa descartada
 
-**Aplicar 40% sobre os 80 kWh inteiros**, por o consumo cair na segunda faixa. Daria
-fator 0,60 em vez de 0,50625, uma conta 18,5% mais cara, e estaria errado: os
-primeiros 30 kWh têm desconto de 65%, não de 40%.
+**Manter o desconto escalonado da Lei 12.212/2010.** Era o que este projeto fazia, e estava
+errado para a data de referência: a regra foi substituída em 4 de julho de 2025 e a leitura
+do presente é de março de 2026. O fator a 80 kWh era 0,50625, o que fazia a família pagar
+R$ 27,64 quando ela não paga nada, e subestimava a economia em 76%.
+
+A regra antiga não foi apagada: ela permanece em `fator_ate_julho_2025` porque é a que vale
+para a leitura de dezembro de 2024, e a comparação entre as duas datas só faz sentido com
+cada uma sob a sua própria regra.
 
 ## Aplicação: São João de Meriti
 
-$$F_{80}=\frac{30(0{,}35)+50(0{,}60)}{80}=\frac{10{,}5+30{,}0}{80}=\mathbf{0{,}506250}$$
-
-| passo | conta |
+| passo | valor |
 |---|---|
-| conta cheia | 0,823560 × 80 = **R$ 65,8848** |
-| conta com Tarifa Social | 0,684600 × 80 × 0,506250 = **R$ 27,7263** |
-| economia | 65,8848 − 27,7263 = **R$ 38,1585 por mês** |
-| peso sem o benefício | 11,57% |
-| peso com o benefício | **4,87%** |
+| tarifa residencial convencional | R$ 0,8236/kWh |
+| conta de 80 kWh sem o benefício | 0,8236 × 80 = **R$ 65,88** |
+| fator de pagamento a 80 kWh | max(0; 80 − 80) ÷ 80 = **0,00** |
+| conta com Tarifa Social | 0,6846 × 80 × 0,00 = **R$ 0,00** |
+| economia | 65,88 − 0,00 = **R$ 65,88 por mês** |
 
 ## Como ler o resultado
 
-A família paga 50,625% do que pagaria sem a regra, o que corresponde a um desconto
-efetivo de 49,4% a 80 kWh.
+A família elegível que está **fora** do benefício paga R$ 65,88 por mês por 80 kWh. A mesma
+família **dentro** paga zero pela energia. A diferença é integralmente o que a ausência de
+um registro administrativo custa a ela.
 
-**A economia tem duas componentes, não uma.** A troca de subclasse tarifária, de
-Residencial (R$ 0,8236) para Baixa Renda (R$ 0,6846), e o desconto escalonado sobre
-ela. **A CDE reembolsa apenas a segunda.** Confundir as duas produziu um argumento de
-validação que depois foi descartado em público, e o registro está em
-`docs/VALIDACAO.md`.
+A fatura, porém, **não vem zerada**: ICMS, contribuição de iluminação pública e eventuais
+parcelamentos continuam lançados. A redução alcança a tarifa de energia, e este projeto
+calcula apenas essa parcela.
 
-**E aqui está a leitura que o aplicativo transforma em encaminhamento:** em São João de
-Meriti a Tarifa Social devolve à família mais do que a mediana do país devolve, porque a
-tarifa local é das mais altas. A mesma família, elegível, recupera esse valor por mês se
-estiver dentro do benefício e não recupera nada se estiver fora. Não é caso de discutir
-tarifa: o instrumento que resolve é o cadastro. O encaminhamento é dito em reais, e não
-em fração da renda, justamente para não depender de hipótese sobre a renda.
+## O teste que a regra passou, e que foi o que revelou o erro
 
-## Os dois testes que a regra passou
+A regra foi invertida contra a CDE. Sob a gratuidade, o subsídio por beneficiário é a
+tarifa Baixa Renda multiplicada pelo consumo, enquanto este ficar abaixo do teto. Logo, a
+inversão devolve o consumo diretamente:
 
-**Teste por inversão.** Partindo do subsídio que a CDE efetivamente pagou por família
-em cada município, e da tarifa da subclasse Baixa Renda, resolve-se para o consumo
-que a regra implica:
+$$k(m)=rac{	ext{subsídio por beneficiário}(m)}{	ext{tarifa Baixa Renda}(m)}$$
 
-| | valor |
+| medida | valor |
 |---|---|
-| consumo implícito, mediana | **97,7 kWh** |
-| p05 · p25 · p75 · p95 | 79,9 · 90,0 · 119,0 · 147,8 kWh |
-| fração entre 40 e 150 kWh | **95,8%** |
+| consumo implícito, mediana | **70,5 kWh** |
+| p10 · p90 | 65,1 · 74,2 kWh |
+| municípios abaixo do teto de 80 kWh | **99,1%** |
 
-É fisicamente plausível para consumo residencial de baixa renda. Uma regra errada por
-um fator produziria consumo implícito absurdo, algo como 300 kWh ou 15 kWh.
+A distribuição é estreita e fisicamente plausível para consumo residencial de baixa renda,
+e fica **abaixo da cota que a lei declarou gratuita**, o que é coerente com a regra estar
+correta.
 
-**Teste de escala.** Se a regra vale, o subsídio é proporcional à tarifa, e a razão
-entre os dois deve ser aproximadamente constante entre municípios:
-
-| | valor |
-|---|---|
-| Spearman(subsídio por família, tarifa Baixa Renda) | **+0,755** |
-| coeficiente de variação do subsídio bruto | 0,143 |
-| coeficiente de variação do subsídio ÷ tarifa | **0,093** |
-| razão mediana, em kWh-equivalente descontado | 46,6 |
-
-Normalizar pela tarifa reduz a dispersão em **35%**, o que só acontece se a tarifa
-for de fato um fator multiplicativo do subsídio. E o fecho é interno: a 97,7 kWh a
-regra prevê $0{,}65 \times 30 + 0{,}40 \times 67{,}7 = 46{,}6$ kWh descontados,
-exatamente a razão mediana observada. Não foi ajustado.
+**Foi essa mesma conta que denunciou o erro.** Aplicando a regra revogada aos dados de março
+de 2026, o consumo implícito sai em **142,7 kWh**, implausível. O projeto havia validado a
+regra escalonada obtendo 97,7 kWh, e aquele teste era válido: foi feito sobre a CDE de
+dezembro de 2024, quando a regra vigorava. O que estava errado era mantê-la ao mover a
+leitura do presente.
 
 ## O que a tornaria errada
 
-Uma mudança legal nos percentuais ou nos limites de faixa. A regra aparece em três
-arquivos (`07_tarifa_social.py`, `valida_desconto.py` e, em forma fechada,
-`valida_decomposicao.py`), e nenhum teste acusa se apenas um for atualizado.
+Se a Resolução Normativa ANEEL nº 1.147/2025 for alterada, o fator muda e todos os valores
+em reais mudam junto. O mesmo vale se a data de referência do projeto voltar para antes de
+4 de julho de 2025, quando a regra aplicável passa a ser a escalonada.
 
-A função também aceita `k` negativo sem reclamar: para qualquer k menor que zero ela
-devolve exatamente 0,35, porque o sinal cancela na divisão final e as três faixas
-superiores são zeradas pelo `max`. Nada no código impede essa entrada; ela só não
-ocorre porque `k` é a constante 80.
-
----
+A inversão contra a CDE é o alarme: consumo implícito fora da faixa fisicamente plausível
+para consumo residencial de baixa renda indica regra errada para a data, e foi assim que o
+defeito apareceu.
 
 # 8. A leitura do presente, casada por data
 
