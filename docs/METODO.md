@@ -75,16 +75,32 @@ hipótese de consumo, e que por isso ela não é publicada.
 ## 2. O que a Tarifa Social devolve, em reais
 
 ```
-economia = (tarifa cheia × 80 kWh) − (tarifa Baixa Renda × 80 kWh × 0,50625)
+economia = (tarifa cheia × 80 kWh) − 0
+           porque a redução é de 100% para a parcela do consumo até 80 kWh/mês
 ```
 
 Esta é a medida de manchete do projeto, e é a mais simples de auditar: entram tarifa
 homologada da ANEEL e a regra de desconto da Lei 12.212/2010, e nada mais. **Não usa
-renda.** Na mediana dos municípios são R$ 37,46 por mês, R$ 449,52 por ano, variando de
-R$ 25,03 a R$ 51,45 conforme a tarifa da distribuidora local.
+renda.** Na mediana dos municípios são R$ 65,76 por mês, R$ 789,12 por ano, variando de
+R$ 38,89 a R$ 90,15 conforme a tarifa da distribuidora local.
 
-O fator 0,50625 é o desconto escalonado da lei aplicado a 80 kWh, escrito como fator de
-pagamento: 35% do preço nos primeiros 30 kWh, 60% nos 50 seguintes.
+**A regra é a da REN ANEEL 1.147/2025**, art. 179, §1º, que deu nova redação ao art. 179 da
+REN 1.000/2021, lido em fonte primária:
+
+> I — para a parcela do consumo de energia elétrica menor ou igual a 80 kWh/mês: redução de 100%;
+> II — para a parcela do consumo maior que 80 kWh/mês: redução de 0%;
+
+A palavra *parcela* define a forma: a redução é por faixa de consumo, e quem ultrapassa os
+80 kWh não perde o benefício, paga apenas o excedente, à tarifa da subclasse Baixa Renda. A
+resolução produz efeitos desde 09/12/2025 (art. 13, IV), e a gratuidade em si desde
+05/07/2025, pela MP 1.300/2025, convertida na Lei 15.235/2025.
+
+**A regra anterior era outra, e é a que vale para a leitura de dezembro de 2024.** O desconto
+escalonado da Lei 12.212/2010, escrito como fator de pagamento, dava 35% do preço nos
+primeiros 30 kWh e 60% nos 50 seguintes, ou 0,50625 a 80 kWh. Ela vigorou até 04/07/2025.
+
+**A fatura não vem zerada.** A redução incide sobre a tarifa de energia. ICMS, COSIP e
+eventuais parcelamentos continuam lançados, e este projeto não os calcula.
 
 ## 3. Peso da conta na faixa de pobreza
 

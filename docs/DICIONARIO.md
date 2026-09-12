@@ -51,7 +51,7 @@ ponderada por unidades consumidoras ativas. **Sem ICMS e sem PIS/COFINS.**
 | `tarifa_baixa_renda` | número | tarifa da subclasse Baixa Renda. É a **base** sobre a qual o desconto incide, não a conta final |
 | `rank_tarifa` | inteiro | posição nacional por `tarifa_municipal`, 1 é a mais cara |
 | `conta_cheia80` | número | `tarifa_municipal × 80` |
-| `conta_social80` | número | `tarifa_baixa_renda × 80 × 0,50625`, com o desconto escalonado da Lei 12.212/2010 |
+| `conta_social80` | número | `tarifa_baixa_renda × 80 × fator(80)`, com `fator` da REN ANEEL 1.147/2025: redução de 100% até 80 kWh, logo **zero** na data de referência. A regra escalonada da Lei 12.212/2010 |
 | `econ_mes` | número | `conta_cheia80 − conta_social80`: economia mensal da família |
 
 ## Renda e peso da conta

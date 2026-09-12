@@ -52,9 +52,9 @@ Boa Esperança do Norte (MT, IBGE 5101837), instalado depois do Censo.
 | Tarifa residencial, faixa nacional | R$ 0,4862 a R$ 1,1268 por kWh |
 | Amplitude | 2,32× |
 | Conta de 80 kWh, tarifa cheia, mediana | R$ 65,76 |
-| Conta de 80 kWh com Tarifa Social, mediana | R$ 27,64 |
-| O que a Tarifa Social devolve, mediana | R$ 37,46 por mês, R$ 449,52 por ano |
-| Economia, faixa entre municípios | R$ 25,03 a R$ 51,45 por mês |
+| Conta de 80 kWh com Tarifa Social, mediana | R$ 0,00 — redução de 100% até 80 kWh |
+| O que a Tarifa Social devolve, mediana | R$ 65,76 por mês, R$ 789,12 por ano |
+| Economia, faixa entre municípios | R$ 38,89 a R$ 90,15 por mês |
 | Peso na faixa de pobreza a 80 kWh, sem benefício | mediana 10,50% — publicado como ordenação, não como limiar |
 | Fração da conta coberta, dez/2024 | 58,19% |
 | Fração da conta coberta, mar/2026 | 88,11% |

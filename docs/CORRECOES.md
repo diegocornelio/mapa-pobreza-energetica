@@ -217,6 +217,46 @@ na tela, agora sobre um denominador com precisão bastante.
 detalhe de formatação: quem arredonda o insumo de uma comparação de limiar está
 escolhendo, sem saber, de que lado alguns municípios vão cair.
 
+## C8 — O cálculo aplicava uma regra de desconto revogada
+
+**Defeito.** A conta com Tarifa Social era calculada pelo desconto escalonado da Lei
+12.212/2010, com fator de pagamento 0,50625 a 80 kWh. Essa regra **vigorou até 4 de julho de
+2025**. A leitura do presente deste projeto é de **março de 2026**, quando já valia a
+gratuidade de 100% para a parcela do consumo até 80 kWh, estabelecida pela MP 1.300/2025,
+convertida na Lei 15.235/2025 e regulamentada pela REN ANEEL 1.147/2025, art. 179, §1º, I.
+
+| medida | antes | depois |
+|---|---|---|
+| conta de 80 kWh com Tarifa Social | R$ 27,64 | **R$ 0,00** |
+| economia mensal por família | R$ 37,46 | **R$ 65,76** |
+| economia anual | R$ 449,52 | **R$ 789,12** |
+| faixa entre municípios | R$ 25,03 a R$ 51,45 | R$ 38,89 a R$ 90,15 |
+| peso na renda com benefício | 4,44% | **0,00%** |
+| alívio se a lacuna fosse fechada | R$ 385,9 mi/mês | **R$ 676,2 mi/mês** |
+
+**Como o defeito foi encontrado.** Por inversão. Sob a gratuidade, o subsídio por
+beneficiário é a tarifa Baixa Renda multiplicada pelo consumo até o teto, então a inversão
+devolve o consumo. Aplicada aos dados de março de 2026, a regra vigente devolve **70,5 kWh**
+na mediana, com p10 de 65,1 e p90 de 74,2, e 99,1% dos municípios abaixo do teto de 80 kWh.
+A regra revogada, aplicada aos mesmos dados, devolve **142,7 kWh**, fisicamente implausível.
+
+**A validação anterior não estava errada; estava datada.** O projeto havia testado a regra
+escalonada obtendo 97,7 kWh de consumo implícito, e aquele teste é válido: foi feito sobre a
+CDE de dezembro de 2024, quando a regra de fato vigorava. O erro foi manter a mesma regra ao
+mover a leitura do presente para março de 2026.
+
+**Confirmação independente.** O campo `frac26`, que o projeto já publicava, mede o subsídio
+sobre uma cota de 80 kWh à tarifa Baixa Renda e vale 88,08%. Sob gratuidade integral, isso
+implica consumo de 0,88 × 80 = 70,4 kWh, que coincide com os 70,5 kWh da inversão. Os dois
+caminhos partem de variáveis diferentes e convergem.
+
+**O que isto revelou sobre a leitura publicada.** O app apresentava o `frac26` como "o
+benefício cobre 88% da conta", o que sob a regra nova é leitura errada: significa que o
+beneficiário consome 88% da cota gratuita, e não que recebe desconto parcial.
+
+**O que não mudou.** Cobertura, lacuna de 10.440.849 famílias, tarifa, amplitude, peso sem
+benefício, continuidade e a comparação entre as duas datas, cada uma sob a sua própria regra.
+
 ## Um argumento de validação que foi descartado
 
 Registrado aqui porque a auditoria vale para o próprio trabalho.

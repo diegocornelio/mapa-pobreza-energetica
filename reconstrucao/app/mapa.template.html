@@ -703,9 +703,9 @@ const METRICS = {
     /* Cortes escolhidos pela distribuicao observada, e nao por numeros redondos: com
        o corte de topo em 44 a faixa mais escura ficava com 7 municipios de 5.570 e o
        mapa perdia a ponta. Assim nenhuma das sete faixas fica abaixo de 250. */
-    breaks:[31,34,36,38,40,42], ramp:SEQ,
-    labels:['até R$ 31','R$ 31 a 34','R$ 34 a 36','R$ 36 a 38','R$ 38 a 40','R$ 40 a 42','mais de R$ 42'],
-    caption:'Diferença entre a conta de 80 kWh na tarifa cheia e a mesma conta com a Tarifa Social, pela regra de desconto da Lei 12.212/2010. É o que a família deixa de gastar por mês ao entrar no benefício. Não usa renda: só tarifa publicada e regra legal.'},
+    breaks:[52,58,62,66,70,76], ramp:SEQ,
+    labels:['até R$ 52','R$ 52 a 58','R$ 58 a 62','R$ 62 a 66','R$ 66 a 70','R$ 70 a 76','mais de R$ 76'],
+    caption:'Diferença entre a conta de 80 kWh na tarifa cheia e a mesma conta com a Tarifa Social, que hoje é zero até esse consumo. É o que a família deixa de gastar por mês ao entrar no benefício. Não usa renda: só tarifa publicada e regra legal.'},
   pc:{name:'Peso da conta na faixa de pobreza',unit:'%',
     get:i=>D.pc[i]==null?null:100*D.pc[i], fmt:v=>pct(v),
     breaks:[7,8.5,10,11.5,13,15], ramp:SEQ,
@@ -1001,7 +1001,7 @@ function leitura(i){
       acao:acima
         ? `Não é caso de discutir tarifa: é cadastro. Cada família elegível trazida para o benefício deixa de gastar ${brl2(D.ec[i])} por mês, acima da mediana nacional de ${brl2(AGG.ecMed)}, porque a tarifa daqui é das mais altas.`
         : `Cada família trazida para o benefício recupera ${brl2(D.ec[i])} por mês, abaixo da mediana nacional de ${brl2(AGG.ecMed)}, porque a tarifa daqui é menor. O retorno por família é menor, e o argumento local é de volume de cobertura ou de qualidade do fornecimento.`,
-      efeito:`Conta de 80 kWh: ${brl2(D.cc[i])} na tarifa cheia, ${brl2(D.cs[i])} com a Tarifa Social. A diferença é o desconto escalonado da Lei 12.212/2010 sobre a tarifa da subclasse Baixa Renda, e não depende de nenhuma hipótese sobre a renda da família.`});
+      efeito:`Conta de 80 kWh: ${brl2(D.cc[i])} na tarifa cheia, ${brl2(D.cs[i])} com a Tarifa Social. A energia é gratuita até 80 kWh pela REN ANEEL 1.147/2025, art. 179, §1º, I. Restam na fatura ICMS, COSIP e eventuais parcelamentos, que o desconto não alcança. O valor não depende de nenhuma hipótese sobre a renda da família.`});
   }
 
   /* ===== 4. continuidade ===== */
@@ -1659,7 +1659,7 @@ function pageMunicipio(){
           <div><dt>Renda de referência</dt><dd class="num">${brl(D.ren[i])} por pessoa ao mês (Censo 2022)</dd></div>
           <div><dt>Teto da faixa</dt><dd>${brl2(D.lp)} por pessoa · renda do domicílio <span class="num">${brl(D.lp*D.hh[i])}</span></dd></div>
         </div>
-        <div class="callout" style="margin-top:13px">A conta com Tarifa Social aplica o desconto escalonado da Lei 12.212/2010 sobre a tarifa da subclasse Baixa Renda: 65% nos primeiros 30 kWh e 40% nos 50 seguintes. A tarifa publicada é apenas a base sobre a qual o desconto incide.</div>
+        <div class="callout" style="margin-top:13px">A energia é <strong>gratuita até 80 kWh</strong> para quem tem a Tarifa Social, pela REN ANEEL 1.147/2025, art. 179, §1º, I. Acima disso, a parcela excedente paga a tarifa da subclasse Baixa Renda sem desconto. A fatura não vem zerada: ICMS, COSIP e parcelamentos continuam lançados, e o desconto não os alcança.</div>
         <div class="callout warn" style="margin-top:9px">O <em>nível</em> deste percentual depende do consumo suposto, e a faixa é larga. O que não depende é a <em>ordenação</em>: trocar 80 kWh por 30 ou por 100 multiplica todos os municípios pelo mesmo fator e não muda quem está pior que quem. Leia a posição, não o número.</div>
       </div></div>
 
@@ -1715,7 +1715,7 @@ function barPair(c1,c2,p1,p2){
       </div>
     </div>
     <div style="font-size:11.5px;color:var(--muted)">
-      A diferença entre as duas barras é o desconto escalonado da Lei 12.212/2010.
+      A diferença entre as duas barras é a gratuidade de até 80 kWh, da REN 1.147/2025.
     </div>
   </div>`;
 }
@@ -1850,8 +1850,9 @@ function pageConta(){
             <tr><td>Conta com Tarifa Social</td><td class="n">${brl2(medianOf(i=>D.cs[i]))}</td></tr>
             <tr style="font-weight:600"><td>O que o benefício devolve</td><td class="n">${brl2(ecMed)}/mês</td></tr>
           </tbody></table></div>
-          <div class="callout" style="margin-top:13px">O desconto escalonado da Lei 12.212/2010 incide sobre a tarifa da subclasse Baixa Renda: 65% nos primeiros 30 kWh, 40% nos 50 seguintes. Na mediana, o benefício tira <strong>58,3%</strong> da conta.</div>
-          <div class="callout" style="margin-top:9px"><strong>Como sabemos que a regra do desconto está certa.</strong> Ela foi invertida contra a CDE: dado o subsídio que cada município efetivamente recebeu por família, qual consumo a regra implica? A resposta é <strong>97,7 kWh</strong> na mediana, com 95,8% dos municípios entre 40 e 150 kWh, faixa fisicamente plausível para consumo residencial de baixa renda. Se a regra estivesse errada por um fator, o consumo implícito sairia absurdo. Além disso, o subsídio observado escala com a tarifa como a regra exige: ao dividir o subsídio pela tarifa, a dispersão entre municípios cai 35%.</div>
+          <div class="callout" style="margin-top:13px">Até 80 kWh a redução é de <strong>100%</strong>, pela REN ANEEL 1.147/2025, art. 179, §1º, I, que deu nova redação ao art. 179 da REN 1.000/2021. A parcela acima de 80 kWh tem redução de 0%. A regra anterior, escalonada pela Lei 12.212/2010, vigorou até 4 de julho de 2025 e é a que vale para a leitura de dezembro de 2024 desta comparação.</div>
+          <div class="callout" style="margin-top:9px"><strong>Como sabemos que a regra está certa.</strong> Ela foi invertida contra a CDE: dado o subsídio que cada município efetivamente recebeu por família, qual consumo a regra implica? Sob a gratuidade, o subsídio é a tarifa Baixa Renda multiplicada pelo consumo até o teto, então a inversão devolve o consumo diretamente. A resposta é <strong>70,5 kWh</strong> na mediana, com p10 de 65,1 e p90 de 74,2, e <strong>99,1% dos municípios abaixo do teto de 80 kWh</strong> — distribuição estreita e fisicamente plausível.
+          <br><br>Foi essa inversão que revelou o erro. Aplicando a regra anterior a estes mesmos dados de março de 2026, o consumo implícito sai em 142,7 kWh, implausível. O projeto havia validado a regra escalonada obtendo 97,7 kWh, mas sobre dados de dezembro de 2024, quando ela de fato vigorava. A mesma conta, feita na data errada, denunciou a troca de regra.</div>
         </div></div>
 
       <div class="card"><div class="card-h"><h3>Quanto isso pesa na renda de quem é pobre</h3>
@@ -2161,7 +2162,7 @@ function pageMetodo(){
     ${S('01b','Por que a soma não usa o saldo líquido nacional',
       'Em 80 municípios há mais benefícios ativos que famílias elegíveis. Somar o saldo líquido do país deixaria esse excesso compensando a falta de outros municípios, o que não acontece na prática: benefício a mais em Juazeiro do Norte não alcança família nenhuma em Manaus. A soma usa apenas as diferenças positivas. Pelo saldo líquido o número seria 9.938.086, e a diferença de 30.058 é exatamente o excesso desses 80 municípios.')}
     ${S('02b','A conta com Tarifa Social',
-      'A ANEEL publica a tarifa da subclasse Baixa Renda, que é a base sobre a qual o desconto incide, e não a conta final. O desconto escalonado da Lei 12.212/2010 é aplicado por faixa e de forma cumulativa: 65% nos primeiros 30 kWh, 40% de 31 a 100, 10% de 101 a 220. Num consumo de 80 kWh isso equivale a 49,4% de desconto. Esta é a única aplicação de regra normativa em todo o cálculo. Ela foi testada por inversão contra a CDE: partindo do subsídio efetivamente pago por família em cada município, o consumo que a regra implica é de 97,7 kWh na mediana, com 95,8% dos municípios entre 40 e 150 kWh. Uma regra errada por fator produziria consumo implícito absurdo.',
+      'A ANEEL publica a tarifa da subclasse Baixa Renda, que é a base sobre a qual a redução incide, e não a conta final. A regra vigente está na REN ANEEL 1.147/2025, art. 179, §1º, que deu nova redação ao art. 179 da REN 1.000/2021: redução de 100% para a parcela do consumo até 80 kWh/mês e de 0% para a parcela acima disso. A palavra <em>parcela</em> define a forma: é por faixa, e quem ultrapassa os 80 kWh não perde o benefício, paga apenas o excedente. A resolução produz efeitos desde 9 de dezembro de 2025, e a gratuidade em si desde 5 de julho de 2025, pela MP 1.300/2025, convertida na Lei 15.235/2025. A regra anterior, escalonada pela Lei 12.212/2010, é a que vale para a leitura de dezembro de 2024 desta comparação. Esta é a única aplicação de regra normativa em todo o cálculo, e foi testada por inversão contra a CDE: partindo do subsídio efetivamente pago por família, o consumo que a regra implica é de 70,5 kWh na mediana, com 99,1% dos municípios abaixo do teto de 80 kWh. Aplicar a regra anterior a estes mesmos dados implicaria consumo fisicamente implausível, e foi essa divergência que revelou a troca de regra.',
       'conta social = tarifa Baixa Renda × (30×0,35 + 50×0,60)')}
     ${S('02','Peso da conta na faixa de pobreza',
       'A conta de 80 kWh na tarifa da distribuidora que atende o município, dividida pela renda de um domicílio no teto da faixa de pobreza do CadÚnico. O teto é por pessoa, então precisa ser multiplicado pelo tamanho médio do domicílio: a conta é paga pela casa, e não por indivíduo.',
